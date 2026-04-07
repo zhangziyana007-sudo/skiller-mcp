@@ -2422,11 +2422,7 @@
         communityLoaded = true;
       }
 
-      if (!communityConfig.repo) {
-        renderCommunitySetup();
-        return;
-      }
-
+      const hasRepo = !!communityConfig.repo;
       const sources = communityConfig.sources || [];
 
       content.innerHTML = `
@@ -2434,9 +2430,9 @@
 
         <div class="tab-bar" style="margin-bottom:20px">
           <div class="tab-btn ${communityTab==='browse'?'active':''}" onclick="communityTab='browse'; renderCommunity()">🌐 浏览技能</div>
-          <div class="tab-btn ${communityTab==='upload'?'active':''}" onclick="communityTab='upload'; renderCommunity()">📤 上传/投稿</div>
           <div class="tab-btn ${communityTab==='sources'?'active':''}" onclick="communityTab='sources'; renderCommunity()">📡 订阅源管理</div>
-          <div class="tab-btn ${communityTab==='submissions'?'active':''}" onclick="communityTab='submissions'; renderCommunity()">📝 投稿列表</div>
+          ${hasRepo ? `<div class="tab-btn ${communityTab==='upload'?'active':''}" onclick="communityTab='upload'; renderCommunity()">📤 上传/投稿</div>` : ''}
+          ${hasRepo ? `<div class="tab-btn ${communityTab==='submissions'?'active':''}" onclick="communityTab='submissions'; renderCommunity()">📝 投稿列表</div>` : ''}
           <div class="tab-btn ${communityTab==='help'?'active':''}" onclick="communityTab='help'; renderCommunity()">❓ 帮助</div>
           <div class="tab-btn ${communityTab==='settings'?'active':''}" onclick="communityTab='settings'; renderCommunity()">⚙️ 设置</div>
         </div>
@@ -2445,6 +2441,10 @@
       `;
 
       const body = document.getElementById('communityBody');
+
+      if (!hasRepo && (communityTab === 'upload' || communityTab === 'submissions')) {
+        communityTab = 'sources';
+      }
 
       switch (communityTab) {
         case 'browse': renderCommunityBrowse(body); break;
@@ -2457,11 +2457,30 @@
     }
 
     async function renderCommunityBrowse(container) {
+      const sources = communityConfig.sources || [];
+      const hasRepo = !!communityConfig.repo;
+      const hasAnySources = hasRepo || sources.length > 0;
+
+      if (!hasAnySources) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">🌐</div>
+            <p>还没有订阅任何技能源</p>
+            <p style="font-family:var(--font-body); font-size:13px; margin-top:8px; color:var(--text2)">
+              点击上方「📡 订阅源管理」添加社区仓库地址，即可浏览和安装别人分享的技能！
+            </p>
+            <button class="btn btn-blue" style="margin-top:16px" onclick="communityTab='sources'; renderCommunity()">📡 去订阅</button>
+          </div>
+        `;
+        return;
+      }
+
+      const repoLabel = hasRepo ? communityConfig.repo : `${sources.length} 个订阅源`;
       container.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
           <h3 style="font-family:var(--font-display); color:var(--pink); font-size:17px">
             🌐 全部社区技能
-            <span style="font-size:13px; color:var(--text2); font-family:var(--font-body)">${communityConfig.repo}</span>
+            <span style="font-size:13px; color:var(--text2); font-family:var(--font-body)">${escapeHtml(repoLabel)}</span>
           </h3>
           <button class="btn" onclick="refreshCommunity()">🔄 刷新</button>
         </div>
