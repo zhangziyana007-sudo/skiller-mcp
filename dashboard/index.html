@@ -1,0 +1,3244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skiller - AI 技能管理器</title>
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Comic+Neue:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #FFF9C4;
+      --bg2: #FFFDE7;
+      --surface: #FFFFFF;
+      --surface2: #FFF3E0;
+      --border: #FFAB91;
+      --border2: #FFE0B2;
+      --text: #3E2723;
+      --text2: #795548;
+      --red: #E53935;
+      --red-light: #FFCDD2;
+      --yellow: #FFD600;
+      --yellow-light: #FFF59D;
+      --blue: #42A5F5;
+      --blue-light: #BBDEFB;
+      --green: #66BB6A;
+      --green-light: #C8E6C9;
+      --pink: #EC407A;
+      --pink-light: #F8BBD0;
+      --orange: #FF7043;
+      --orange-light: #FFCCBC;
+      --purple: #AB47BC;
+      --purple-light: #E1BEE7;
+      --radius: 16px;
+      --crayon-shadow: 3px 3px 0px rgba(0,0,0,0.08);
+      --font-display: 'ZCOOL KuaiLe', 'Comic Neue', cursive;
+      --font-body: 'Noto Sans SC', 'Comic Neue', sans-serif;
+    }
+
+    [data-theme="clean"] {
+      --bg: #f8f9fa;
+      --bg2: #f1f3f5;
+      --surface: #ffffff;
+      --surface2: #f8f9fa;
+      --border: #dee2e6;
+      --border2: #e9ecef;
+      --text: #212529;
+      --text2: #868e96;
+      --red: #339af0;
+      --red-light: #d0ebff;
+      --yellow: #339af0;
+      --yellow-light: #e7f5ff;
+      --blue: #339af0;
+      --blue-light: #d0ebff;
+      --green: #51cf66;
+      --green-light: #d3f9d8;
+      --pink: #f06595;
+      --pink-light: #fcc2d7;
+      --orange: #ff922b;
+      --orange-light: #ffe8cc;
+      --purple: #845ef7;
+      --purple-light: #e5dbff;
+      --radius: 10px;
+      --crayon-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --font-display: 'Inter', 'Noto Sans SC', sans-serif;
+      --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+    }
+
+    [data-theme="clean"] body::before { display: none; }
+    [data-theme="clean"] .crayon-texture { display: none; }
+    [data-theme="clean"] .deco-star { display: none; }
+
+    [data-theme="clean"] header {
+      background: #ffffff;
+      border-bottom: 1px solid #e9ecef;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    [data-theme="clean"] .logo h1 { color: #212529; text-shadow: none; }
+    [data-theme="clean"] .logo .subtitle { color: #868e96; }
+    [data-theme="clean"] .logo-icon {
+      background: #339af0;
+      border: 2px solid #228be6;
+      box-shadow: none;
+      animation: none;
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+    }
+    [data-theme="clean"] .live-indicator { color: #495057; background: #f1f3f5; border: 1px solid #dee2e6; }
+
+    [data-theme="clean"] .sidebar { border-right: 1px solid #e9ecef; box-shadow: none; }
+    [data-theme="clean"] .sidebar h3 { color: #339af0; font-family: 'Inter', sans-serif; font-weight: 700; }
+    [data-theme="clean"] .sidebar h3::before { content: ''; margin: 0; }
+    [data-theme="clean"] .nav-item { border-radius: 8px; border: 1px solid transparent; font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .nav-item:hover { background: #e7f5ff; border-color: #d0ebff; transform: none; }
+    [data-theme="clean"] .nav-item.active { background: #339af0; border-color: #228be6; border-radius: 8px; box-shadow: none; }
+    [data-theme="clean"] .nav-item .count { border: 1px solid #dee2e6; border-radius: 6px; font-family: 'Inter', sans-serif; }
+
+    [data-theme="clean"] .btn {
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+      box-shadow: none;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+    }
+    [data-theme="clean"] .btn:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+    [data-theme="clean"] .btn-red { background: #d0ebff; border-color: #339af0; color: #1971c2; }
+    [data-theme="clean"] .btn-blue { background: #d0ebff; border-color: #339af0; color: #1971c2; }
+    [data-theme="clean"] .btn-green { background: #d3f9d8; border-color: #51cf66; color: #2b8a3e; }
+
+    [data-theme="clean"] .stat-card {
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    [data-theme="clean"] .stat-card:nth-child(1) { border-color: #e9ecef; }
+    [data-theme="clean"] .stat-card:nth-child(2) { border-color: #e9ecef; }
+    [data-theme="clean"] .stat-card:nth-child(3) { border-color: #e9ecef; }
+    [data-theme="clean"] .stat-card:nth-child(4) { border-color: #e9ecef; }
+    [data-theme="clean"] .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.06); }
+    [data-theme="clean"] .stat-card::after { display: none; }
+    [data-theme="clean"] .stat-card .label { font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .stat-card .value { font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .stat-card .value.red { color: #339af0; }
+    [data-theme="clean"] .stat-card .value.blue { color: #339af0; }
+
+    [data-theme="clean"] .search-box input {
+      border-radius: 10px;
+      border: 1px solid #dee2e6;
+      box-shadow: none;
+      font-family: 'Inter', sans-serif;
+    }
+    [data-theme="clean"] .search-box input:focus { border-color: #339af0; box-shadow: 0 0 0 3px rgba(51,154,240,0.15); transform: none; }
+    [data-theme="clean"] .search-box input::placeholder { font-family: 'Inter', sans-serif; }
+
+    [data-theme="clean"] .skill-card {
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    [data-theme="clean"] .skill-card::before { display: none; }
+    [data-theme="clean"] .skill-card:hover { border-color: #339af0; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(51,154,240,0.1); }
+    [data-theme="clean"] .skill-card .name { font-family: 'Inter', sans-serif; font-weight: 600; }
+
+    [data-theme="clean"] .tag {
+      border-radius: 6px;
+      border: 1px solid #e9ecef;
+      font-family: 'Inter', sans-serif;
+    }
+    [data-theme="clean"] .tag.category { background: #d0ebff; color: #1971c2; border-color: #a5d8ff; }
+    [data-theme="clean"] .tag.source { background: #d3f9d8; color: #2b8a3e; border-color: #b2f2bb; }
+    [data-theme="clean"] .tag.tokens { background: #fff3bf; color: #e67700; border-color: #ffe066; }
+
+    [data-theme="clean"] .detail-panel { border-left: 2px solid #339af0; box-shadow: -2px 0 12px rgba(0,0,0,0.06); }
+    [data-theme="clean"] .detail-header { background: #f8f9fa; border-bottom: 1px solid #e9ecef; }
+    [data-theme="clean"] .detail-header h2 { color: #339af0; font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .detail-body pre { border-radius: 10px; border: 1px solid #e9ecef; }
+
+    [data-theme="clean"] .tab-bar { border-bottom: 1px solid #e9ecef; }
+    [data-theme="clean"] .tab-btn { border: 1px solid #e9ecef; border-radius: 8px 8px 0 0; font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .tab-btn.active { border-color: #339af0; color: #339af0; border-bottom: 1px solid white; }
+
+    [data-theme="clean"] .toast { border: 1px solid #d0ebff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    [data-theme="clean"] .toast::before { display: none; }
+    [data-theme="clean"] .toast .toast-tool { color: #339af0; font-family: 'Inter', sans-serif; }
+
+    [data-theme="clean"] .log-entry { border: 1px solid #e9ecef; border-radius: 10px; box-shadow: none; }
+    [data-theme="clean"] .log-entry:hover { border-color: #339af0; transform: none; }
+    [data-theme="clean"] .log-entry .tool-badge { border: 1px solid; font-family: 'Inter', sans-serif; }
+
+    [data-theme="clean"] .page-title { font-family: 'Inter', sans-serif; color: #339af0; }
+    [data-theme="clean"] .page-title .live-badge { border: 1px solid; }
+
+    [data-theme="clean"] .plaza-card { border: 1px solid #e9ecef; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    [data-theme="clean"] .plaza-card:hover { border-color: #339af0; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(51,154,240,0.1); }
+    [data-theme="clean"] .plaza-card .plaza-name { font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .plaza-card .btn-install { border-radius: 8px; border: 1px solid; }
+    [data-theme="clean"] .plaza-card .btn-preview { border-radius: 8px; border: 1px solid; }
+
+    [data-theme="clean"] .community-config { border: 1px solid #e9ecef; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    [data-theme="clean"] .community-config h3 { font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .config-field input { border-radius: 8px; border: 1px solid #dee2e6; }
+    [data-theme="clean"] .upload-section { border: 1px dashed #339af0; border-radius: 12px; }
+    [data-theme="clean"] .community-card { border: 1px solid #e9ecef; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    [data-theme="clean"] .community-card:hover { border-color: #f06595; transform: translateY(-2px); }
+
+    [data-theme="clean"] .filter-btn { border: 1px solid #e9ecef; border-radius: 8px; font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .filter-btn:hover { border-color: #339af0; background: #e7f5ff; }
+    [data-theme="clean"] .filter-btn.active { border-color: #339af0; background: #d0ebff; color: #1971c2; }
+
+    [data-theme="clean"] .tree-header { border-radius: 8px; }
+    [data-theme="clean"] .tree-header:hover { background: #e7f5ff; border-color: #d0ebff; }
+    [data-theme="clean"] .tree-header .toggle { border-radius: 4px; border: 1px solid; }
+    [data-theme="clean"] .tree-header .node-title { font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .tree-children { border-left: 2px dashed #e9ecef; }
+
+    [data-theme="clean"] .sub-skill-badge { border: 1px solid; border-radius: 6px; font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .source-badge { border: 1px solid; border-radius: 6px; font-family: 'Inter', sans-serif; }
+
+    [data-theme="clean"] @keyframes wobble { 0%, 100% { transform: none; } }
+
+    /* ====== Dark 暗黑 ====== */
+    [data-theme="dark"] {
+      --bg: #1a1a2e;
+      --bg2: #16213e;
+      --surface: #0f3460;
+      --surface2: #1a1a2e;
+      --border: #533483;
+      --border2: #30475e;
+      --text: #e0e0e0;
+      --text2: #a0a0b0;
+      --red: #e94560;
+      --red-light: #3a1525;
+      --yellow: #f5c518;
+      --yellow-light: #3a3210;
+      --blue: #4fc3f7;
+      --blue-light: #1a3040;
+      --green: #66bb6a;
+      --green-light: #1a3a1e;
+      --pink: #f48fb1;
+      --pink-light: #3a1a2e;
+      --orange: #ffab40;
+      --orange-light: #3a2a10;
+      --purple: #ce93d8;
+      --purple-light: #2a1a3a;
+      --radius: 12px;
+      --crayon-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      --font-display: 'Inter', 'Noto Sans SC', sans-serif;
+      --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+    }
+    [data-theme="dark"] body::before { display: none; }
+    [data-theme="dark"] .crayon-texture { display: none; }
+    [data-theme="dark"] .deco-star { display: none; }
+    [data-theme="dark"] header { background: #0f3460; border-bottom: 1px solid #533483; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    [data-theme="dark"] .logo h1 { color: #e94560; text-shadow: none; }
+    [data-theme="dark"] .logo .subtitle { color: #a0a0b0; }
+    [data-theme="dark"] .logo-icon { background: #e94560; border: 2px solid #c62050; box-shadow: none; animation: none; color: white; font-family: 'Inter', sans-serif; font-weight: 700; }
+    [data-theme="dark"] .live-indicator { color: #e0e0e0; background: rgba(255,255,255,0.05); border: 1px solid #30475e; }
+    [data-theme="dark"] .sidebar { border-right: 1px solid #30475e; background: #16213e; }
+    [data-theme="dark"] .sidebar h3 { color: #e94560; font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .sidebar h3::before { content: ''; }
+    [data-theme="dark"] .nav-item { border: 1px solid transparent; font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .nav-item:hover { background: rgba(233,69,96,0.1); border-color: rgba(233,69,96,0.3); transform: none; }
+    [data-theme="dark"] .nav-item.active { background: #e94560; border-color: #c62050; }
+    [data-theme="dark"] .nav-item .count { background: rgba(255,255,255,0.08); border: 1px solid #30475e; color: #a0a0b0; font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .nav-item.active .count { background: rgba(255,255,255,0.2); color: white; border-color: rgba(255,255,255,0.3); }
+    [data-theme="dark"] .btn { border-radius: 8px; border: 1px solid #30475e; box-shadow: none; font-family: 'Inter', sans-serif; background: #16213e; color: #e0e0e0; }
+    [data-theme="dark"] .btn:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    [data-theme="dark"] .btn-red { background: #3a1525; border-color: #e94560; color: #e94560; }
+    [data-theme="dark"] .btn-blue { background: #1a3040; border-color: #4fc3f7; color: #4fc3f7; }
+    [data-theme="dark"] .btn-green { background: #1a3a1e; border-color: #66bb6a; color: #66bb6a; }
+    [data-theme="dark"] .stat-card { border: 1px solid #30475e; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); background: #0f3460; }
+    [data-theme="dark"] .stat-card:nth-child(1), [data-theme="dark"] .stat-card:nth-child(2), [data-theme="dark"] .stat-card:nth-child(3), [data-theme="dark"] .stat-card:nth-child(4) { border-color: #30475e; }
+    [data-theme="dark"] .stat-card::after { display: none; }
+    [data-theme="dark"] .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    [data-theme="dark"] .stat-card .label, [data-theme="dark"] .stat-card .value { font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .stat-card .value.red { color: #e94560; }
+    [data-theme="dark"] .search-box input { border-radius: 10px; border: 1px solid #30475e; box-shadow: none; background: #16213e; color: #e0e0e0; font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .search-box input:focus { border-color: #e94560; box-shadow: 0 0 0 3px rgba(233,69,96,0.15); transform: none; }
+    [data-theme="dark"] .search-box input::placeholder { color: #606080; font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .skill-card { border: 1px solid #30475e; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); background: #0f3460; }
+    [data-theme="dark"] .skill-card::before { display: none; }
+    [data-theme="dark"] .skill-card:hover { border-color: #e94560; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(233,69,96,0.15); }
+    [data-theme="dark"] .skill-card .name { font-family: 'Inter', sans-serif; color: #e0e0e0; }
+    [data-theme="dark"] .tag { border: 1px solid #30475e; font-family: 'Inter', sans-serif; background: #16213e; color: #a0a0b0; }
+    [data-theme="dark"] .tag.category { background: #3a1525; color: #e94560; border-color: #e94560; }
+    [data-theme="dark"] .tag.source { background: #1a3a1e; color: #66bb6a; border-color: #66bb6a; }
+    [data-theme="dark"] .tag.tokens { background: #3a3210; color: #f5c518; border-color: #f5c518; }
+    [data-theme="dark"] .detail-panel { border-left: 2px solid #e94560; background: #16213e; box-shadow: -2px 0 16px rgba(0,0,0,0.4); }
+    [data-theme="dark"] .detail-header { background: #0f3460; border-bottom: 1px solid #30475e; }
+    [data-theme="dark"] .detail-header h2 { color: #e94560; font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .detail-body pre { background: #1a1a2e; border: 1px solid #30475e; border-radius: 10px; color: #e0e0e0; }
+    [data-theme="dark"] .tab-bar { border-bottom: 1px solid #30475e; }
+    [data-theme="dark"] .tab-btn { border: 1px solid #30475e; background: #1a1a2e; color: #a0a0b0; font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .tab-btn:hover { background: rgba(233,69,96,0.1); }
+    [data-theme="dark"] .tab-btn.active { border-color: #e94560; color: #e94560; background: #16213e; border-bottom-color: #16213e; }
+    [data-theme="dark"] .toast { background: #0f3460; border: 1px solid #30475e; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+    [data-theme="dark"] .toast::before { display: none; }
+    [data-theme="dark"] .toast .toast-tool { color: #e94560; font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .log-entry { border: 1px solid #30475e; background: #0f3460; }
+    [data-theme="dark"] .log-entry:hover { border-color: #e94560; }
+    [data-theme="dark"] .page-title { font-family: 'Inter', sans-serif; color: #e94560; }
+    [data-theme="dark"] .plaza-card { border: 1px solid #30475e; background: #0f3460; }
+    [data-theme="dark"] .plaza-card:hover { border-color: #4fc3f7; }
+    [data-theme="dark"] .plaza-card .plaza-name { font-family: 'Inter', sans-serif; color: #e0e0e0; }
+    [data-theme="dark"] .community-config { border: 1px solid #30475e; background: #0f3460; }
+    [data-theme="dark"] .community-config h3 { font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .config-field input { background: #1a1a2e; border: 1px solid #30475e; color: #e0e0e0; }
+    [data-theme="dark"] .filter-btn { border: 1px solid #30475e; background: #16213e; color: #a0a0b0; font-family: 'Inter', sans-serif; }
+    [data-theme="dark"] .filter-btn:hover { border-color: #e94560; background: rgba(233,69,96,0.1); }
+    [data-theme="dark"] .filter-btn.active { border-color: #e94560; background: #3a1525; color: #e94560; }
+    [data-theme="dark"] @keyframes wobble { 0%, 100% { transform: none; } }
+
+    /* ====== Ocean 海洋蓝 ====== */
+    [data-theme="ocean"] {
+      --bg: #e3f2fd;
+      --bg2: #e8f4fd;
+      --surface: #ffffff;
+      --surface2: #e1f5fe;
+      --border: #64b5f6;
+      --border2: #90caf9;
+      --text: #0d47a1;
+      --text2: #5472a0;
+      --red: #1565c0;
+      --red-light: #bbdefb;
+      --yellow: #0288d1;
+      --yellow-light: #b3e5fc;
+      --blue: #1976d2;
+      --blue-light: #bbdefb;
+      --green: #00897b;
+      --green-light: #b2dfdb;
+      --pink: #5c6bc0;
+      --pink-light: #c5cae9;
+      --orange: #0097a7;
+      --orange-light: #b2ebf2;
+      --purple: #7e57c2;
+      --purple-light: #d1c4e9;
+      --radius: 14px;
+      --crayon-shadow: 0 2px 8px rgba(21,101,192,0.08);
+      --font-display: 'Inter', 'Noto Sans SC', sans-serif;
+      --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+    }
+    [data-theme="ocean"] body::before {
+      background: linear-gradient(135deg, rgba(21,101,192,0.05) 0%, rgba(0,150,136,0.05) 50%, rgba(25,118,210,0.03) 100%);
+    }
+    [data-theme="ocean"] .crayon-texture { display: none; }
+    [data-theme="ocean"] .deco-star { color: #1565c0; opacity: 0.08; }
+    [data-theme="ocean"] header { background: linear-gradient(135deg, #1565c0, #0d47a1); border-bottom: 2px solid #0d47a1; box-shadow: 0 2px 8px rgba(21,101,192,0.2); }
+    [data-theme="ocean"] .logo-icon { background: #ffffff; border: 2px solid rgba(255,255,255,0.5); color: #1565c0; animation: none; box-shadow: none; font-family: 'Inter', sans-serif; font-weight: 700; }
+    [data-theme="ocean"] .logo h1 { text-shadow: none; }
+    [data-theme="ocean"] .sidebar h3 { color: #1565c0; font-family: 'Inter', sans-serif; }
+    [data-theme="ocean"] .sidebar h3::before { content: ''; }
+    [data-theme="ocean"] .nav-item { font-family: 'Inter', sans-serif; border: 1px solid transparent; }
+    [data-theme="ocean"] .nav-item:hover { background: #bbdefb; border-color: #90caf9; transform: none; }
+    [data-theme="ocean"] .nav-item.active { background: #1565c0; border-color: #0d47a1; }
+    [data-theme="ocean"] .nav-item .count { font-family: 'Inter', sans-serif; border: 1px solid #90caf9; }
+    [data-theme="ocean"] .btn { font-family: 'Inter', sans-serif; border-radius: 10px; border: 1px solid; box-shadow: none; }
+    [data-theme="ocean"] .btn:hover { transform: translateY(-1px); }
+    [data-theme="ocean"] .stat-card { border: 1px solid #90caf9; border-radius: 14px; }
+    [data-theme="ocean"] .stat-card:nth-child(1), [data-theme="ocean"] .stat-card:nth-child(2), [data-theme="ocean"] .stat-card:nth-child(3), [data-theme="ocean"] .stat-card:nth-child(4) { border-color: #90caf9; }
+    [data-theme="ocean"] .stat-card::after { display: none; }
+    [data-theme="ocean"] .stat-card:hover { transform: translateY(-2px); }
+    [data-theme="ocean"] .stat-card .label, [data-theme="ocean"] .stat-card .value { font-family: 'Inter', sans-serif; }
+    [data-theme="ocean"] .search-box input { border: 1px solid #90caf9; border-radius: 12px; box-shadow: none; font-family: 'Inter', sans-serif; }
+    [data-theme="ocean"] .search-box input:focus { border-color: #1565c0; box-shadow: 0 0 0 3px rgba(21,101,192,0.12); transform: none; }
+    [data-theme="ocean"] .search-box input::placeholder { font-family: 'Inter', sans-serif; }
+    [data-theme="ocean"] .skill-card { border: 1px solid #90caf9; border-radius: 14px; }
+    [data-theme="ocean"] .skill-card::before { background: #1565c0; }
+    [data-theme="ocean"] .skill-card:hover { border-color: #1565c0; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(21,101,192,0.1); }
+    [data-theme="ocean"] .skill-card .name { font-family: 'Inter', sans-serif; }
+    [data-theme="ocean"] .tag { font-family: 'Inter', sans-serif; border: 1px solid; }
+    [data-theme="ocean"] .detail-panel { border-left: 2px solid #1565c0; }
+    [data-theme="ocean"] .detail-header h2 { font-family: 'Inter', sans-serif; }
+    [data-theme="ocean"] .tab-btn { font-family: 'Inter', sans-serif; border: 1px solid; }
+    [data-theme="ocean"] .page-title { font-family: 'Inter', sans-serif; }
+    [data-theme="ocean"] .community-config { border: 1px solid #90caf9; }
+    [data-theme="ocean"] .community-config h3 { font-family: 'Inter', sans-serif; }
+    [data-theme="ocean"] .filter-btn { font-family: 'Inter', sans-serif; border: 1px solid; }
+    [data-theme="ocean"] @keyframes wobble { 0%, 100% { transform: none; } }
+
+    /* ====== Forest 森林绿 ====== */
+    [data-theme="forest"] {
+      --bg: #e8f5e9;
+      --bg2: #f1f8e9;
+      --surface: #ffffff;
+      --surface2: #e8f5e9;
+      --border: #81c784;
+      --border2: #a5d6a7;
+      --text: #1b5e20;
+      --text2: #558b2f;
+      --red: #2e7d32;
+      --red-light: #c8e6c9;
+      --yellow: #689f38;
+      --yellow-light: #dcedc8;
+      --blue: #00796b;
+      --blue-light: #b2dfdb;
+      --green: #388e3c;
+      --green-light: #c8e6c9;
+      --pink: #8d6e63;
+      --pink-light: #d7ccc8;
+      --orange: #f57f17;
+      --orange-light: #fff9c4;
+      --purple: #6a1b9a;
+      --purple-light: #e1bee7;
+      --radius: 14px;
+      --crayon-shadow: 0 2px 6px rgba(46,125,50,0.08);
+      --font-display: 'Inter', 'Noto Sans SC', sans-serif;
+      --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+    }
+    [data-theme="forest"] body::before {
+      background: linear-gradient(135deg, rgba(46,125,50,0.04) 0%, rgba(104,159,56,0.04) 50%, rgba(0,121,107,0.03) 100%);
+    }
+    [data-theme="forest"] .crayon-texture { display: none; }
+    [data-theme="forest"] .deco-star { color: #2e7d32; opacity: 0.08; }
+    [data-theme="forest"] header { background: linear-gradient(135deg, #2e7d32, #1b5e20); border-bottom: 2px solid #1b5e20; box-shadow: 0 2px 8px rgba(46,125,50,0.2); }
+    [data-theme="forest"] .logo-icon { background: #fff9c4; border: 2px solid #f9a825; color: #1b5e20; animation: none; box-shadow: none; font-family: 'Inter', sans-serif; font-weight: 700; }
+    [data-theme="forest"] .logo h1 { text-shadow: none; }
+    [data-theme="forest"] .sidebar h3 { color: #2e7d32; font-family: 'Inter', sans-serif; }
+    [data-theme="forest"] .sidebar h3::before { content: '🌿'; }
+    [data-theme="forest"] .nav-item { font-family: 'Inter', sans-serif; border: 1px solid transparent; }
+    [data-theme="forest"] .nav-item:hover { background: #c8e6c9; border-color: #a5d6a7; transform: none; }
+    [data-theme="forest"] .nav-item.active { background: #2e7d32; border-color: #1b5e20; }
+    [data-theme="forest"] .nav-item .count { font-family: 'Inter', sans-serif; border: 1px solid #a5d6a7; }
+    [data-theme="forest"] .btn { font-family: 'Inter', sans-serif; border-radius: 10px; border: 1px solid; box-shadow: none; }
+    [data-theme="forest"] .stat-card { border: 1px solid #a5d6a7; }
+    [data-theme="forest"] .stat-card:nth-child(1), [data-theme="forest"] .stat-card:nth-child(2), [data-theme="forest"] .stat-card:nth-child(3), [data-theme="forest"] .stat-card:nth-child(4) { border-color: #a5d6a7; }
+    [data-theme="forest"] .stat-card::after { display: none; }
+    [data-theme="forest"] .stat-card .label, [data-theme="forest"] .stat-card .value { font-family: 'Inter', sans-serif; }
+    [data-theme="forest"] .stat-card .value.red { color: #2e7d32; }
+    [data-theme="forest"] .search-box input { border: 1px solid #a5d6a7; font-family: 'Inter', sans-serif; }
+    [data-theme="forest"] .search-box input:focus { border-color: #2e7d32; box-shadow: 0 0 0 3px rgba(46,125,50,0.12); }
+    [data-theme="forest"] .search-box input::placeholder { font-family: 'Inter', sans-serif; }
+    [data-theme="forest"] .skill-card { border: 1px solid #a5d6a7; }
+    [data-theme="forest"] .skill-card::before { background: #2e7d32; }
+    [data-theme="forest"] .skill-card:hover { border-color: #2e7d32; }
+    [data-theme="forest"] .skill-card .name { font-family: 'Inter', sans-serif; }
+    [data-theme="forest"] .tag { font-family: 'Inter', sans-serif; border: 1px solid; }
+    [data-theme="forest"] .tag.category { background: #c8e6c9; color: #1b5e20; border-color: #81c784; }
+    [data-theme="forest"] .detail-panel { border-left: 2px solid #2e7d32; }
+    [data-theme="forest"] .detail-header h2 { font-family: 'Inter', sans-serif; color: #2e7d32; }
+    [data-theme="forest"] .page-title { font-family: 'Inter', sans-serif; color: #2e7d32; }
+    [data-theme="forest"] .tab-btn, [data-theme="forest"] .filter-btn, [data-theme="forest"] .community-config h3 { font-family: 'Inter', sans-serif; }
+    [data-theme="forest"] @keyframes wobble { 0%, 100% { transform: none; } }
+
+    /* ====== Sunset 日落 ====== */
+    [data-theme="sunset"] {
+      --bg: #fff3e0;
+      --bg2: #fff8e1;
+      --surface: #ffffff;
+      --surface2: #fbe9e7;
+      --border: #ff8a65;
+      --border2: #ffab91;
+      --text: #bf360c;
+      --text2: #a1887f;
+      --red: #e65100;
+      --red-light: #ffe0b2;
+      --yellow: #ff8f00;
+      --yellow-light: #ffecb3;
+      --blue: #f4511e;
+      --blue-light: #ffccbc;
+      --green: #ef6c00;
+      --green-light: #ffe0b2;
+      --pink: #d84315;
+      --pink-light: #ffccbc;
+      --orange: #ff6d00;
+      --orange-light: #ffd180;
+      --purple: #ad1457;
+      --purple-light: #f8bbd0;
+      --radius: 16px;
+      --crayon-shadow: 0 2px 8px rgba(230,81,0,0.08);
+      --font-display: 'Inter', 'Noto Sans SC', sans-serif;
+      --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+    }
+    [data-theme="sunset"] body::before {
+      background: linear-gradient(135deg, rgba(255,111,0,0.06) 0%, rgba(230,81,0,0.04) 30%, rgba(255,143,0,0.04) 70%, rgba(173,20,87,0.03) 100%);
+    }
+    [data-theme="sunset"] .crayon-texture { display: none; }
+    [data-theme="sunset"] .deco-star { color: #e65100; opacity: 0.1; }
+    [data-theme="sunset"] header { background: linear-gradient(135deg, #e65100, #bf360c, #ad1457); border-bottom: 2px solid #bf360c; box-shadow: 0 2px 8px rgba(230,81,0,0.2); }
+    [data-theme="sunset"] .logo-icon { background: #ffab40; border: 2px solid #ff8f00; color: #bf360c; animation: none; box-shadow: none; font-family: 'Inter', sans-serif; font-weight: 700; }
+    [data-theme="sunset"] .logo h1 { text-shadow: none; }
+    [data-theme="sunset"] .sidebar h3 { color: #e65100; font-family: 'Inter', sans-serif; }
+    [data-theme="sunset"] .sidebar h3::before { content: '🌅'; }
+    [data-theme="sunset"] .nav-item { font-family: 'Inter', sans-serif; border: 1px solid transparent; }
+    [data-theme="sunset"] .nav-item:hover { background: #ffe0b2; border-color: #ffab91; transform: none; }
+    [data-theme="sunset"] .nav-item.active { background: #e65100; border-color: #bf360c; }
+    [data-theme="sunset"] .nav-item .count { font-family: 'Inter', sans-serif; border: 1px solid #ffab91; }
+    [data-theme="sunset"] .btn { font-family: 'Inter', sans-serif; border-radius: 10px; border: 1px solid; box-shadow: none; }
+    [data-theme="sunset"] .stat-card { border: 1px solid #ffab91; }
+    [data-theme="sunset"] .stat-card:nth-child(1), [data-theme="sunset"] .stat-card:nth-child(2), [data-theme="sunset"] .stat-card:nth-child(3), [data-theme="sunset"] .stat-card:nth-child(4) { border-color: #ffab91; }
+    [data-theme="sunset"] .stat-card::after { display: none; }
+    [data-theme="sunset"] .stat-card .label, [data-theme="sunset"] .stat-card .value { font-family: 'Inter', sans-serif; }
+    [data-theme="sunset"] .stat-card .value.red { color: #e65100; }
+    [data-theme="sunset"] .search-box input { border: 1px solid #ffab91; font-family: 'Inter', sans-serif; }
+    [data-theme="sunset"] .search-box input:focus { border-color: #e65100; box-shadow: 0 0 0 3px rgba(230,81,0,0.12); }
+    [data-theme="sunset"] .search-box input::placeholder { font-family: 'Inter', sans-serif; }
+    [data-theme="sunset"] .skill-card { border: 1px solid #ffab91; }
+    [data-theme="sunset"] .skill-card::before { background: #e65100; }
+    [data-theme="sunset"] .skill-card:hover { border-color: #e65100; }
+    [data-theme="sunset"] .skill-card .name { font-family: 'Inter', sans-serif; }
+    [data-theme="sunset"] .tag { font-family: 'Inter', sans-serif; border: 1px solid; }
+    [data-theme="sunset"] .tag.category { background: #ffe0b2; color: #bf360c; border-color: #ff8a65; }
+    [data-theme="sunset"] .detail-panel { border-left: 2px solid #e65100; }
+    [data-theme="sunset"] .detail-header h2 { font-family: 'Inter', sans-serif; color: #e65100; }
+    [data-theme="sunset"] .page-title { font-family: 'Inter', sans-serif; color: #e65100; }
+    [data-theme="sunset"] .tab-btn, [data-theme="sunset"] .filter-btn, [data-theme="sunset"] .community-config h3 { font-family: 'Inter', sans-serif; }
+    [data-theme="sunset"] @keyframes wobble { 0%, 100% { transform: none; } }
+
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.15);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .theme-toggle:hover { background: rgba(255,255,255,0.3); }
+    [data-theme="clean"] .theme-toggle, [data-theme="ocean"] .theme-toggle, [data-theme="forest"] .theme-toggle, [data-theme="sunset"] .theme-toggle { border: 1px solid var(--border2); background: var(--bg2); }
+    [data-theme="dark"] .theme-toggle { border: 1px solid #30475e; background: #16213e; }
+
+    .theme-picker {
+      display: none;
+      position: absolute;
+      top: 44px;
+      right: 0;
+      background: var(--surface);
+      border: 2px solid var(--border2);
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      z-index: 300;
+      min-width: 160px;
+    }
+    .theme-picker.open { display: block; }
+    .theme-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: var(--font-body);
+      color: var(--text);
+      transition: background 0.2s;
+    }
+    .theme-option:hover { background: var(--bg2); }
+    .theme-option.active { background: var(--red-light); font-weight: 600; }
+    .theme-swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.1);
+      flex-shrink: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(255,214,0,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(236,64,122,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(66,165,245,0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .crayon-texture {
+      position: fixed;
+      inset: 0;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      background: var(--red);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 4px solid #C62828;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--yellow);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      border: 3px solid #F9A825;
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+      animation: wobble 3s ease-in-out infinite;
+      cursor: pointer;
+    }
+
+    @keyframes wobble {
+      0%, 100% { transform: rotate(-3deg); }
+      50% { transform: rotate(3deg); }
+    }
+
+    .logo h1 {
+      font-family: var(--font-display);
+      font-size: 28px;
+      color: white;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+      letter-spacing: 2px;
+    }
+
+    .logo .subtitle {
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: rgba(255,255,255,0.85);
+      margin-top: -2px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 8px 18px;
+      border-radius: 24px;
+      border: 3px solid transparent;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 14px;
+      transition: all 0.2s;
+      box-shadow: var(--crayon-shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px) rotate(-1deg);
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.12);
+    }
+
+    .btn:active {
+      transform: translateY(0) rotate(0);
+      box-shadow: 1px 1px 0 rgba(0,0,0,0.08);
+    }
+
+    .btn-red { background: var(--red-light); border-color: var(--red); color: var(--red); }
+    .btn-blue { background: var(--blue-light); border-color: var(--blue); color: #1565C0; }
+    .btn-green { background: var(--green-light); border-color: var(--green); color: #2E7D32; }
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.2);
+      border: 2px solid rgba(255,255,255,0.3);
+      font-family: var(--font-body);
+    }
+
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      transition: background 0.3s;
+    }
+
+    .live-dot.connected {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    .live-dot.active {
+      background: var(--yellow);
+      box-shadow: 0 0 10px var(--yellow);
+      animation: pulse 0.4s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: calc(100vh - 72px);
+      position: relative;
+      z-index: 1;
+    }
+
+    .sidebar {
+      background: var(--surface);
+      border-right: 3px solid var(--border2);
+      padding: 16px 12px;
+      overflow-y: auto;
+      box-shadow: 3px 0 0 rgba(0,0,0,0.03);
+    }
+
+    .sidebar h3 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      color: var(--red);
+      margin-bottom: 12px;
+      padding-left: 8px;
+      position: relative;
+    }
+
+    .sidebar h3::before {
+      content: '★';
+      margin-right: 6px;
+      font-size: 14px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      border: 2px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: var(--yellow-light);
+      border-color: var(--yellow);
+      transform: translateX(4px);
+    }
+
+    .nav-item.active {
+      background: var(--red);
+      color: white;
+      border-color: #C62828;
+      box-shadow: var(--crayon-shadow);
+    }
+
+    .nav-item .count {
+      font-family: var(--font-display);
+      font-size: 13px;
+      color: var(--text2);
+      background: var(--bg);
+      padding: 2px 10px;
+      border-radius: 12px;
+      border: 2px solid var(--border2);
+    }
+
+    .nav-item.active .count {
+      background: rgba(255,255,255,0.3);
+      color: white;
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    .content {
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 3px solid var(--border2);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: var(--crayon-shadow);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card:nth-child(1) { border-color: var(--red); }
+    .stat-card:nth-child(1)::after { content: '🎯'; position: absolute; top: 8px; right: 12px; font-size: 20px; opacity: 0.6; }
+    .stat-card:nth-child(2) { border-color: var(--green); }
+    .stat-card:nth-child(2)::after { content: '🎨'; position: absolute; top: 8px; right: 12px; font-size: 20px; opacity: 0.6; }
+    .stat-card:nth-child(3) { border-color: var(--blue); }
+    .stat-card:nth-child(3)::after { content: '⚡'; position: absolute; top: 8px; right: 12px; font-size: 20px; opacity: 0.6; }
+    .stat-card:nth-child(4) { border-color: var(--orange); }
+    .stat-card:nth-child(4)::after { content: '🔧'; position: absolute; top: 8px; right: 12px; font-size: 20px; opacity: 0.6; }
+
+    .stat-card:hover {
+      transform: translateY(-4px) rotate(-1deg);
+      box-shadow: 5px 5px 0 rgba(0,0,0,0.1);
+    }
+
+    .stat-card .label {
+      font-family: var(--font-display);
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    .stat-card .value {
+      font-family: var(--font-display);
+      font-size: 36px;
+      margin-top: 4px;
+      line-height: 1;
+    }
+
+    .stat-card .value.red { color: var(--red); }
+    .stat-card .value.green { color: var(--green); }
+    .stat-card .value.blue { color: var(--blue); }
+    .stat-card .value.orange { color: var(--orange); }
+
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 12px 20px;
+      border-radius: 24px;
+      border: 3px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s;
+      box-shadow: var(--crayon-shadow);
+    }
+
+    .search-box input:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px var(--red-light);
+      transform: scale(1.01);
+    }
+
+    .search-box input::placeholder {
+      color: var(--text2);
+      font-family: var(--font-display);
+    }
+
+    .skill-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .skill-card {
+      background: var(--surface);
+      border: 3px solid var(--border2);
+      border-radius: 20px;
+      padding: 18px 22px;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: var(--crayon-shadow);
+      position: relative;
+    }
+
+    .skill-card::before {
+      content: '';
+      position: absolute;
+      left: -1px;
+      top: 12px;
+      bottom: 12px;
+      width: 5px;
+      border-radius: 0 4px 4px 0;
+      background: var(--yellow);
+      transition: all 0.3s;
+    }
+
+    .skill-card:hover {
+      border-color: var(--red);
+      transform: translateY(-3px) rotate(-0.5deg);
+      box-shadow: 5px 5px 0 rgba(229,57,53,0.15);
+    }
+
+    .skill-card:hover::before {
+      background: var(--red);
+      width: 6px;
+    }
+
+    .skill-card .name {
+      font-family: var(--font-display);
+      font-size: 18px;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .skill-card .desc {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .skill-card .meta {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 12px;
+      border: 2px solid var(--border2);
+      background: var(--bg2);
+      color: var(--text2);
+    }
+
+    .tag.category {
+      background: var(--red-light);
+      color: var(--red);
+      border-color: var(--red);
+    }
+
+    .tag.source {
+      background: var(--green-light);
+      color: #2E7D32;
+      border-color: var(--green);
+    }
+
+    .tag.tokens {
+      background: var(--yellow-light);
+      color: #F57F17;
+      border-color: var(--yellow);
+    }
+
+    .detail-panel {
+      position: fixed;
+      right: 0;
+      top: 72px;
+      width: 50%;
+      height: calc(100vh - 72px);
+      background: var(--surface);
+      border-left: 4px solid var(--red);
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      box-shadow: -5px 0 20px rgba(0,0,0,0.1);
+    }
+
+    .detail-panel.open {
+      transform: translateX(0);
+    }
+
+    .detail-header {
+      padding: 16px 20px;
+      border-bottom: 3px solid var(--border2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg2);
+    }
+
+    .detail-header h2 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      color: var(--red);
+    }
+
+    .detail-body {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .detail-body pre {
+      background: var(--bg);
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 2px solid var(--border2);
+      font-family: 'Noto Sans SC', monospace;
+    }
+
+    .skill-tree {
+      margin: 16px 0;
+    }
+
+    .tree-node {
+      margin-bottom: 6px;
+    }
+
+    .tree-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+      font-size: 14px;
+    }
+
+    .tree-header:hover {
+      background: var(--yellow-light);
+      border-color: var(--yellow);
+    }
+
+    .tree-header .toggle {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: var(--red-light);
+      border: 2px solid var(--red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--red);
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+
+    .tree-header.expanded .toggle {
+      background: var(--red);
+      color: white;
+      transform: rotate(90deg);
+    }
+
+    .tree-header .node-title {
+      font-family: var(--font-display);
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .tree-header .node-title.level-2 { font-size: 15px; color: var(--red); }
+    .tree-header .node-title.level-3 { font-size: 14px; color: var(--blue); }
+    .tree-header .node-title.level-4 { font-size: 13px; color: var(--green); }
+
+    .tree-header .child-count {
+      font-size: 11px;
+      padding: 1px 8px;
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text2);
+      border: 1px solid var(--border2);
+    }
+
+    .tree-children {
+      display: none;
+      padding-left: 20px;
+      margin-left: 10px;
+      border-left: 3px dashed var(--border2);
+    }
+
+    .tree-children.visible { display: block; }
+
+    .tree-summary {
+      font-size: 12px;
+      color: var(--text2);
+      padding: 4px 12px 4px 42px;
+      line-height: 1.5;
+    }
+
+    .tree-bullets {
+      padding: 6px 12px 6px 42px;
+    }
+
+    .tree-bullet {
+      font-size: 12px;
+      color: var(--text2);
+      padding: 3px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .tree-bullet::before {
+      content: '▸';
+      color: var(--orange);
+      font-size: 10px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .sub-skill-badge {
+      font-family: var(--font-display);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 8px;
+      background: var(--pink-light);
+      color: var(--pink);
+      border: 2px solid var(--pink);
+    }
+
+    .sub-skill-badge.declared {
+      background: var(--green-light);
+      color: #2E7D32;
+      border-color: var(--green);
+    }
+
+    .sub-skill-badge.auto {
+      background: var(--orange-light);
+      color: #E65100;
+      border-color: var(--orange);
+    }
+
+    .source-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-display);
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .source-badge.declared {
+      background: var(--green-light);
+      color: #2E7D32;
+      border: 2px solid var(--green);
+    }
+
+    .source-badge.auto {
+      background: var(--orange-light);
+      color: #E65100;
+      border: 2px solid var(--orange);
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      border-bottom: 3px solid var(--border2);
+      padding-bottom: 0;
+    }
+
+    .tab-btn {
+      padding: 8px 18px;
+      border-radius: 12px 12px 0 0;
+      border: 2px solid var(--border2);
+      border-bottom: none;
+      background: var(--bg2);
+      color: var(--text2);
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover { background: var(--yellow-light); }
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--red);
+      border-color: var(--red);
+      border-bottom: 2px solid var(--surface);
+      margin-bottom: -3px;
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 86px;
+      right: 24px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--surface);
+      border: 3px solid var(--blue);
+      border-radius: 16px;
+      padding: 14px 18px;
+      font-size: 13px;
+      box-shadow: 4px 4px 0 rgba(66,165,245,0.2);
+      animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), toastOut 0.3s ease 4s forwards;
+      max-width: 340px;
+      pointer-events: auto;
+      position: relative;
+    }
+
+    .toast::before {
+      content: '📢';
+      position: absolute;
+      top: -12px;
+      left: -8px;
+      font-size: 22px;
+      animation: bounce 0.6s ease;
+    }
+
+    .toast .toast-tool {
+      font-family: var(--font-display);
+      font-weight: 700;
+      color: var(--red);
+    }
+
+    .toast .toast-time {
+      font-size: 11px;
+      color: var(--text2);
+      margin-top: 4px;
+    }
+
+    .toast .toast-result {
+      font-size: 12px;
+      color: var(--green);
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    @keyframes toastIn {
+      from { transform: translateX(120%) rotate(5deg); opacity: 0; }
+      to { transform: translateX(0) rotate(0); opacity: 1; }
+    }
+
+    @keyframes toastOut {
+      from { opacity: 1; transform: scale(1); }
+      to { opacity: 0; transform: scale(0.9) translateY(-10px); }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-8px); }
+      60% { transform: translateY(-4px); }
+    }
+
+    .log-section { margin-top: 12px; }
+
+    .log-entry {
+      background: var(--surface);
+      border: 3px solid var(--border2);
+      border-radius: 16px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: 13px;
+      box-shadow: var(--crayon-shadow);
+      transition: all 0.2s;
+    }
+
+    .log-entry:hover {
+      border-color: var(--blue);
+      transform: translateX(4px);
+    }
+
+    .log-entry .tool-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .log-entry .time {
+      color: var(--text2);
+      font-size: 12px;
+      white-space: nowrap;
+      margin-left: 12px;
+    }
+
+    .log-entry .summary {
+      color: var(--text2);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .log-entry .tool-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-family: var(--font-display);
+      font-size: 11px;
+      margin-right: 8px;
+      border: 2px solid;
+    }
+
+    .log-entry .tool-badge.search { background: var(--red-light); color: var(--red); border-color: var(--red); }
+    .log-entry .tool-badge.detail { background: var(--green-light); color: #2E7D32; border-color: var(--green); }
+    .log-entry .tool-badge.stats { background: var(--blue-light); color: #1565C0; border-color: var(--blue); }
+    .log-entry .tool-badge.online { background: var(--orange-light); color: #E65100; border-color: var(--orange); }
+    .log-entry .tool-badge.other { background: var(--purple-light); color: var(--purple); border-color: var(--purple); }
+
+    .log-entry.new-entry {
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border-color: var(--red);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.8) rotate(-2deg); opacity: 0; }
+      60% { transform: scale(1.03) rotate(0.5deg); }
+      100% { transform: scale(1) rotate(0); opacity: 1; }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text2);
+    }
+
+    .empty-state .icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      animation: wobble 3s ease-in-out infinite;
+    }
+
+    .empty-state p {
+      font-family: var(--font-display);
+      font-size: 16px;
+    }
+
+    .deco-star {
+      position: fixed;
+      font-size: 24px;
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    .page-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      color: var(--red);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .page-title .live-badge {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--green);
+      font-weight: 500;
+      background: var(--green-light);
+      padding: 3px 10px;
+      border-radius: 10px;
+      border: 2px solid var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    .plaza-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .plaza-card {
+      background: var(--surface);
+      border: 3px solid var(--border2);
+      border-radius: 20px;
+      padding: 20px;
+      transition: all 0.25s;
+      box-shadow: var(--crayon-shadow);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .plaza-card:hover {
+      border-color: var(--blue);
+      transform: translateY(-3px);
+      box-shadow: 5px 5px 0 rgba(66,165,245,0.15);
+    }
+
+    .plaza-card .plaza-name {
+      font-family: var(--font-display);
+      font-size: 17px;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .plaza-card .plaza-desc {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.5;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .plaza-card .plaza-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .plaza-card .plaza-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .plaza-card .btn-install {
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 2px solid var(--green);
+      background: var(--green-light);
+      color: #2E7D32;
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .plaza-card .btn-install:hover {
+      background: var(--green);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .plaza-card .btn-install.installed {
+      background: var(--text2);
+      border-color: var(--text2);
+      color: white;
+      cursor: default;
+      opacity: 0.6;
+    }
+
+    .plaza-card .btn-preview {
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 2px solid var(--border2);
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .plaza-card .btn-preview:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .plaza-card .repo-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 8px;
+      background: var(--blue-light);
+      color: #1565C0;
+      border: 1px solid var(--blue);
+    }
+
+    .plaza-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .plaza-filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 2px solid var(--border2);
+      background: var(--surface);
+      color: var(--text2);
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover { border-color: var(--yellow); background: var(--yellow-light); }
+    .filter-btn.active { border-color: var(--red); background: var(--red-light); color: var(--red); }
+
+    .plaza-loading {
+      text-align: center;
+      padding: 60px;
+      font-family: var(--font-display);
+      color: var(--text2);
+    }
+
+    .plaza-loading .spinner {
+      font-size: 48px;
+      animation: wobble 1s infinite;
+      display: block;
+      margin-bottom: 16px;
+    }
+
+    .community-config {
+      background: var(--surface);
+      border: 3px solid var(--border2);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--crayon-shadow);
+    }
+
+    .community-config h3 {
+      font-family: var(--font-display);
+      color: var(--red);
+      margin-bottom: 16px;
+      font-size: 16px;
+    }
+
+    .config-field {
+      margin-bottom: 14px;
+    }
+
+    .config-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      margin-bottom: 4px;
+      font-family: var(--font-display);
+    }
+
+    .config-field input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 2px solid var(--border2);
+      background: var(--bg2);
+      color: var(--text);
+      font-size: 14px;
+      font-family: var(--font-body);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .config-field input:focus {
+      border-color: var(--red);
+    }
+
+    .config-field .hint {
+      font-size: 11px;
+      color: var(--text2);
+      margin-top: 4px;
+    }
+
+    .upload-section {
+      background: var(--surface);
+      border: 3px dashed var(--blue);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .upload-section h3 {
+      font-family: var(--font-display);
+      color: var(--blue);
+      margin-bottom: 12px;
+    }
+
+    .upload-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .upload-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 2px solid var(--border2);
+      background: var(--bg2);
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .upload-item:hover {
+      border-color: var(--blue);
+    }
+
+    .upload-item .btn-upload {
+      padding: 4px 12px;
+      border-radius: 16px;
+      border: 2px solid var(--blue);
+      background: var(--blue-light);
+      color: #1565C0;
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 11px;
+      transition: all 0.2s;
+    }
+
+    .upload-item .btn-upload:hover {
+      background: var(--blue);
+      color: white;
+    }
+
+    .upload-item .btn-upload.uploading {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .upload-item .btn-upload.done {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+
+    .community-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .community-card {
+      background: var(--surface);
+      border: 3px solid var(--border2);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: var(--crayon-shadow);
+      transition: all 0.25s;
+    }
+
+    .community-card:hover {
+      border-color: var(--pink);
+      transform: translateY(-3px);
+    }
+
+    .community-card .author {
+      font-size: 12px;
+      color: var(--pink);
+      font-family: var(--font-display);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .detail-panel { width: 100%; }
+      .logo h1 { font-size: 22px; }
+      .plaza-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="crayon-texture"></div>
+
+  <div class="deco-star" style="top:15%;left:5%;animation-delay:0s">✦</div>
+  <div class="deco-star" style="top:30%;right:8%;animation-delay:1s;font-size:18px">✧</div>
+  <div class="deco-star" style="top:60%;left:3%;animation-delay:2s;font-size:20px">★</div>
+  <div class="deco-star" style="top:80%;right:12%;animation-delay:3s">✦</div>
+  <div class="deco-star" style="top:45%;right:3%;animation-delay:4s;font-size:16px">☆</div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">S</div>
+      <div>
+        <h1>Skiller</h1>
+        <div class="subtitle">AI 技能管理器</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="live-indicator" id="liveIndicator">
+        <span class="live-dot" id="liveDot"></span>
+        <span id="liveText">连接中...</span>
+      </div>
+      <button class="btn btn-green" onclick="showView('plaza')">🏪 技能广场</button>
+      <button class="btn btn-red" onclick="showView('community')">🌍 社区</button>
+      <button class="btn" onclick="rescan()">🔄 重新扫描</button>
+      <button class="btn btn-blue" onclick="showView('log')">📋 使用日志</button>
+      <div style="position:relative">
+        <button class="theme-toggle" onclick="toggleThemePicker()" id="themeToggle" title="切换主题">🎨</button>
+        <div class="theme-picker" id="themePicker">
+          <div class="theme-option" data-theme-val="" onclick="setTheme('')">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #E53935, #FFD600)"></span> 蜡笔小新
+          </div>
+          <div class="theme-option" data-theme-val="clean" onclick="setTheme('clean')">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #f8f9fa, #dee2e6)"></span> 简洁
+          </div>
+          <div class="theme-option" data-theme-val="dark" onclick="setTheme('dark')">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #1a1a2e, #e94560)"></span> 暗黑
+          </div>
+          <div class="theme-option" data-theme-val="ocean" onclick="setTheme('ocean')">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #1565c0, #4fc3f7)"></span> 海洋
+          </div>
+          <div class="theme-option" data-theme-val="forest" onclick="setTheme('forest')">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #2e7d32, #81c784)"></span> 森林
+          </div>
+          <div class="theme-option" data-theme-val="sunset" onclick="setTheme('sunset')">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #e65100, #ff8f00)"></span> 日落
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main">
+    <aside class="sidebar" id="sidebar">
+      <h3>技能分类</h3>
+      <div class="nav-item active" onclick="showView('all')">
+        <span>🎯 全部技能</span>
+        <span class="count" id="totalCount">0</span>
+      </div>
+      <div id="categoryNav"></div>
+    </aside>
+
+    <main class="content" id="content"></main>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-header">
+      <h2 id="detailTitle">技能详情</h2>
+      <button class="btn btn-red" onclick="closeDetail()">✕ 关闭</button>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
+
+  <script>
+    (function() {
+      const saved = localStorage.getItem('skiller-theme');
+      const theme = saved !== null ? saved : 'clean';
+      if (theme) document.documentElement.setAttribute('data-theme', theme);
+    })();
+
+    const THEME_ICONS = { '': '🖍️', 'clean': '✨', 'dark': '🌙', 'ocean': '🌊', 'forest': '🌿', 'sunset': '🌅' };
+
+    function toggleThemePicker() {
+      const picker = document.getElementById('themePicker');
+      picker.classList.toggle('open');
+      updateThemePickerActive();
+      if (picker.classList.contains('open')) {
+        setTimeout(() => document.addEventListener('click', closePickerOutside, { once: true }), 0);
+      }
+    }
+
+    function closePickerOutside(e) {
+      const picker = document.getElementById('themePicker');
+      if (!picker.contains(e.target) && e.target.id !== 'themeToggle') {
+        picker.classList.remove('open');
+      }
+    }
+
+    function setTheme(theme) {
+      if (theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+      localStorage.setItem('skiller-theme', theme);
+      document.getElementById('themeToggle').textContent = THEME_ICONS[theme] || '🎨';
+      document.getElementById('themePicker').classList.remove('open');
+      updateThemePickerActive();
+    }
+
+    function updateThemePickerActive() {
+      const current = document.documentElement.getAttribute('data-theme') || '';
+      document.querySelectorAll('.theme-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.themeVal === current);
+      });
+    }
+
+    (function() {
+      const saved = localStorage.getItem('skiller-theme');
+      const theme = saved !== null ? saved : 'clean';
+      const btn = document.getElementById('themeToggle');
+      if (btn) btn.textContent = THEME_ICONS[theme] || '🎨';
+    })();
+
+    let allSkills = [];
+    let categories = [];
+    let userCategories = [];
+    let currentView = 'all';
+    let currentCategory = null;
+    let sseSource = null;
+    let lastLogCount = 0;
+    let skillSubCounts = {};
+    let skillSubSources = {};
+
+    async function api(path) {
+      const res = await fetch(path);
+      return res.json();
+    }
+
+    function connectSSE() {
+      if (sseSource) sseSource.close();
+
+      sseSource = new EventSource('/api/sse');
+      const dot = document.getElementById('liveDot');
+      const text = document.getElementById('liveText');
+
+      sseSource.onopen = () => {
+        dot.className = 'live-dot connected';
+        text.textContent = '实时监听中';
+      };
+
+      sseSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.type === 'connected') {
+            dot.className = 'live-dot connected';
+            text.textContent = '实时监听中';
+            return;
+          }
+
+          if (data.type === 'log_update') {
+            dot.className = 'live-dot active';
+            text.textContent = `活动: ${data.latest?.tool || '...'}`;
+            setTimeout(() => {
+              dot.className = 'live-dot connected';
+              text.textContent = '实时监听中';
+            }, 3000);
+
+            if (data.latest) {
+              showToast(data.latest);
+            }
+
+            if (currentView === 'log') {
+              renderLog();
+            }
+          }
+        } catch {}
+      };
+
+      sseSource.onerror = () => {
+        dot.className = 'live-dot';
+        text.textContent = '已断开，重连中...';
+        setTimeout(connectSSE, 5000);
+      };
+    }
+
+    function showToast(entry) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `
+        <div><span class="toast-tool">${toolDisplayName(entry.tool)}</span></div>
+        <div class="toast-result">${escapeHtml(entry.resultSummary)}</div>
+        <div class="toast-time">${formatTime(entry.timestamp)}</div>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4500);
+    }
+
+    function toolBadgeClass(tool) {
+      if (tool.includes('search')) return 'search';
+      if (tool.includes('detail')) return 'detail';
+      if (tool.includes('stat')) return 'stats';
+      if (tool.includes('online') || tool.includes('fetch')) return 'online';
+      return 'other';
+    }
+
+    function toolDisplayName(tool) {
+      const names = {
+        'list_categories': '🗂️ 浏览分类',
+        'search_skills': '🔍 搜索技能',
+        'get_skill_detail': '📖 加载技能',
+        'scan_skills': '🔄 重建索引',
+        'skill_stats': '📊 查看统计',
+        'search_online': '🌐 在线搜索',
+        'fetch_online_skill': '⬇️ 获取在线技能',
+      };
+      return names[tool] || tool;
+    }
+
+    async function init() {
+      const [skills, cats, stats, trees, ucats] = await Promise.all([
+        api('/api/skills'),
+        api('/api/categories'),
+        api('/api/stats'),
+        api('/api/all-trees'),
+        api('/api/categories/list'),
+      ]);
+      allSkills = skills;
+      categories = cats;
+      userCategories = ucats || [];
+
+      skillSubCounts = {};
+      skillSubSources = {};
+      for (const t of trees) {
+        skillSubCounts[t.name] = t.subSkillCount || 0;
+        skillSubSources[t.name] = t.subSkillSource || 'auto';
+      }
+
+      document.getElementById('totalCount').textContent = stats.total;
+      renderCategoryNav(cats, stats);
+      showView('all');
+      connectSSE();
+    }
+
+    function renderCategoryNav(cats, stats) {
+      const nav = document.getElementById('categoryNav');
+      const uncatCount = allSkills.filter(s => s.categories.length === 0).length;
+      let html = `
+        <div class="nav-item" onclick="showCategory('uncategorized', this)">
+          <span>📭 未分类</span>
+          <span class="count">${uncatCount}</span>
+        </div>
+      `;
+      html += cats.map(c => {
+        const icon = c.icon || '📦';
+        return `
+          <div class="nav-item" onclick="showCategory('${escapeAttr(c.id)}', this)">
+            <span>${icon} ${escapeHtml(c.label)}</span>
+            <span class="count">${c.skillCount}</span>
+          </div>
+        `;
+      }).join('');
+
+      html += `
+        <div style="margin-top:16px; padding-top:12px; border-top:2px dashed var(--border2)">
+          <div class="nav-item" onclick="showView('catmgr')">
+            <span>⚙️ 管理分类</span>
+          </div>
+        </div>
+      `;
+      nav.innerHTML = html;
+    }
+
+    function showView(view) {
+      currentView = view;
+      currentCategory = null;
+
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      if (view === 'all') {
+        document.querySelector('.nav-item').classList.add('active');
+      }
+
+      if (view === 'log') {
+        renderLog();
+      } else if (view === 'plaza') {
+        renderPlaza();
+      } else if (view === 'community') {
+        renderCommunity();
+      } else if (view === 'catmgr') {
+        renderCategoryManager();
+      } else {
+        renderSkills(allSkills);
+      }
+    }
+
+    function showCategory(catId, el) {
+      currentView = 'category';
+      currentCategory = catId;
+
+      document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+      if (el) el.classList.add('active');
+
+      let filtered;
+      if (catId === 'uncategorized') {
+        filtered = allSkills.filter(s => s.categories.length === 0);
+      } else {
+        const allIds = getCategoryAndDescendants(catId);
+        filtered = allSkills.filter(s => s.categories.some(c => allIds.includes(c)));
+      }
+      renderSkills(filtered);
+    }
+
+    function getCategoryAndDescendants(catId) {
+      const ids = [catId];
+      const children = userCategories.filter(c => c.parentId === catId);
+      for (const child of children) {
+        ids.push(...getCategoryAndDescendants(child.id));
+      }
+      return ids;
+    }
+
+    function renderSkills(skills) {
+      const content = document.getElementById('content');
+
+      const stats = {
+        total: skills.length,
+        custom: skills.filter(s => s.source === 'custom').length,
+        superpowers: skills.filter(s => s.source === 'superpowers').length,
+        skillsCursor: skills.filter(s => s.source === 'skills-cursor').length,
+      };
+
+      content.innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="label">技能总数</div>
+            <div class="value red">${stats.total}</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">自定义</div>
+            <div class="value green">${stats.custom}</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Superpowers</div>
+            <div class="value blue">${stats.superpowers}</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Cursor 内置</div>
+            <div class="value orange">${stats.skillsCursor}</div>
+          </div>
+        </div>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="🔍 搜索技能名称、标签、分类..." oninput="onSearch(this.value)">
+        </div>
+        <div class="skill-list" id="skillList">
+          ${skills.map(renderSkillCard).join('')}
+        </div>
+      `;
+    }
+
+    function renderSkillCard(skill) {
+      const subCount = skillSubCounts[skill.name] || 0;
+      const subSource = skillSubSources[skill.name] || 'auto';
+      const badgeText = subSource === 'declared' ? `${subCount} 子技能` : `${subCount} 结构`;
+      const badgeClass = subSource === 'declared' ? 'declared' : 'auto';
+      const catTags = skill.categories.length > 0
+        ? skill.categories.map(c => {
+            const cat = userCategories.find(uc => uc.id === c);
+            const label = cat ? (cat.icon ? cat.icon + ' ' : '') + cat.label : c;
+            return `<span class="tag category" onclick="event.stopPropagation(); showCategory('${escapeAttr(c)}')">${escapeHtml(label)}</span>`;
+          }).join('')
+        : '<span class="tag" style="background:var(--surface2);color:var(--text2);border-color:var(--border2)">未分类</span>';
+      return `
+        <div class="skill-card" data-skill="${escapeAttr(skill.name)}" onclick="showSkillDetail(this.dataset.skill)">
+          <div class="name">${escapeHtml(skill.name)} ${subCount > 0 ? `<span class="sub-skill-badge ${badgeClass}">${badgeText}</span>` : ''}</div>
+          <div class="desc">${escapeHtml(skill.description)}</div>
+          <div class="meta">
+            ${catTags}
+            <span class="tag source">${skill.source}</span>
+            <span class="tag tokens">~${skill.tokenEstimate} tokens</span>
+            ${skill.tags.slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function onSearch(query) {
+      if (!query.trim()) {
+        let base;
+        if (currentCategory === 'uncategorized') {
+          base = allSkills.filter(s => s.categories.length === 0);
+        } else if (currentCategory) {
+          const allIds = getCategoryAndDescendants(currentCategory);
+          base = allSkills.filter(s => s.categories.some(c => allIds.includes(c)));
+        } else {
+          base = allSkills;
+        }
+        document.getElementById('skillList').innerHTML = base.map(renderSkillCard).join('');
+        return;
+      }
+
+      const q = query.toLowerCase();
+      const filtered = allSkills.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        s.description.toLowerCase().includes(q) ||
+        s.tags.some(t => t.toLowerCase().includes(q)) ||
+        s.categories.some(c => c.toLowerCase().includes(q))
+      );
+      document.getElementById('skillList').innerHTML = filtered.length > 0
+        ? filtered.map(renderSkillCard).join('')
+        : '<div class="empty-state"><div class="icon">🤔</div><p>没有找到匹配的技能哦~</p></div>';
+    }
+
+    async function showSkillDetail(name) {
+      const panel = document.getElementById('detailPanel');
+      const title = document.getElementById('detailTitle');
+      const body = document.getElementById('detailBody');
+
+      title.textContent = name;
+      body.innerHTML = '<div class="empty-state"><div class="icon" style="animation:wobble 1s infinite">⏳</div><p>加载中...</p></div>';
+      panel.classList.add('open');
+
+      const data = await api(`/api/skill?name=${encodeURIComponent(name)}`);
+      const subSkills = data.subSkills || [];
+      const subCount = countTreeNodes(subSkills);
+      const subSource = data.subSkillSource || 'auto';
+
+      const sourceLabel = subSource === 'declared'
+        ? '<span class="source-badge declared">✅ 作者声明的子技能</span>'
+        : '<span class="source-badge auto">🔍 自动解析（作者未声明 sub_skills）</span>';
+
+      const skillCats = data.categories || [];
+      const catLabels = skillCats.map(c => {
+        const cat = userCategories.find(uc => uc.id === c);
+        return cat ? (cat.icon ? cat.icon + ' ' : '') + cat.label : c;
+      });
+      const catDisplay = catLabels.length > 0
+        ? catLabels.map((l, i) => `<span class="tag category">${escapeHtml(l)}</span>`).join(' ')
+        : '<span class="tag" style="background:var(--surface2);color:var(--text2)">未分类</span>';
+
+      body.innerHTML = `
+        <div style="margin-bottom:16px">
+          ${catDisplay}
+          <span class="tag source">${data.source}</span>
+          <span class="tag tokens">~${data.tokenEstimate} tokens</span>
+        </div>
+        <p style="color:var(--text2); margin-bottom:12px; line-height:1.6">${escapeHtml(data.description)}</p>
+        <div style="margin-bottom:16px">
+          ${(data.tags || []).map(t => `<span class="tag">${t}</span>`).join(' ')}
+        </div>
+
+        <div style="margin-bottom:16px; background:var(--bg2); border:2px solid var(--border2); border-radius:14px; padding:14px">
+          <div style="font-family:var(--font-display); font-size:14px; color:var(--text); margin-bottom:10px">🏷️ 管理分类</div>
+          <div id="detailCatCheckboxes" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px">
+            ${userCategories.map(uc => {
+              const checked = skillCats.includes(uc.id) ? 'checked' : '';
+              return `<label style="display:flex; align-items:center; gap:4px; padding:4px 10px; border-radius:10px; border:2px solid var(--border2); background:var(--surface); cursor:pointer; font-size:13px; transition:all 0.2s">
+                <input type="checkbox" value="${escapeAttr(uc.id)}" ${checked} style="accent-color:var(--red)">
+                ${uc.icon || ''} ${escapeHtml(uc.label)}
+              </label>`;
+            }).join('')}
+            ${userCategories.length === 0 ? '<span style="color:var(--text2); font-size:13px">暂无分类，请先在「管理分类」中创建</span>' : ''}
+          </div>
+          ${userCategories.length > 0 ? `<button class="btn btn-green" style="padding:6px 14px; font-size:12px" onclick="saveSkillCategories('${escapeAttr(data.name)}')">💾 保存分类</button>` : ''}
+        </div>
+
+        <div class="tab-bar">
+          <div class="tab-btn active" onclick="switchTab('tree', this)">🌳 子技能树 ${subCount > 0 ? `(${subCount})` : ''}</div>
+          <div class="tab-btn" onclick="switchTab('raw', this)">📄 原始内容</div>
+        </div>
+
+        <div id="tabTree" class="tab-content">
+          ${sourceLabel}
+          ${subSkills.length > 0
+            ? `<div class="skill-tree">${renderTree(subSkills)}</div>`
+            : '<div class="empty-state"><div class="icon">📭</div><p>此技能没有子技能结构</p></div>'
+          }
+        </div>
+
+        <div id="tabRaw" class="tab-content" style="display:none">
+          <pre>${escapeHtml(data.content || 'No content')}</pre>
+        </div>
+      `;
+    }
+
+    function switchTab(tab, el) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('tabTree').style.display = tab === 'tree' ? 'block' : 'none';
+      document.getElementById('tabRaw').style.display = tab === 'raw' ? 'block' : 'none';
+    }
+
+    function countTreeNodes(tree) {
+      let count = 0;
+      for (const n of tree) {
+        count += 1;
+        if (n.children) count += countTreeNodes(n.children);
+      }
+      return count;
+    }
+
+    function renderTree(nodes) {
+      return nodes.map(node => {
+        const hasChildren = node.children && node.children.length > 0;
+        const hasBullets = node.bulletPoints && node.bulletPoints.length > 0;
+        const childCount = hasChildren ? countTreeNodes(node.children) : 0;
+        const nodeId = 'tn_' + Math.random().toString(36).slice(2, 8);
+
+        return `
+          <div class="tree-node">
+            <div class="tree-header" onclick="toggleTreeNode('${nodeId}', this)">
+              <span class="toggle">${(hasChildren || hasBullets) ? '▶' : '•'}</span>
+              <span class="node-title level-${node.level}">${escapeHtml(node.title)}</span>
+              ${childCount > 0 ? `<span class="child-count">${childCount}</span>` : ''}
+            </div>
+            ${node.summary ? `<div class="tree-summary">${escapeHtml(node.summary)}</div>` : ''}
+            ${(hasChildren || hasBullets) ? `
+              <div class="tree-children" id="${nodeId}">
+                ${hasBullets ? `
+                  <div class="tree-bullets">
+                    ${node.bulletPoints.map(b => `<div class="tree-bullet">${escapeHtml(b)}</div>`).join('')}
+                  </div>
+                ` : ''}
+                ${hasChildren ? renderTree(node.children) : ''}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleTreeNode(nodeId, headerEl) {
+      const children = document.getElementById(nodeId);
+      if (!children) return;
+      const isVisible = children.classList.contains('visible');
+      children.classList.toggle('visible');
+      headerEl.classList.toggle('expanded');
+    }
+
+    function closeDetail() {
+      document.getElementById('detailPanel').classList.remove('open');
+    }
+
+    async function renderLog() {
+      const content = document.getElementById('content');
+      const log = await api('/api/log');
+      lastLogCount = log.length;
+
+      if (log.length === 0) {
+        content.innerHTML = `
+          <div class="page-title">📋 使用日志 <span class="live-badge">实时更新</span></div>
+          <div class="empty-state">
+            <div class="icon">💤</div>
+            <p>暂无使用记录</p>
+            <p style="font-family:var(--font-body); font-size:13px; margin-top:8px; color:var(--text2)">当 AI 通过 Skiller 检索和加载技能时，记录会自动出现在这里</p>
+          </div>
+        `;
+        return;
+      }
+
+      content.innerHTML = `
+        <div class="page-title">📋 使用日志 <span class="live-badge">${log.length} 条 · 实时更新</span></div>
+        <div class="log-section" id="logSection">
+          ${log.map((entry, i) => renderLogEntry(entry, i === 0)).join('')}
+        </div>
+      `;
+    }
+
+    function renderLogEntry(entry, isNew) {
+      const badgeClass = toolBadgeClass(entry.tool);
+      const displayName = toolDisplayName(entry.tool);
+      const argsStr = Object.entries(entry.args || {})
+        .filter(([_, v]) => v !== undefined && v !== null)
+        .map(([k, v]) => `${k}=${JSON.stringify(v)}`)
+        .join(', ');
+
+      return `
+        <div class="log-entry ${isNew ? 'new-entry' : ''}">
+          <div style="flex:1">
+            <span class="tool-badge ${badgeClass}">${displayName}</span>
+            <span class="tool-name">${entry.tool}</span>
+            ${argsStr ? `<div style="color:var(--text2); font-size:12px; margin-top:4px; font-family:monospace; background:var(--bg); padding:4px 8px; border-radius:8px; display:inline-block">${escapeHtml(argsStr)}</div>` : ''}
+            <div class="summary">${escapeHtml(entry.resultSummary)}</div>
+          </div>
+          <span class="time">${formatTime(entry.timestamp)}</span>
+        </div>
+      `;
+    }
+
+    // ========== 分类管理 ==========
+
+    async function saveSkillCategories(skillName) {
+      const checkboxes = document.querySelectorAll('#detailCatCheckboxes input[type=checkbox]');
+      const selected = [];
+      checkboxes.forEach(cb => { if (cb.checked) selected.push(cb.value); });
+
+      await api(`/api/categories/tag-skill?skill=${encodeURIComponent(skillName)}&categories=${encodeURIComponent(selected.join(','))}`);
+      showToast({ tool: 'tag', resultSummary: `已更新 ${skillName} 的分类`, timestamp: new Date().toISOString() });
+
+      allSkills = await api('/api/skills');
+      categories = await api('/api/categories');
+      renderCategoryNav(categories);
+    }
+
+    async function renderCategoryManager() {
+      const content = document.getElementById('content');
+      userCategories = await api('/api/categories/list');
+      const roots = userCategories.filter(c => !c.parentId);
+
+      function renderCatRow(cat, indent = 0) {
+        const children = userCategories.filter(c => c.parentId === cat.id);
+        const skillCount = allSkills.filter(s => s.categories.includes(cat.id)).length;
+        let html = `
+          <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; padding-left:${14 + indent * 24}px; border-radius:12px; border:2px solid var(--border2); background:var(--bg2); margin-bottom:6px; transition:all 0.2s"
+               onmouseenter="this.style.borderColor='var(--blue)'" onmouseleave="this.style.borderColor='var(--border2)'">
+            <span style="font-size:18px">${cat.icon || '📦'}</span>
+            <span style="flex:1; font-family:var(--font-display); font-size:15px">${escapeHtml(cat.label)}</span>
+            <span style="font-size:12px; color:var(--text2); font-family:monospace">${escapeHtml(cat.id)}</span>
+            <span class="count">${skillCount}</span>
+            <button class="btn" style="padding:4px 10px; font-size:11px" onclick="addSubCategory('${escapeAttr(cat.id)}')">➕ 子分类</button>
+            <button class="btn" style="padding:4px 10px; font-size:11px" onclick="renameCategoryPrompt('${escapeAttr(cat.id)}', '${escapeAttr(cat.label)}', '${escapeAttr(cat.icon || '')}')">✏️</button>
+            <button class="btn btn-red" style="padding:4px 10px; font-size:11px" onclick="deleteCategoryConfirm('${escapeAttr(cat.id)}')">🗑️</button>
+          </div>
+        `;
+        for (const child of children) {
+          html += renderCatRow(child, indent + 1);
+        }
+        return html;
+      }
+
+      content.innerHTML = `
+        <div class="page-title">⚙️ 分类管理</div>
+        <p style="color:var(--text2); margin-bottom:16px; font-size:14px">
+          创建自定义分类，然后在技能详情中为技能添加分类标签。每个技能可以属于多个分类。
+        </p>
+
+        <div style="display:flex; gap:8px; margin-bottom:20px; align-items:stretch">
+          <input type="text" id="newCatLabel" placeholder="分类名称（如：前端开发）"
+            style="flex:1; padding:12px 18px; border-radius:24px; border:3px solid var(--border); background:var(--surface); font-size:14px; font-family:var(--font-body); outline:none; box-shadow:var(--crayon-shadow)"
+            onkeydown="if(event.key==='Enter') addRootCategory()">
+          <input type="text" id="newCatIcon" placeholder="图标" value="" maxlength="2"
+            style="width:60px; padding:12px; border-radius:24px; border:3px solid var(--border); background:var(--surface); font-size:18px; text-align:center; outline:none; box-shadow:var(--crayon-shadow)">
+          <button class="btn btn-green" onclick="addRootCategory()" style="white-space:nowrap">➕ 添加分类</button>
+        </div>
+
+        <div id="catList">
+          ${roots.length > 0
+            ? roots.map(c => renderCatRow(c)).join('')
+            : '<div class="empty-state"><div class="icon">📭</div><p>暂无分类，在上方创建你的第一个分类吧！</p></div>'
+          }
+        </div>
+
+        ${allSkills.filter(s => s.categories.length === 0).length > 0 ? `
+          <div style="margin-top:24px; padding-top:16px; border-top:3px dashed var(--border2)">
+            <div style="font-family:var(--font-display); font-size:17px; color:var(--orange); margin-bottom:12px">
+              📭 未分类的技能 (${allSkills.filter(s => s.categories.length === 0).length})
+            </div>
+            <div class="skill-list">
+              ${allSkills.filter(s => s.categories.length === 0).map(renderSkillCard).join('')}
+            </div>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    async function addRootCategory() {
+      const label = document.getElementById('newCatLabel').value.trim();
+      const icon = document.getElementById('newCatIcon').value.trim();
+      if (!label) return;
+
+      await api(`/api/categories/add?label=${encodeURIComponent(label)}&icon=${encodeURIComponent(icon)}`);
+      document.getElementById('newCatLabel').value = '';
+      document.getElementById('newCatIcon').value = '';
+      showToast({ tool: 'category', resultSummary: `已添加分类: ${label}`, timestamp: new Date().toISOString() });
+
+      allSkills = await api('/api/skills');
+      categories = await api('/api/categories');
+      userCategories = await api('/api/categories/list');
+      renderCategoryNav(categories);
+      renderCategoryManager();
+    }
+
+    async function addSubCategory(parentId) {
+      const label = prompt('输入子分类名称:');
+      if (!label) return;
+      const icon = prompt('输入图标 (可选):', '') || '';
+
+      await api(`/api/categories/add?label=${encodeURIComponent(label)}&parentId=${encodeURIComponent(parentId)}&icon=${encodeURIComponent(icon)}`);
+      showToast({ tool: 'category', resultSummary: `已添加子分类: ${label}`, timestamp: new Date().toISOString() });
+
+      allSkills = await api('/api/skills');
+      categories = await api('/api/categories');
+      userCategories = await api('/api/categories/list');
+      renderCategoryNav(categories);
+      renderCategoryManager();
+    }
+
+    async function renameCategoryPrompt(id, oldLabel, oldIcon) {
+      const newLabel = prompt('新分类名称:', oldLabel);
+      if (!newLabel || newLabel === oldLabel) return;
+      const newIcon = prompt('新图标 (可选):', oldIcon) || '';
+
+      await api(`/api/categories/rename?id=${encodeURIComponent(id)}&label=${encodeURIComponent(newLabel)}&icon=${encodeURIComponent(newIcon)}`);
+      showToast({ tool: 'category', resultSummary: `已重命名为: ${newLabel}`, timestamp: new Date().toISOString() });
+
+      allSkills = await api('/api/skills');
+      categories = await api('/api/categories');
+      userCategories = await api('/api/categories/list');
+      renderCategoryNav(categories);
+      renderCategoryManager();
+    }
+
+    async function deleteCategoryConfirm(id) {
+      if (!confirm(`确定要删除分类 "${id}" 及其所有子分类吗？\n（技能本身不会被删除，只会变成未分类）`)) return;
+
+      await api(`/api/categories/remove?id=${encodeURIComponent(id)}`);
+      showToast({ tool: 'category', resultSummary: `已删除分类: ${id}`, timestamp: new Date().toISOString() });
+
+      allSkills = await api('/api/skills');
+      categories = await api('/api/categories');
+      userCategories = await api('/api/categories/list');
+      renderCategoryNav(categories);
+      renderCategoryManager();
+    }
+
+    // ========== 社区 ==========
+
+    let communitySkills = [];
+    let communityConfig = {};
+    let communityLoaded = false;
+    let communityTab = 'browse';
+
+    async function renderCommunity() {
+      const content = document.getElementById('content');
+
+      if (!communityLoaded) {
+        communityConfig = await api('/api/community/config');
+        communityLoaded = true;
+      }
+
+      if (!communityConfig.repo) {
+        renderCommunitySetup();
+        return;
+      }
+
+      const sources = communityConfig.sources || [];
+
+      content.innerHTML = `
+        <div class="page-title">🌍 社区技能广场</div>
+
+        <div class="tab-bar" style="margin-bottom:20px">
+          <div class="tab-btn ${communityTab==='browse'?'active':''}" onclick="communityTab='browse'; renderCommunity()">🌐 浏览技能</div>
+          <div class="tab-btn ${communityTab==='upload'?'active':''}" onclick="communityTab='upload'; renderCommunity()">📤 上传/投稿</div>
+          <div class="tab-btn ${communityTab==='sources'?'active':''}" onclick="communityTab='sources'; renderCommunity()">📡 订阅源管理</div>
+          <div class="tab-btn ${communityTab==='submissions'?'active':''}" onclick="communityTab='submissions'; renderCommunity()">📝 投稿列表</div>
+          <div class="tab-btn ${communityTab==='help'?'active':''}" onclick="communityTab='help'; renderCommunity()">❓ 帮助</div>
+          <div class="tab-btn ${communityTab==='settings'?'active':''}" onclick="communityTab='settings'; renderCommunity()">⚙️ 设置</div>
+        </div>
+
+        <div id="communityBody"></div>
+      `;
+
+      const body = document.getElementById('communityBody');
+
+      switch (communityTab) {
+        case 'browse': renderCommunityBrowse(body); break;
+        case 'upload': renderCommunityUpload(body); break;
+        case 'sources': renderCommunitySources(body); break;
+        case 'submissions': renderCommunitySubmissions(body); break;
+        case 'help': renderCommunityHelp(body); break;
+        case 'settings': renderCommunitySettings(body); break;
+      }
+    }
+
+    async function renderCommunityBrowse(container) {
+      container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
+          <h3 style="font-family:var(--font-display); color:var(--pink); font-size:17px">
+            🌐 全部社区技能
+            <span style="font-size:13px; color:var(--text2); font-family:var(--font-body)">${communityConfig.repo}</span>
+          </h3>
+          <button class="btn" onclick="refreshCommunity()">🔄 刷新</button>
+        </div>
+        <div id="communityList">
+          <div class="plaza-loading"><span class="spinner">🔍</span><p>加载社区技能...</p></div>
+        </div>
+      `;
+      loadCommunitySkills();
+    }
+
+    async function loadCommunitySkills() {
+      try {
+        communitySkills = await api('/api/community/skills');
+        const listEl = document.getElementById('communityList');
+        if (!listEl) return;
+
+        if (communitySkills.length === 0) {
+          listEl.innerHTML = '<div class="empty-state"><div class="icon">🌱</div><p>社区还没有技能，成为第一个上传者吧！</p></div>';
+          return;
+        }
+
+        const sources = [...new Set(communitySkills.map(s => s.sourceLabel).filter(Boolean))];
+
+        listEl.innerHTML = `
+          ${sources.length > 1 ? `
+            <div class="plaza-filters" style="margin-bottom:16px">
+              <div class="filter-btn active" onclick="filterCommunitySource('all', this)">全部 (${communitySkills.length})</div>
+              ${sources.map(s => `<div class="filter-btn" onclick="filterCommunitySource('${escapeAttr(s)}', this)">📡 ${escapeHtml(s)}</div>`).join('')}
+            </div>
+          ` : ''}
+          <div class="community-grid" id="communityGrid">
+            ${communitySkills.map(renderCommunityCard).join('')}
+          </div>
+        `;
+      } catch {
+        const listEl = document.getElementById('communityList');
+        if (listEl) {
+          listEl.innerHTML = '<div class="empty-state"><div class="icon">😵</div><p>加载失败，请检查网络和仓库配置</p></div>';
+        }
+      }
+    }
+
+    function filterCommunitySource(source, el) {
+      document.querySelectorAll('#communityList .filter-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      const grid = document.getElementById('communityGrid');
+      const filtered = source === 'all' ? communitySkills : communitySkills.filter(s => s.sourceLabel === source);
+      grid.innerHTML = filtered.map(renderCommunityCard).join('');
+    }
+
+    function renderCommunityCard(skill) {
+      return `
+        <div class="community-card" data-name="${escapeAttr(skill.name)}" data-url="${escapeAttr(skill.rawUrl)}">
+          <div class="plaza-name">${escapeHtml(skill.name)}</div>
+          <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px">
+            <span class="author">by ${escapeHtml(skill.author)}</span>
+            ${skill.sourceLabel ? `<span class="tag" style="font-size:10px">📡 ${escapeHtml(skill.sourceLabel)}</span>` : ''}
+          </div>
+          <div class="plaza-desc" style="margin-top:6px">${escapeHtml(skill.description)}</div>
+          <div class="plaza-actions" style="margin-top:12px">
+            ${skill.installed
+              ? '<button class="btn-install installed" disabled>✓ 已安装</button>'
+              : `<button class="btn-install" onclick="installCommunitySkill(this.closest('.community-card').dataset.name, this.closest('.community-card').dataset.url, this)">⬇️ 安装</button>`
+            }
+            <button class="btn-preview" onclick="previewSkill(this.closest('.community-card').dataset.name, this.closest('.community-card').dataset.url)">👁️ 预览</button>
+            <a href="${escapeAttr(skill.htmlUrl)}" target="_blank" class="btn-preview" style="text-decoration:none">🔗 GitHub</a>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCommunityUpload(container) {
+      container.innerHTML = `
+        <div class="upload-section">
+          <h3>📤 直接上传（需要仓库写权限）</h3>
+          <p style="font-size:13px; color:var(--text2); margin-bottom:12px">你有 <strong>${communityConfig.repo}</strong> 的写权限？直接上传！</p>
+          <div class="upload-list" id="uploadList">
+            ${allSkills.map(s => `
+              <div class="upload-item">
+                <span>${escapeHtml(s.name)}</span>
+                <button class="btn-upload" data-name="${escapeAttr(s.name)}" onclick="uploadToCommunity(this.dataset.name, this)">📤 上传</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="upload-section" style="border-color:var(--purple); margin-top:20px">
+          <h3 style="color:var(--purple)">📝 通过 Issue 投稿（无需写权限）</h3>
+          <p style="font-size:13px; color:var(--text2); margin-bottom:12px">
+            没有仓库写权限？通过 GitHub Issue 提交你的技能，仓库管理员审核后将收录到社区中。
+          </p>
+          <div class="config-field">
+            <label>目标仓库</label>
+            <input type="text" id="submitRepo" value="${escapeAttr(communityConfig.repo)}" placeholder="owner/repo">
+            <div class="hint">你想投稿到哪个社区仓库</div>
+          </div>
+          <div class="config-field">
+            <label>选择要投稿的技能</label>
+            <select id="submitSkillSelect" style="width:100%; padding:10px; border-radius:12px; border:2px solid var(--border2); background:var(--bg2); font-size:14px">
+              ${allSkills.map(s => `<option value="${escapeAttr(s.name)}">${escapeHtml(s.name)} [${s.categories.length > 0 ? s.categories.join(', ') : '未分类'}]</option>`).join('')}
+            </select>
+          </div>
+          <button class="btn btn-blue" onclick="submitViaIssue()" style="margin-top:8px">📝 提交投稿</button>
+          <div id="submitResult" style="margin-top:12px"></div>
+        </div>
+      `;
+    }
+
+    async function submitViaIssue() {
+      const repo = document.getElementById('submitRepo').value.trim();
+      const skillName = document.getElementById('submitSkillSelect').value;
+      const resultEl = document.getElementById('submitResult');
+
+      if (!repo || !skillName) {
+        resultEl.innerHTML = '<span style="color:var(--red)">请填写目标仓库和选择技能</span>';
+        return;
+      }
+
+      resultEl.innerHTML = '<span style="color:var(--blue)">⏳ 提交中...</span>';
+
+      try {
+        const result = await api(`/api/community/submit?name=${encodeURIComponent(skillName)}&targetRepo=${encodeURIComponent(repo)}`);
+        if (result.success) {
+          resultEl.innerHTML = `
+            <div style="background:var(--green-light); border:2px solid var(--green); border-radius:12px; padding:12px; color:#2E7D32">
+              ✅ ${escapeHtml(result.message)}
+              ${result.issueUrl ? `<br><a href="${escapeAttr(result.issueUrl)}" target="_blank" style="color:var(--blue)">🔗 查看 Issue</a>` : ''}
+            </div>
+          `;
+          showToast({ tool: 'submit', resultSummary: result.message, timestamp: new Date().toISOString() });
+        } else {
+          resultEl.innerHTML = `<span style="color:var(--red)">❌ ${escapeHtml(result.message)}</span>`;
+        }
+      } catch (e) {
+        resultEl.innerHTML = '<span style="color:var(--red)">❌ 网络错误</span>';
+      }
+    }
+
+    const RECOMMENDED_SOURCES = [
+      { repo: 'zhangziyana007-sudo/skiller-community', label: 'Skiller 官方社区', desc: 'Skiller 官方技能共享社区' },
+    ];
+
+    function renderCommunitySources(container) {
+      const sources = communityConfig.sources || [];
+      const subscribedRepos = new Set(sources.map(s => s.repo));
+
+      container.innerHTML = `
+        <div class="community-config">
+          <h3>⚡ 一键订阅</h3>
+          <p style="font-size:13px; color:var(--text2); margin-bottom:16px">
+            粘贴 GitHub 链接，自动识别仓库地址！支持格式：<br>
+            <code>https://github.com/owner/repo</code> 或 <code>owner/repo</code>
+          </p>
+
+          <div style="display:flex; gap:8px; align-items:stretch">
+            <input type="text" id="quickSubscribeInput"
+              placeholder="粘贴 GitHub 链接或输入 owner/repo..."
+              style="flex:1; padding:14px 20px; border-radius:24px; border:3px solid var(--blue); background:var(--surface); font-size:15px; font-family:var(--font-body); outline:none; box-shadow:var(--crayon-shadow)"
+              oninput="parseSubscribeInput(this.value)"
+              onkeydown="if(event.key==='Enter') quickSubscribe()">
+            <button class="btn btn-green" onclick="quickSubscribe()" style="white-space:nowrap; font-size:15px; padding:14px 24px">
+              ➕ 订阅
+            </button>
+          </div>
+          <div id="quickSubscribeParsed" style="margin-top:8px; font-size:13px; color:var(--text2)"></div>
+          <div id="quickSubscribeResult" style="margin-top:8px"></div>
+        </div>
+
+        ${RECOMMENDED_SOURCES.length > 0 ? `
+          <div class="community-config" style="border-color:var(--green); margin-top:16px">
+            <h3 style="color:var(--green)">⭐ 推荐订阅</h3>
+            <div style="display:grid; gap:10px; margin-top:12px">
+              ${RECOMMENDED_SOURCES.map(r => {
+                const isSubscribed = subscribedRepos.has(r.repo);
+                return `
+                  <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-radius:16px; border:2px solid ${isSubscribed ? 'var(--green)' : 'var(--border2)'}; background:${isSubscribed ? 'var(--green-light)' : 'var(--bg2)'}; transition:all 0.2s">
+                    <div>
+                      <div style="font-family:var(--font-display); font-size:15px">${escapeHtml(r.label)}</div>
+                      <div style="font-size:12px; color:var(--text2); margin-top:2px">${escapeHtml(r.desc)}</div>
+                      <div style="font-size:11px; color:var(--text2); margin-top:2px; font-family:monospace">${escapeHtml(r.repo)}</div>
+                    </div>
+                    ${isSubscribed
+                      ? '<span style="font-family:var(--font-display); font-size:13px; color:var(--green)">✅ 已订阅</span>'
+                      : `<button class="btn btn-green" style="font-size:13px" data-repo="${escapeAttr(r.repo)}" data-label="${escapeAttr(r.label)}" onclick="quickSubscribeRepo(this.dataset.repo, this.dataset.label, this)">➕ 一键订阅</button>`
+                    }
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        ${sources.length > 0 ? `
+          <div class="community-config" style="margin-top:16px">
+            <h3>📡 我的订阅源 (${sources.length})</h3>
+            <div style="display:grid; gap:10px; margin-top:12px">
+              ${sources.map(s => `
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-radius:14px; border:2px solid var(--border2); background:var(--bg2); transition:all 0.2s"
+                     onmouseenter="this.style.borderColor='var(--blue)'" onmouseleave="this.style.borderColor='var(--border2)'">
+                  <div>
+                    <div style="font-family:var(--font-display); font-size:15px; color:var(--text)">${escapeHtml(s.label)}</div>
+                    <div style="font-size:12px; color:var(--text2); margin-top:2px; font-family:monospace">${escapeHtml(s.repo)}</div>
+                  </div>
+                  <button class="btn btn-red" style="padding:4px 12px; font-size:11px" data-id="${escapeAttr(s.id)}" onclick="removeCommunitySource(this.dataset.id)">✕ 取消订阅</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="community-config" style="border-color:var(--purple); margin-top:16px">
+          <h3 style="color:var(--purple)">💡 怎么获取订阅地址？</h3>
+          <div style="font-size:13px; color:var(--text2); line-height:2.2">
+            <p>1️⃣ 让技能分享者告诉你他的仓库地址（如 <code>someone/skill-community</code>）</p>
+            <p>2️⃣ 或者直接复制 GitHub 页面的网址（如 <code>https://github.com/someone/skill-community</code>）</p>
+            <p>3️⃣ 粘贴到上面的输入框，点击「订阅」就完成了！</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function parseSubscribeInput(value) {
+      const parsed = parseGitHubUrl(value);
+      const el = document.getElementById('quickSubscribeParsed');
+      if (parsed) {
+        el.innerHTML = `<span style="color:var(--green)">✅ 识别到仓库: <strong>${escapeHtml(parsed)}</strong></span>`;
+      } else if (value.trim()) {
+        el.innerHTML = `<span style="color:var(--orange)">🤔 请输入 GitHub 仓库地址</span>`;
+      } else {
+        el.innerHTML = '';
+      }
+    }
+
+    function parseGitHubUrl(input) {
+      const trimmed = input.trim().replace(/\/+$/, '');
+      const urlMatch = trimmed.match(/github\.com\/([^/]+\/[^/]+)/);
+      if (urlMatch) return urlMatch[1];
+      const repoMatch = trimmed.match(/^([a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+)$/);
+      if (repoMatch) return repoMatch[1];
+      return null;
+    }
+
+    async function quickSubscribe() {
+      const input = document.getElementById('quickSubscribeInput').value;
+      const repo = parseGitHubUrl(input);
+      const resultEl = document.getElementById('quickSubscribeResult');
+
+      if (!repo) {
+        resultEl.innerHTML = '<span style="color:var(--red)">❌ 无法识别仓库地址，请检查格式</span>';
+        return;
+      }
+
+      const label = repo.split('/').pop() || repo;
+      await doSubscribe(repo, label, resultEl);
+    }
+
+    async function quickSubscribeRepo(repo, label, btn) {
+      btn.textContent = '⏳ 订阅中...';
+      btn.disabled = true;
+      await doSubscribe(repo, label, null);
+      btn.textContent = '✅ 已订阅';
+    }
+
+    async function doSubscribe(repo, label, resultEl) {
+      try {
+        const result = await api(`/api/community/add-source?repo=${encodeURIComponent(repo)}&label=${encodeURIComponent(label)}&branch=main&skillsPath=skills`);
+        if (result.success) {
+          communityConfig.sources = result.sources;
+          communityLoaded = false;
+          showToast({ tool: 'source', resultSummary: `已订阅: ${label}`, timestamp: new Date().toISOString() });
+          renderCommunity();
+        } else {
+          if (resultEl) resultEl.innerHTML = `<span style="color:var(--red)">❌ ${escapeHtml(result.error || '订阅失败')}</span>`;
+        }
+      } catch {
+        if (resultEl) resultEl.innerHTML = '<span style="color:var(--red)">❌ 网络错误</span>';
+      }
+    }
+
+    async function removeCommunitySource(sourceId) {
+      try {
+        const result = await api(`/api/community/remove-source?id=${encodeURIComponent(sourceId)}`);
+        if (result.success) {
+          communityConfig.sources = result.sources;
+          communityLoaded = false;
+          showToast({ tool: 'source', resultSummary: '已移除订阅源', timestamp: new Date().toISOString() });
+          renderCommunity();
+        }
+      } catch {}
+    }
+
+    async function renderCommunitySubmissions(container) {
+      container.innerHTML = '<div class="plaza-loading"><span class="spinner">📝</span><p>加载投稿列表...</p></div>';
+
+      try {
+        const submissions = await api('/api/community/submissions');
+        if (submissions.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📝</div>
+              <p>暂无投稿</p>
+              <p style="font-family:var(--font-body); font-size:13px; margin-top:8px; color:var(--text2)">通过「上传/投稿」标签页提交你的技能</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = `
+          <div style="display:grid; gap:12px">
+            ${submissions.map(s => {
+              const statusMap = { open: '🟡 待审核', approved: '✅ 已通过', rejected: '❌ 已拒绝' };
+              const statusColor = { open: 'var(--yellow)', approved: 'var(--green)', rejected: 'var(--red)' };
+              return `
+                <div style="background:var(--surface); border:3px solid var(--border2); border-radius:16px; padding:18px; box-shadow:var(--crayon-shadow)">
+                  <div style="display:flex; justify-content:space-between; align-items:center">
+                    <div>
+                      <span style="font-family:var(--font-display); font-size:16px">${escapeHtml(s.skillName)}</span>
+                      <span class="author" style="margin-left:8px">by ${escapeHtml(s.author)}</span>
+                    </div>
+                    <span style="font-family:var(--font-display); font-size:13px; color:${statusColor[s.status]}">${statusMap[s.status] || s.status}</span>
+                  </div>
+                  ${s.description ? `<p style="font-size:13px; color:var(--text2); margin-top:6px">${escapeHtml(s.description)}</p>` : ''}
+                  ${s.issueUrl ? `<a href="${escapeAttr(s.issueUrl)}" target="_blank" style="font-size:12px; color:var(--blue); margin-top:6px; display:inline-block">🔗 查看 GitHub Issue</a>` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } catch {
+        container.innerHTML = '<div class="empty-state"><div class="icon">😵</div><p>加载失败</p></div>';
+      }
+    }
+
+    function renderCommunityHelp(container) {
+      container.innerHTML = `
+        <div style="display:grid; gap:20px">
+
+          <div class="community-config" style="border-color:var(--blue)">
+            <h3 style="color:var(--blue); font-size:18px">🌐 如何浏览和安装别人的技能</h3>
+            <div style="font-size:14px; color:var(--text); line-height:2.4; margin-top:12px">
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
+                <span style="background:var(--blue); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">1</span>
+                <span>点击上方 <strong>📡 订阅源管理</strong> 标签</span>
+              </div>
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
+                <span style="background:var(--blue); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">2</span>
+                <span>在输入框<strong>粘贴仓库地址</strong>（例如 <code style="background:var(--bg); padding:2px 8px; border-radius:6px">zhangziyana007-sudo/skiller-community</code>）</span>
+              </div>
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
+                <span style="background:var(--blue); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">3</span>
+                <span>点击 <strong>➕ 订阅</strong>（或按回车）</span>
+              </div>
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0">
+                <span style="background:var(--green); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">✓</span>
+                <span>回到 <strong>🌐 浏览技能</strong> 标签，就能看到所有技能并安装了！</span>
+              </div>
+              <div style="background:var(--green-light); border:2px solid var(--green); border-radius:12px; padding:12px 16px; margin-top:12px; font-size:13px; color:#2E7D32">
+                💡 <strong>不需要 Token</strong>：浏览和安装公开仓库的技能完全免费，不需要任何配置！
+              </div>
+            </div>
+          </div>
+
+          <div class="community-config" style="border-color:var(--pink)">
+            <h3 style="color:var(--pink); font-size:18px">🏗️ 如何创建自己的技能社区</h3>
+            <div style="font-size:14px; color:var(--text); line-height:2.4; margin-top:12px">
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
+                <span style="background:var(--pink); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">1</span>
+                <div>
+                  <strong>创建 GitHub 仓库</strong><br>
+                  <span style="font-size:13px; color:var(--text2)">打开 <a href="https://github.com/new" target="_blank" style="color:var(--blue)">github.com/new</a> → 仓库名填 skill-community → 选 Public → ✅ Add README → Create</span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
+                <span style="background:var(--pink); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">2</span>
+                <div>
+                  <strong>创建 skills 目录</strong><br>
+                  <span style="font-size:13px; color:var(--text2)">在仓库页面 Add file → Create new file → 输入 <code>skills/.gitkeep</code> → Commit</span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
+                <span style="background:var(--pink); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">3</span>
+                <div>
+                  <strong>创建 GitHub Token</strong><br>
+                  <span style="font-size:13px; color:var(--text2)">打开 <a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--blue)">Token 创建页</a> → Note 填 skiller → ✅ repo → Generate → 复制</span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
+                <span style="background:var(--pink); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">4</span>
+                <div>
+                  <strong>在 Dashboard 配置</strong><br>
+                  <span style="font-size:13px; color:var(--text2)">点击上方 ⚙️设置 → 填写仓库地址和 Token → 💾保存</span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0">
+                <span style="background:var(--green); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">✓</span>
+                <div>
+                  <strong>开始上传！</strong><br>
+                  <span style="font-size:13px; color:var(--text2)">📤上传/投稿 → 点击技能旁的「上传」→ 技能自动推送到 GitHub</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="community-config" style="border-color:var(--purple)">
+            <h3 style="color:var(--purple); font-size:18px">📢 如何让别人用你的社区</h3>
+            <div style="font-size:14px; color:var(--text); line-height:2; margin-top:12px">
+              <p>把你的仓库地址告诉别人就行！例如：</p>
+              <div style="background:var(--bg); border:2px solid var(--border2); border-radius:12px; padding:16px; margin:12px 0; font-size:15px; font-family:var(--font-display); text-align:center">
+                💬 "订阅我的技能库：<strong>你的用户名/skill-community</strong>"
+              </div>
+              <p>别人只需在订阅源管理中粘贴这个地址，就能看到你分享的所有技能了！</p>
+            </div>
+          </div>
+
+          <div class="community-config" style="border-color:var(--orange)">
+            <h3 style="color:var(--orange); font-size:18px">❓ 常见问题</h3>
+            <div style="font-size:13px; color:var(--text); margin-top:12px">
+              <details style="margin-bottom:8px; padding:10px; border-radius:10px; background:var(--bg2)">
+                <summary style="cursor:pointer; font-weight:600">只想看别人技能，需要创建仓库吗？</summary>
+                <p style="margin-top:8px; color:var(--text2)">不需要！直接在订阅源管理中添加别人的仓库地址就行，无需任何配置。</p>
+              </details>
+              <details style="margin-bottom:8px; padding:10px; border-radius:10px; background:var(--bg2)">
+                <summary style="cursor:pointer; font-weight:600">安装的技能在哪里？</summary>
+                <p style="margin-top:8px; color:var(--text2)">在 ~/.cursor/skills/技能名/SKILL.md。Cursor 会自动识别。</p>
+              </details>
+              <details style="margin-bottom:8px; padding:10px; border-radius:10px; background:var(--bg2)">
+                <summary style="cursor:pointer; font-weight:600">Token 安全吗？</summary>
+                <p style="margin-top:8px; color:var(--text2)">Token 只保存在你本地，不会上传到任何地方。源代码中也不包含 Token。</p>
+              </details>
+              <details style="margin-bottom:8px; padding:10px; border-radius:10px; background:var(--bg2)">
+                <summary style="cursor:pointer; font-weight:600">技能广场和社区有什么区别？</summary>
+                <p style="margin-top:8px; color:var(--text2)">🏪技能广场 = 官方/知名仓库（类似应用商店）<br>🌍社区 = 个人/团队仓库（类似朋友圈）</p>
+              </details>
+              <details style="margin-bottom:8px; padding:10px; border-radius:10px; background:var(--bg2)">
+                <summary style="cursor:pointer; font-weight:600">没有写权限怎么投稿？</summary>
+                <p style="margin-top:8px; color:var(--text2)">在📤上传/投稿 → 底部的「Issue 投稿」区域，通过 GitHub Issue 提交技能，等待管理员审核。</p>
+              </details>
+            </div>
+          </div>
+
+          <div style="text-align:center; padding:12px">
+            <a href="https://github.com/zhangziyana007-sudo/skiller-mcp/blob/main/docs/community-guide.md" target="_blank" class="btn btn-blue" style="text-decoration:none; display:inline-block">📖 查看完整文档</a>
+            <a href="https://github.com/zhangziyana007-sudo/skiller-mcp/blob/main/docs/create-your-community.md" target="_blank" class="btn" style="text-decoration:none; display:inline-block; margin-left:8px">🏗️ 搭建社区详细教程</a>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCommunitySettings(container) {
+      renderCommunitySetup();
+    }
+
+    async function uploadToCommunity(name, btn) {
+      btn.textContent = '⏳ 上传中...';
+      btn.className = 'btn-upload uploading';
+      btn.disabled = true;
+
+      try {
+        const result = await api(`/api/community/upload?name=${encodeURIComponent(name)}`);
+        if (result.success) {
+          btn.textContent = '✓ 已上传';
+          btn.className = 'btn-upload done';
+          showToast({ tool: 'upload', resultSummary: result.message, timestamp: new Date().toISOString() });
+          communityLoaded = false;
+        } else {
+          btn.textContent = '❌ ' + (result.message || '失败').slice(0, 20);
+          setTimeout(() => { btn.textContent = '📤 上传'; btn.className = 'btn-upload'; btn.disabled = false; }, 3000);
+        }
+      } catch (e) {
+        btn.textContent = '❌ 网络错误';
+        setTimeout(() => { btn.textContent = '📤 上传'; btn.className = 'btn-upload'; btn.disabled = false; }, 3000);
+      }
+    }
+
+    async function installCommunitySkill(name, rawUrl, btn) {
+      btn.textContent = '⏳ 安装中...';
+      btn.disabled = true;
+
+      try {
+        const result = await api(`/api/community/install?name=${encodeURIComponent(name)}&url=${encodeURIComponent(rawUrl)}`);
+        if (result.success) {
+          btn.textContent = '✓ 已安装';
+          btn.className = 'btn-install installed';
+          showToast({ tool: 'install', resultSummary: `已安装 ${name}`, timestamp: new Date().toISOString() });
+          allSkills = await api('/api/skills');
+        } else {
+          btn.textContent = '❌ 失败';
+          setTimeout(() => { btn.textContent = '⬇️ 安装'; btn.disabled = false; }, 2000);
+        }
+      } catch {
+        btn.textContent = '❌ 网络错误';
+        setTimeout(() => { btn.textContent = '⬇️ 安装'; btn.disabled = false; }, 2000);
+      }
+    }
+
+    async function refreshCommunity() {
+      await api('/api/community/refresh');
+      communityLoaded = false;
+      renderCommunity();
+    }
+
+    function renderCommunitySetup() {
+      const content = document.getElementById('content');
+      const cfg = communityConfig || {};
+
+      content.innerHTML = `
+        <div class="page-title">⚙️ 社区配置</div>
+
+        <div class="community-config">
+          <h3>🔗 我的社区仓库</h3>
+          <p style="font-size:13px; color:var(--text2); margin-bottom:12px">这是你自己的社区仓库，你有写权限可以直接上传技能。</p>
+          <div class="config-field">
+            <label>社区仓库 (owner/repo)</label>
+            <input type="text" id="cfgRepo" value="${escapeAttr(cfg.repo || '')}" placeholder="例如: your-team/skill-community">
+          </div>
+          <div class="config-field">
+            <label>分支</label>
+            <input type="text" id="cfgBranch" value="${escapeAttr(cfg.branch || 'main')}" placeholder="main">
+          </div>
+          <div class="config-field">
+            <label>技能目录</label>
+            <input type="text" id="cfgPath" value="${escapeAttr(cfg.skillsPath || 'skills')}" placeholder="skills">
+          </div>
+          <div class="config-field">
+            <label>GitHub Token</label>
+            <input type="password" id="cfgToken" value="${escapeAttr(cfg.githubToken || '')}" placeholder="ghp_xxxx...">
+            <div class="hint">Personal Access Token，需要 repo 权限。<a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--blue)">去创建</a></div>
+          </div>
+          <div class="config-field">
+            <label>作者名称</label>
+            <input type="text" id="cfgAuthor" value="${escapeAttr(cfg.authorName || '')}" placeholder="你的名字或团队名">
+          </div>
+
+          <div style="display:flex; gap:8px; margin-top:20px">
+            <button class="btn btn-green" onclick="saveCommunityConfig()">💾 保存配置</button>
+            ${cfg.repo ? '<button class="btn" onclick="communityTab=\'browse\'; renderCommunity()">← 返回社区</button>' : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    async function saveCommunityConfig() {
+      const repo = document.getElementById('cfgRepo').value.trim();
+      const branch = document.getElementById('cfgBranch').value.trim() || 'main';
+      const skillsPath = document.getElementById('cfgPath').value.trim() || 'skills';
+      const token = document.getElementById('cfgToken').value.trim();
+      const author = document.getElementById('cfgAuthor').value.trim();
+
+      const params = new URLSearchParams({
+        repo, branch, skillsPath, token, author
+      });
+
+      communityConfig = await api(`/api/community/save-config?${params}`);
+      communityLoaded = true;
+      showToast({ tool: 'config', resultSummary: '社区配置已保存', timestamp: new Date().toISOString() });
+
+      if (repo) {
+        communityTab = 'browse';
+        renderCommunity();
+      }
+    }
+
+    // ========== 技能广场 ==========
+
+    let plazaSkills = [];
+    let plazaFilter = 'all';
+    let plazaLoaded = false;
+
+    async function renderPlaza() {
+      const content = document.getElementById('content');
+
+      if (!plazaLoaded) {
+        content.innerHTML = `
+          <div class="page-title">🏪 技能广场</div>
+          <div class="plaza-loading">
+            <span class="spinner">🔍</span>
+            <p>正在从 GitHub 获取在线技能...</p>
+          </div>
+        `;
+
+        try {
+          plazaSkills = await api('/api/plaza');
+          plazaLoaded = true;
+        } catch (e) {
+          content.innerHTML = `
+            <div class="page-title">🏪 技能广场</div>
+            <div class="empty-state">
+              <div class="icon">😵</div>
+              <p>获取在线技能失败</p>
+              <p style="font-size:13px; margin-top:8px; color:var(--text2)">可能是网络问题或 GitHub API 限流</p>
+              <button class="btn" onclick="plazaLoaded=false; renderPlaza()" style="margin-top:12px">🔄 重试</button>
+            </div>
+          `;
+          return;
+        }
+      }
+
+      renderPlazaContent();
+    }
+
+    function renderPlazaContent() {
+      const content = document.getElementById('content');
+      const categories = [...new Set(plazaSkills.map(s => s.category))].sort();
+      const repos = [...new Set(plazaSkills.map(s => s.repoLabel))];
+
+      let filtered = plazaSkills;
+      if (plazaFilter !== 'all') {
+        if (plazaFilter === 'installed') {
+          filtered = plazaSkills.filter(s => s.installed);
+        } else if (plazaFilter === 'not-installed') {
+          filtered = plazaSkills.filter(s => !s.installed);
+        } else {
+          filtered = plazaSkills.filter(s => s.category === plazaFilter || s.repoLabel === plazaFilter);
+        }
+      }
+
+      const installedCount = plazaSkills.filter(s => s.installed).length;
+
+      content.innerHTML = `
+        <div class="plaza-header">
+          <div class="page-title">🏪 技能广场 <span style="font-size:14px; color:var(--text2); font-family:var(--font-body)">${plazaSkills.length} 个在线技能 · ${installedCount} 已安装</span></div>
+          <div style="display:flex; gap:8px">
+            <button class="btn" onclick="plazaLoaded=false; renderPlaza()">🔄 刷新</button>
+          </div>
+        </div>
+
+        <div class="search-box" style="margin-bottom:16px">
+          <input type="text" id="plazaSearch" placeholder="🔍 搜索在线技能..." oninput="onPlazaSearch(this.value)">
+        </div>
+
+        <div class="plaza-filters" id="plazaFilters">
+          <div class="filter-btn ${plazaFilter === 'all' ? 'active' : ''}" onclick="setPlazaFilter('all')">全部 (${plazaSkills.length})</div>
+          <div class="filter-btn ${plazaFilter === 'not-installed' ? 'active' : ''}" onclick="setPlazaFilter('not-installed')">未安装 (${plazaSkills.length - installedCount})</div>
+          <div class="filter-btn ${plazaFilter === 'installed' ? 'active' : ''}" onclick="setPlazaFilter('installed')">已安装 (${installedCount})</div>
+          ${categories.map(c => `<div class="filter-btn ${plazaFilter === c ? 'active' : ''}" onclick="setPlazaFilter('${c}')">${categoryIcons[c] || '📦'} ${c}</div>`).join('')}
+        </div>
+
+        <div class="plaza-grid" id="plazaGrid">
+          ${filtered.map(renderPlazaCard).join('')}
+        </div>
+      `;
+    }
+
+    function renderPlazaCard(skill) {
+      return `
+        <div class="plaza-card" data-name="${escapeAttr(skill.name)}" data-url="${escapeAttr(skill.rawUrl)}">
+          <div class="plaza-name">${escapeHtml(skill.name)}</div>
+          <div class="plaza-desc">${escapeHtml(skill.description)}</div>
+          <div class="plaza-meta">
+            <span class="repo-badge">${escapeHtml(skill.repoLabel)}</span>
+            <span class="tag category">${escapeHtml(skill.category)}</span>
+            ${skill.tags.slice(0, 3).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+          </div>
+          <div class="plaza-actions">
+            ${skill.installed
+              ? '<button class="btn-install installed" disabled>✓ 已安装</button>'
+              : `<button class="btn-install" onclick="installSkill(this.closest('.plaza-card').dataset.name, this.closest('.plaza-card').dataset.url, this)">⬇️ 安装</button>`
+            }
+            <button class="btn-preview" onclick="previewSkill(this.closest('.plaza-card').dataset.name, this.closest('.plaza-card').dataset.url)">👁️ 预览</button>
+            <a href="${escapeAttr(skill.htmlUrl)}" target="_blank" class="btn-preview" style="text-decoration:none">🔗 GitHub</a>
+          </div>
+        </div>
+      `;
+    }
+
+    function setPlazaFilter(filter) {
+      plazaFilter = filter;
+      renderPlazaContent();
+    }
+
+    function onPlazaSearch(query) {
+      if (!query.trim()) {
+        renderPlazaContent();
+        return;
+      }
+      const q = query.toLowerCase();
+      const filtered = plazaSkills.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        s.description.toLowerCase().includes(q) ||
+        s.tags.some(t => t.toLowerCase().includes(q))
+      );
+      document.getElementById('plazaGrid').innerHTML = filtered.length > 0
+        ? filtered.map(renderPlazaCard).join('')
+        : '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🤔</div><p>没有找到匹配的在线技能</p></div>';
+    }
+
+    async function installSkill(name, rawUrl, btn) {
+      btn.textContent = '⏳ 安装中...';
+      btn.disabled = true;
+
+      try {
+        const result = await api(`/api/plaza/install?name=${encodeURIComponent(name)}&url=${encodeURIComponent(rawUrl)}`);
+        if (result.success) {
+          btn.textContent = '✓ 已安装';
+          btn.className = 'btn-install installed';
+
+          const skill = plazaSkills.find(s => s.name === name);
+          if (skill) skill.installed = true;
+
+          allSkills = await api('/api/skills');
+          const trees = await api('/api/all-trees');
+          skillSubCounts = {};
+          skillSubSources = {};
+          for (const t of trees) {
+            skillSubCounts[t.name] = t.subSkillCount || 0;
+            skillSubSources[t.name] = t.subSkillSource || 'auto';
+          }
+
+          showToast({ tool: 'install', resultSummary: `已安装 ${name}`, timestamp: new Date().toISOString() });
+        } else {
+          btn.textContent = '❌ 失败';
+          setTimeout(() => { btn.textContent = '⬇️ 安装'; btn.disabled = false; }, 2000);
+        }
+      } catch {
+        btn.textContent = '❌ 网络错误';
+        setTimeout(() => { btn.textContent = '⬇️ 安装'; btn.disabled = false; }, 2000);
+      }
+    }
+
+    async function previewSkill(name, rawUrl) {
+      const panel = document.getElementById('detailPanel');
+      const title = document.getElementById('detailTitle');
+      const body = document.getElementById('detailBody');
+
+      title.textContent = `预览: ${name}`;
+      body.innerHTML = '<div class="empty-state"><div class="icon" style="animation:wobble 1s infinite">⏳</div><p>从 GitHub 获取内容...</p></div>';
+      panel.classList.add('open');
+
+      try {
+        const data = await api(`/api/plaza/preview?url=${encodeURIComponent(rawUrl)}`);
+        if (data.content) {
+          body.innerHTML = `
+            <div style="margin-bottom:16px">
+              <span class="repo-badge">在线预览</span>
+              <span class="tag tokens">~${Math.ceil(data.content.length / 3.5)} tokens</span>
+            </div>
+            <pre>${escapeHtml(data.content)}</pre>
+          `;
+        } else {
+          body.innerHTML = '<div class="empty-state"><div class="icon">😵</div><p>获取内容失败</p></div>';
+        }
+      } catch {
+        body.innerHTML = '<div class="empty-state"><div class="icon">😵</div><p>网络错误</p></div>';
+      }
+    }
+
+    async function rescan() {
+      const data = await api('/api/rescan');
+      showToast({ tool: 'scan_skills', resultSummary: `索引重建完成！技能总数: ${data.total}`, timestamp: new Date().toISOString() });
+      init();
+    }
+
+    function formatTime(ts) {
+      const d = new Date(ts);
+      const now = new Date();
+      const diffMs = now - d;
+      if (diffMs < 60000) return `${Math.floor(diffMs / 1000)}秒前`;
+      if (diffMs < 3600000) return `${Math.floor(diffMs / 60000)}分钟前`;
+      if (diffMs < 86400000) return d.toLocaleTimeString('zh-CN', { hour12: false });
+      return d.toLocaleString('zh-CN', { hour12: false });
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function escapeAttr(text) {
+      if (!text) return '';
+      return text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeDetail();
+    });
+
+    init();
+  </script>
+</body>
+</html>

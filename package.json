@@ -1,0 +1,32 @@
+{
+  "name": "skiller-mcp",
+  "version": "1.0.0",
+  "description": "AI Skill Manager MCP Server for Cursor — search, categorize, share and manage agent skills",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts",
+    "dashboard": "tsx src/dashboard.ts"
+  },
+  "keywords": [
+    "cursor", "mcp", "skills", "ai-agent", "skill-manager",
+    "model-context-protocol", "community", "dashboard"
+  ],
+  "author": "zizaya",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zhangziyana007-sudo/skiller-mcp.git"
+  },
+  "homepage": "https://github.com/zhangziyana007-sudo/skiller-mcp",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "gray-matter": "^4.0.3",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
