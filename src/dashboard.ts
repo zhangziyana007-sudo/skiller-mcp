@@ -3,6 +3,7 @@ import { readFileSync, existsSync, watch, statSync, rmSync, renameSync, readdirS
 import { join, extname, resolve, dirname, basename } from "path";
 import { execSync } from "child_process";
 import { getOrBuildIndex, buildIndex } from "./indexer.js";
+import matter from "gray-matter";
 import { searchSkills, getSkillStats } from "./searcher.js";
 import { loadLog } from "./logger.js";
 import { parseSkillTree } from "./skill-parser.js";
@@ -19,6 +20,12 @@ import {
   loadUserCategories, addCategory, removeCategory, renameCategory,
   tagSkill, buildCategoryTree, getUncategorizedCount,
   getSkillOverride, setSkillOverride, loadOverrides,
+  linkSkillToProject, unlinkSkillFromProject, getProjectSkills,
+  getSkillLinkedProjects, getAllSkillProjectLinks,
+  getProjectGroups, addProjectGroup, removeProjectGroup,
+  renameProjectGroup, assignProjectToGroup, reorderProjects, reorderGroups,
+  addManagedProject, removeManagedProject, getManagedProjects,
+  registerInstall, getInstallRegistry, getInstallRecord, simpleHash,
 } from "./categories.js";
 
 const PORT = parseInt(process.env.SKILLER_PORT || "3737");
@@ -158,6 +165,182 @@ function handleApi(path: string, params: URLSearchParams): unknown {
     case "/api/uncategorized":
       return index.skills.filter(s => s.categories.length === 0);
 
+    case "/api/skill-projects":
+      return getAllSkillProjectLinks();
+
+    case "/api/skill-projects/link": {
+      const spSkill = params.get("skill") || "";
+      const spProject = params.get("project") || "";
+      if (!spSkill || !spProject) return { success: false, message: "Missing skill or project" };
+      linkSkillToProject(spSkill, spProject);
+      return { success: true };
+    }
+
+    case "/api/skill-projects/unlink": {
+      const spuSkill = params.get("skill") || "";
+      const spuProject = params.get("project") || "";
+      if (!spuSkill || !spuProject) return { success: false, message: "Missing skill or project" };
+      unlinkSkillFromProject(spuSkill, spuProject);
+      return { success: true };
+    }
+
+    case "/api/skill-projects/by-project": {
+      const spbProject = params.get("project") || "";
+      if (!spbProject) return [];
+      return getProjectSkills(spbProject);
+    }
+
+    case "/api/skill-projects/by-skill": {
+      const spbsSkill = params.get("skill") || "";
+      if (!spbsSkill) return [];
+      return getSkillLinkedProjects(spbsSkill);
+    }
+
+    case "/api/project-groups":
+      return getProjectGroups();
+
+    case "/api/project-groups/add": {
+      const pgName = params.get("name") || "";
+      const pgIcon = params.get("icon") || "📁";
+      if (!pgName) return { success: false, message: "Missing name" };
+      const pg = addProjectGroup(pgName, pgIcon);
+      return { success: true, group: pg };
+    }
+
+    case "/api/project-groups/remove": {
+      const pgrId = params.get("id") || "";
+      if (!pgrId) return { success: false, message: "Missing id" };
+      return { success: removeProjectGroup(pgrId) };
+    }
+
+    case "/api/project-groups/rename": {
+      const pgrnId = params.get("id") || "";
+      const pgrnName = params.get("name") || "";
+      const pgrnIcon = params.has("icon") ? (params.get("icon") || "") : undefined;
+      if (!pgrnId || !pgrnName) return { success: false, message: "Missing id or name" };
+      return { success: renameProjectGroup(pgrnId, pgrnName, pgrnIcon) };
+    }
+
+    case "/api/project-groups/assign": {
+      const pgaProject = params.get("project") || "";
+      const pgaGroup = params.get("group") || null;
+      if (!pgaProject) return { success: false, message: "Missing project" };
+      assignProjectToGroup(pgaProject, pgaGroup);
+      return { success: true };
+    }
+
+    case "/api/project-groups/reorder-projects": {
+      const prOrder = (params.get("order") || "").split("|||").filter(Boolean);
+      if (prOrder.length === 0) return { success: false, message: "Missing order" };
+      reorderProjects(prOrder);
+      return { success: true };
+    }
+
+    case "/api/project-groups/reorder-groups": {
+      const grOrder = (params.get("order") || "").split(",").filter(Boolean);
+      if (grOrder.length === 0) return { success: false, message: "Missing order" };
+      reorderGroups(grOrder);
+      return { success: true };
+    }
+
+    case "/api/managed-projects":
+      return { projects: getManagedProjects() };
+
+    case "/api/managed-projects/add": {
+      const mpPath = params.get("path") || "";
+      if (!mpPath) return { success: false, message: "Missing path" };
+      const mpAdded = addManagedProject(mpPath);
+      return { success: true, added: mpAdded, projects: getManagedProjects() };
+    }
+
+    case "/api/managed-projects/remove": {
+      const mrPath = params.get("path") || "";
+      if (!mrPath) return { success: false, message: "Missing path" };
+      const mrRemoved = removeManagedProject(mrPath);
+      return { success: true, removed: mrRemoved, projects: getManagedProjects() };
+    }
+
+    case "/api/export-config": {
+      const managedProjects = getManagedProjects();
+      const projectGroups = getProjectGroups();
+      const installedSkillsByProject = managedProjects.map((projectPath) => {
+        const installed = index.skills.filter(
+          (s) => s.source === "project-rules" && s.projectName === projectPath
+        );
+        return {
+          projectPath,
+          skills: installed.map((s) => {
+            const norm = s.path.replace(/\\/g, "/");
+            if (norm.includes("/skills/") && norm.endsWith("SKILL.md")) {
+              return { name: s.name, mode: "skill-folder" as const };
+            }
+            if (norm.endsWith(".mdc") || (norm.includes("/rules/") && norm.endsWith(".md"))) {
+              let alwaysApply: boolean | undefined;
+              try {
+                const c = readFileSync(s.path, "utf-8");
+                const { data } = matter(c);
+                if (typeof data.alwaysApply === "boolean") alwaysApply = data.alwaysApply;
+              } catch {}
+              return {
+                name: s.name,
+                mode: "rule" as const,
+                ...(alwaysApply !== undefined ? { alwaysApply } : {}),
+              };
+            }
+            return { name: s.name, mode: "unknown" as const };
+          }),
+        };
+      });
+      return {
+        exportedAt: new Date().toISOString(),
+        managedProjects,
+        projectGroups,
+        installedSkillsByProject,
+      };
+    }
+
+    case "/api/managed-projects/scan": {
+      const scannedProjects: string[] = [];
+      try {
+        const vscdbPath = join(process.env.HOME || "~", ".config", "Cursor", "User", "globalStorage", "state.vscdb");
+        if (existsSync(vscdbPath)) {
+          const raw = execSync(
+            `sqlite3 "${vscdbPath}" "SELECT value FROM ItemTable WHERE key = 'history.recentlyOpenedPathsList'"`,
+            { encoding: "utf-8", timeout: 5000 }
+          ).trim();
+          if (raw) {
+            const data = JSON.parse(raw);
+            for (const e of (data.entries || [])) {
+              const uri = e.folderUri || "";
+              const p = decodeURIComponent(uri.replace("file://", ""));
+              if (p && existsSync(p) && statSync(p).isDirectory() && !scannedProjects.includes(p)) {
+                scannedProjects.push(p);
+              }
+            }
+          }
+        }
+      } catch {}
+      try {
+        const cursorStorage = join(process.env.HOME || "~", ".config", "Cursor", "User", "globalStorage", "storage.json");
+        if (existsSync(cursorStorage)) {
+          const raw = JSON.parse(readFileSync(cursorStorage, "utf-8"));
+          const entries = raw.openedPathsList?.entries || [];
+          for (const e of entries) {
+            const p = (e.folderUri || "").replace("file://", "");
+            if (p && existsSync(p) && statSync(p).isDirectory() && !scannedProjects.includes(p)) {
+              scannedProjects.push(p);
+            }
+          }
+        }
+      } catch {}
+      const managed = getManagedProjects();
+      return {
+        scanned: scannedProjects,
+        managed,
+        newProjects: scannedProjects.filter((p) => !managed.includes(p)),
+      };
+    }
+
     case "/api/search": {
       const query = params.get("q") || "";
       const category = params.get("category") || undefined;
@@ -254,14 +437,22 @@ function handleApi(path: string, params: URLSearchParams): unknown {
 
     case "/api/skill/delete": {
       const delName = params.get("name") || "";
+      const delProjectPath = params.get("projectPath") || "";
       if (!delName) return { success: false, message: "Missing skill name" };
-      const delSkill = index.skills.find(
-        (s) => s.name === delName || s.name.toLowerCase() === delName.toLowerCase()
-      );
+      const delSkill = index.skills.find((s) => {
+        const nameMatch = s.name === delName || s.name.toLowerCase() === delName.toLowerCase();
+        if (!nameMatch) return false;
+        if (delProjectPath) return s.source === "project-rules" && s.projectName === delProjectPath;
+        return true;
+      });
       if (!delSkill) return { success: false, message: `技能 "${delName}" 不存在` };
       try {
         if (delSkill.source === "project-rules") {
-          unlinkSync(delSkill.path);
+          if (delSkill.path.endsWith("SKILL.md")) {
+            rmSync(dirname(delSkill.path), { recursive: true, force: true });
+          } else {
+            unlinkSync(delSkill.path);
+          }
         } else {
           const skillDir = dirname(delSkill.path);
           rmSync(skillDir, { recursive: true, force: true });
@@ -306,6 +497,7 @@ function handleApi(path: string, params: URLSearchParams): unknown {
     case "/api/skill/copy-to-project": {
       const cpName = params.get("name") || "";
       const cpProject = params.get("projectPath") || "";
+      const cpMode = params.get("mode") || "global-skill";
       if (!cpName || !cpProject) return { success: false, message: "Missing name or projectPath" };
       const cpSkill = index.skills.find(
         (s) => s.name === cpName || s.name.toLowerCase() === cpName.toLowerCase()
@@ -313,15 +505,31 @@ function handleApi(path: string, params: URLSearchParams): unknown {
       if (!cpSkill) return { success: false, message: `技能 "${cpName}" 不存在` };
       try {
         const content = readFileSync(cpSkill.path, "utf-8");
-        const projDir = resolve(cpProject);
-        if (!existsSync(projDir)) return { success: false, message: "项目路径不存在: " + cpProject };
-        const rulesDir = join(projDir, ".cursor", "rules");
-        mkdirSync(rulesDir, { recursive: true });
         const safeName = cpName.replace(/[^a-zA-Z0-9_-]/g, "-");
-        const targetPath = join(rulesDir, safeName + ".mdc");
-        writeFileSync(targetPath, content, "utf-8");
+        let targetPath: string;
+        let modeLabel: string;
+
+        if (cpMode === "global-skill") {
+          const globalSkillDir = join(process.env.HOME || "~", ".cursor", "skills", safeName);
+          mkdirSync(globalSkillDir, { recursive: true });
+          targetPath = join(globalSkillDir, "SKILL.md");
+          writeFileSync(targetPath, content, "utf-8");
+          modeLabel = "全局技能";
+        } else {
+          const projDir = resolve(cpProject);
+          if (!existsSync(projDir)) return { success: false, message: "项目路径不存在: " + cpProject };
+          const rulesDir = join(projDir, ".cursor", "rules");
+          mkdirSync(rulesDir, { recursive: true });
+          targetPath = join(rulesDir, safeName + ".mdc");
+          const alwaysApply = cpMode === "rule-always";
+          const { data: fm, content: body } = matter(content);
+          const description = (fm.description as string) || cpSkill.description || safeName;
+          const frontmatter = `---\ndescription: ${description}\nglobs: \nalwaysApply: ${alwaysApply}\n---\n`;
+          writeFileSync(targetPath, frontmatter + body.trim() + "\n", "utf-8");
+          modeLabel = alwaysApply ? "项目规则（常驻）" : "项目规则（智能）";
+        }
         index = buildIndex();
-        return { success: true, message: `已复制到项目 ${cpProject}`, path: targetPath, totalSkills: index.totalSkills };
+        return { success: true, message: `已以 ${modeLabel} 模式添加`, path: targetPath, mode: cpMode, totalSkills: index.totalSkills };
       } catch (e) {
         return { success: false, message: `复制失败: ${String(e).slice(0, 200)}` };
       }
@@ -577,34 +785,62 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       const rawUrl = params.get("url") || "";
       if (!name || !rawUrl) return { error: "Missing name or url" };
 
-      const scope = params.get("scope") || "global";
+      const installMode = params.get("mode") || params.get("scope") || "global-skill";
       const projectPath = params.get("projectPath") || "";
       const safeName = name.replace(/[^a-zA-Z0-9_-]/g, "-");
       const content = await downloadCommunitySkill(rawUrl);
       if (!content) return { error: "Failed to fetch skill" };
 
-      const { mkdirSync: mks, writeFileSync: wfs, existsSync: exs } = await import("fs");
-      const { join: pjoin, resolve: pres } = await import("path");
-
       let targetPath: string;
-      if (scope === "project" && projectPath) {
-        const projDir = pres(projectPath);
-        if (!exs(projDir)) return { error: "项目路径不存在: " + projectPath };
-        const rulesDir = pjoin(projDir, ".cursor", "rules");
-        mks(rulesDir, { recursive: true });
-        targetPath = pjoin(rulesDir, safeName + ".mdc");
-        wfs(targetPath, content, "utf-8");
+      let modeLabel: string;
+      if (installMode === "global-skill" || installMode === "global") {
+        const base = join(process.env.HOME || "~", ".cursor", "skills");
+        const dir = join(base, safeName);
+        if (!resolve(dir).startsWith(resolve(base))) return { error: "Invalid path" };
+        mkdirSync(dir, { recursive: true });
+        targetPath = join(dir, "SKILL.md");
+        writeFileSync(targetPath, content, "utf-8");
+        modeLabel = "全局技能";
+      } else if ((installMode === "rule-smart" || installMode === "rule-always") && projectPath) {
+        const projDir = resolve(projectPath);
+        if (!existsSync(projDir)) return { error: "项目路径不存在: " + projectPath };
+        const rulesDir = join(projDir, ".cursor", "rules");
+        mkdirSync(rulesDir, { recursive: true });
+        targetPath = join(rulesDir, safeName + ".mdc");
+        const alwaysApply = installMode === "rule-always";
+        const { data: fm, content: body } = matter(content);
+        const description = (fm.description as string) || safeName;
+        const frontmatterStr = `---\ndescription: ${description}\nglobs: \nalwaysApply: ${alwaysApply}\n---\n`;
+        writeFileSync(targetPath, frontmatterStr + body.trim() + "\n", "utf-8");
+        modeLabel = alwaysApply ? "项目规则（常驻）" : "项目规则（智能）";
+      } else if (installMode === "project" && projectPath) {
+        const projDir = resolve(projectPath);
+        if (!existsSync(projDir)) return { error: "项目路径不存在: " + projectPath };
+        const rulesDir = join(projDir, ".cursor", "rules");
+        mkdirSync(rulesDir, { recursive: true });
+        targetPath = join(rulesDir, safeName + ".mdc");
+        writeFileSync(targetPath, content, "utf-8");
+        modeLabel = "项目规则";
       } else {
-        const base = pjoin(process.env.HOME || "~", ".cursor", "skills");
-        const dir = pjoin(base, safeName);
-        if (!pres(dir).startsWith(pres(base))) return { error: "Invalid path" };
-        mks(dir, { recursive: true });
-        targetPath = pjoin(dir, "SKILL.md");
-        wfs(targetPath, content, "utf-8");
+        const base = join(process.env.HOME || "~", ".cursor", "skills");
+        const dir = join(base, safeName);
+        mkdirSync(dir, { recursive: true });
+        targetPath = join(dir, "SKILL.md");
+        writeFileSync(targetPath, content, "utf-8");
+        modeLabel = "全局技能";
       }
+      registerInstall({
+        skillName: name,
+        sourceUrl: rawUrl,
+        installedAt: new Date().toISOString(),
+        installMode,
+        targetPath,
+        contentHash: simpleHash(content),
+        ...(projectPath ? { projectPath } : {}),
+      });
       index = buildIndex();
 
-      return { success: true, name: safeName, path: targetPath, scope, totalSkills: index.totalSkills };
+      return { success: true, name: safeName, path: targetPath, mode: installMode, modeLabel, totalSkills: index.totalSkills };
     }
 
     case "/api/community/install-url": {
@@ -632,7 +868,7 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
         }
       }
 
-      const scope2 = params.get("scope") || "global";
+      const installMode2 = params.get("mode") || params.get("scope") || "global-skill";
       const projectPath2 = params.get("projectPath") || "";
 
       try {
@@ -641,30 +877,80 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
         const content = await resp.text();
         if (!content.trim()) return { error: "内容为空" };
 
-        const { mkdirSync: mk, writeFileSync: wf, existsSync: ex } = await import("fs");
-
         let targetPath: string;
-        if (scope2 === "project" && projectPath2) {
-          const projDir = resolve(projectPath2);
-          if (!ex(projDir)) return { error: "项目路径不存在: " + projectPath2 };
-          const rulesDir = join(projDir, ".cursor", "rules");
-          mk(rulesDir, { recursive: true });
-          targetPath = join(rulesDir, safeName + ".mdc");
-          wf(targetPath, content, "utf-8");
-        } else {
+        let modeLabel2: string;
+        if (installMode2 === "global-skill" || installMode2 === "global") {
           const skillsBase = join(process.env.HOME || "~", ".cursor", "skills");
           const skillDir = join(skillsBase, safeName);
           if (!resolve(skillDir).startsWith(resolve(skillsBase))) return { error: "Invalid path" };
-          mk(skillDir, { recursive: true });
+          mkdirSync(skillDir, { recursive: true });
           targetPath = join(skillDir, "SKILL.md");
-          wf(targetPath, content, "utf-8");
+          writeFileSync(targetPath, content, "utf-8");
+          modeLabel2 = "全局技能";
+        } else if ((installMode2 === "rule-smart" || installMode2 === "rule-always") && projectPath2) {
+          const projDir = resolve(projectPath2);
+          if (!existsSync(projDir)) return { error: "项目路径不存在: " + projectPath2 };
+          const rulesDir = join(projDir, ".cursor", "rules");
+          mkdirSync(rulesDir, { recursive: true });
+          targetPath = join(rulesDir, safeName + ".mdc");
+          const alwaysApply = installMode2 === "rule-always";
+          const { data: fm2, content: body2 } = matter(content);
+          const desc2 = (fm2.description as string) || safeName;
+          writeFileSync(targetPath, `---\ndescription: ${desc2}\nglobs: \nalwaysApply: ${alwaysApply}\n---\n` + body2.trim() + "\n", "utf-8");
+          modeLabel2 = alwaysApply ? "项目规则（常驻）" : "项目规则（智能）";
+        } else {
+          const skillsBase = join(process.env.HOME || "~", ".cursor", "skills");
+          const skillDir = join(skillsBase, safeName);
+          mkdirSync(skillDir, { recursive: true });
+          targetPath = join(skillDir, "SKILL.md");
+          writeFileSync(targetPath, content, "utf-8");
+          modeLabel2 = "全局技能";
         }
+        registerInstall({
+          skillName: skillName,
+          sourceUrl: rawUrl,
+          installedAt: new Date().toISOString(),
+          installMode: installMode2,
+          targetPath,
+          contentHash: simpleHash(content),
+          ...(projectPath2 ? { projectPath: projectPath2 } : {}),
+        });
         index = buildIndex();
 
-        return { success: true, name: safeName, path: targetPath, scope: scope2, totalSkills: index.totalSkills };
+        return { success: true, name: safeName, path: targetPath, mode: installMode2, modeLabel: modeLabel2, totalSkills: index.totalSkills };
       } catch (e: unknown) {
         return { error: `请求失败: ${e instanceof Error ? e.message : String(e)}` };
       }
+    }
+
+    case "/api/skill/check-updates": {
+      const registry = getInstallRegistry();
+      if (registry.length === 0) return { updates: [], checked: 0 };
+      const updates: { skillName: string; sourceUrl: string; hasUpdate: boolean; installedAt: string; targetPath: string }[] = [];
+      const checkName = params.get("name");
+      const toCheck = checkName ? registry.filter((r) => r.skillName === checkName) : registry;
+      for (const rec of toCheck) {
+        try {
+          const resp = await fetch(rec.sourceUrl, { signal: AbortSignal.timeout(8000) });
+          if (!resp.ok) { updates.push({ ...rec, hasUpdate: false }); continue; }
+          const newContent = await resp.text();
+          const newHash = simpleHash(newContent);
+          updates.push({
+            skillName: rec.skillName,
+            sourceUrl: rec.sourceUrl,
+            hasUpdate: newHash !== rec.contentHash,
+            installedAt: rec.installedAt,
+            targetPath: rec.targetPath,
+          });
+        } catch {
+          updates.push({ skillName: rec.skillName, sourceUrl: rec.sourceUrl, hasUpdate: false, installedAt: rec.installedAt, targetPath: rec.targetPath });
+        }
+      }
+      return { updates, checked: toCheck.length };
+    }
+
+    case "/api/skill/install-registry": {
+      return getInstallRegistry();
     }
 
     case "/api/community/refresh": {
@@ -710,6 +996,7 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       const srcToken = params.get("token") || undefined;
       if (!repo) return { error: "Missing repo" };
       const config = addSource({ repo, branch, skillsPath, label, writable, token: srcToken });
+      clearAllCache();
       return { success: true, sources: config.sources.map(s => ({ ...s, token: s.token ? "••••" + s.token.slice(-4) : undefined })) };
     }
 
@@ -717,6 +1004,7 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       const sourceId = params.get("id") || "";
       if (!sourceId) return { error: "Missing id" };
       const config = removeSource(sourceId);
+      clearAllCache();
       return { success: true, sources: config.sources.map(s => ({ ...s, token: s.token ? "••••" + s.token.slice(-4) : undefined })) };
     }
 
@@ -1169,6 +1457,42 @@ const server = createServer((req, res) => {
     return;
   }
 
+  if (url.pathname === "/api/skill/create-in-project") {
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    let body = "";
+    req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+    req.on("end", () => {
+      try {
+        const payload = JSON.parse(body);
+        const name = (payload.name || "").trim();
+        const projectPath = (payload.projectPath || "").trim();
+        const content = (payload.content || "").trim();
+        if (!name || !projectPath) {
+          res.end(JSON.stringify({ success: false, message: "Missing name or projectPath" }));
+          return;
+        }
+        const projDir = resolve(projectPath);
+        if (!existsSync(projDir)) {
+          res.end(JSON.stringify({ success: false, message: "项目路径不存在: " + projectPath }));
+          return;
+        }
+        const safeName = name.replace(/[^a-zA-Z0-9_\u4e00-\u9fff-]/g, "-");
+        const rulesDir = join(projDir, ".cursor", "rules");
+        mkdirSync(rulesDir, { recursive: true });
+        const targetPath = join(rulesDir, safeName + ".mdc");
+        const finalContent = content || `---\ndescription: ${name}\nglobs: \nalwaysApply: false\n---\n\n# ${name}\n\n在此编写技能内容...\n`;
+        writeFileSync(targetPath, finalContent, "utf-8");
+        index = buildIndex();
+        res.end(JSON.stringify({ success: true, name: safeName, path: targetPath, totalSkills: index.totalSkills }));
+      } catch (e) {
+        res.statusCode = 500;
+        res.end(JSON.stringify({ success: false, message: String(e).slice(0, 300) }));
+      }
+    });
+    return;
+  }
+
   if (url.pathname.startsWith("/api/")) {
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -1204,4 +1528,14 @@ const server = createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`\n  Skiller Dashboard running at http://localhost:${PORT}\n`);
+
+  setTimeout(() => {
+    const config = loadConfig();
+    if (config.repo || config.sources.length > 0) {
+      console.log("  [Cache] Pre-warming community skills cache...");
+      listCommunitySkills(config, { light: true }).then(skills => {
+        console.log(`  [Cache] Warmed: ${skills.length} skills ready`);
+      }).catch(() => {});
+    }
+  }, 2000);
 });

@@ -7,6 +7,7 @@ export interface SkillEntry {
   source: "custom" | "superpowers" | "skills-cursor" | "project-rules";
   tokenEstimate: number;
   projectName?: string;
+  installMode?: "global-skill" | "rule-smart" | "rule-always" | "project-skill";
 }
 
 export interface UserCategory {

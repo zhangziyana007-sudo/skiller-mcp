@@ -5,6 +5,7 @@ import { UserCategory, CategoryNode, SkillIndex } from "./types.js";
 const DATA_DIR = join(process.env.HOME || "~", ".cursor", "skiller", "data");
 const CATEGORIES_FILE = join(DATA_DIR, "user_categories.json");
 const OVERRIDES_FILE = join(DATA_DIR, "overrides.json");
+const SKILL_PROJECTS_FILE = join(DATA_DIR, "skill_projects.json");
 
 interface CategoriesStore {
   categories: UserCategory[];
@@ -191,4 +192,239 @@ export function getCategoryLabel(categoryId: string): string {
 export function getAllCategoryIds(categoryId: string): string[] {
   const categories = loadUserCategories();
   return [categoryId, ...getAllDescendantIds(categories, categoryId)];
+}
+
+// ===== Skill-Project Associations =====
+
+interface SkillProjectsStore {
+  [projectPath: string]: string[];
+}
+
+function loadSkillProjects(): SkillProjectsStore {
+  if (!existsSync(SKILL_PROJECTS_FILE)) return {};
+  try {
+    return JSON.parse(readFileSync(SKILL_PROJECTS_FILE, "utf-8"));
+  } catch {
+    return {};
+  }
+}
+
+function saveSkillProjects(store: SkillProjectsStore): void {
+  ensureDir();
+  writeFileSync(SKILL_PROJECTS_FILE, JSON.stringify(store, null, 2), "utf-8");
+}
+
+export function linkSkillToProject(skillName: string, projectPath: string): void {
+  const store = loadSkillProjects();
+  if (!store[projectPath]) store[projectPath] = [];
+  if (!store[projectPath].includes(skillName)) {
+    store[projectPath].push(skillName);
+  }
+  saveSkillProjects(store);
+}
+
+export function unlinkSkillFromProject(skillName: string, projectPath: string): void {
+  const store = loadSkillProjects();
+  if (!store[projectPath]) return;
+  store[projectPath] = store[projectPath].filter((n) => n !== skillName);
+  if (store[projectPath].length === 0) delete store[projectPath];
+  saveSkillProjects(store);
+}
+
+export function getProjectSkills(projectPath: string): string[] {
+  const store = loadSkillProjects();
+  return store[projectPath] || [];
+}
+
+export function getSkillLinkedProjects(skillName: string): string[] {
+  const store = loadSkillProjects();
+  const projects: string[] = [];
+  for (const [proj, skills] of Object.entries(store)) {
+    if (skills.includes(skillName)) projects.push(proj);
+  }
+  return projects;
+}
+
+export function getAllSkillProjectLinks(): SkillProjectsStore {
+  return loadSkillProjects();
+}
+
+// ===== Project Groups =====
+
+const PROJECT_GROUPS_FILE = join(DATA_DIR, "project_groups.json");
+
+interface ProjectGroup {
+  id: string;
+  name: string;
+  icon: string;
+  order: number;
+}
+
+interface ProjectGroupsStore {
+  groups: ProjectGroup[];
+  assignments: Record<string, string>; // projectPath -> groupId
+  projectOrder: string[];
+}
+
+function loadProjectGroups(): ProjectGroupsStore {
+  if (!existsSync(PROJECT_GROUPS_FILE)) return { groups: [], assignments: {}, projectOrder: [] };
+  try {
+    const data = JSON.parse(readFileSync(PROJECT_GROUPS_FILE, "utf-8"));
+    return {
+      groups: data.groups || [],
+      assignments: data.assignments || {},
+      projectOrder: data.projectOrder || [],
+    };
+  } catch {
+    return { groups: [], assignments: {}, projectOrder: [] };
+  }
+}
+
+function saveProjectGroups(store: ProjectGroupsStore): void {
+  ensureDir();
+  writeFileSync(PROJECT_GROUPS_FILE, JSON.stringify(store, null, 2), "utf-8");
+}
+
+export function getProjectGroups(): ProjectGroupsStore {
+  return loadProjectGroups();
+}
+
+export function addProjectGroup(name: string, icon: string): ProjectGroup {
+  const store = loadProjectGroups();
+  const id = name.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-").replace(/^-|-$/g, "") || `group-${Date.now()}`;
+  const existing = store.groups.find((g) => g.id === id);
+  if (existing) {
+    existing.name = name;
+    existing.icon = icon;
+    saveProjectGroups(store);
+    return existing;
+  }
+  const maxOrder = store.groups.reduce((m, g) => Math.max(m, g.order), -1);
+  const group: ProjectGroup = { id, name, icon, order: maxOrder + 1 };
+  store.groups.push(group);
+  saveProjectGroups(store);
+  return group;
+}
+
+export function removeProjectGroup(groupId: string): boolean {
+  const store = loadProjectGroups();
+  const before = store.groups.length;
+  store.groups = store.groups.filter((g) => g.id !== groupId);
+  if (store.groups.length === before) return false;
+  for (const [proj, gid] of Object.entries(store.assignments)) {
+    if (gid === groupId) delete store.assignments[proj];
+  }
+  saveProjectGroups(store);
+  return true;
+}
+
+export function renameProjectGroup(groupId: string, newName: string, newIcon?: string): boolean {
+  const store = loadProjectGroups();
+  const group = store.groups.find((g) => g.id === groupId);
+  if (!group) return false;
+  group.name = newName;
+  if (newIcon !== undefined) group.icon = newIcon;
+  saveProjectGroups(store);
+  return true;
+}
+
+export function assignProjectToGroup(projectPath: string, groupId: string | null): void {
+  const store = loadProjectGroups();
+  if (groupId) {
+    store.assignments[projectPath] = groupId;
+  } else {
+    delete store.assignments[projectPath];
+  }
+  saveProjectGroups(store);
+}
+
+export function reorderProjects(projectOrder: string[]): void {
+  const store = loadProjectGroups();
+  store.projectOrder = projectOrder;
+  saveProjectGroups(store);
+}
+
+export function addManagedProject(projectPath: string): boolean {
+  const store = loadProjectGroups();
+  if (store.projectOrder.includes(projectPath)) return false;
+  store.projectOrder.push(projectPath);
+  saveProjectGroups(store);
+  return true;
+}
+
+export function removeManagedProject(projectPath: string): boolean {
+  const store = loadProjectGroups();
+  const idx = store.projectOrder.indexOf(projectPath);
+  if (idx < 0) return false;
+  store.projectOrder.splice(idx, 1);
+  delete store.assignments[projectPath];
+  saveProjectGroups(store);
+  return true;
+}
+
+export function getManagedProjects(): string[] {
+  const store = loadProjectGroups();
+  return store.projectOrder;
+}
+
+export function reorderGroups(groupOrder: string[]): void {
+  const store = loadProjectGroups();
+  for (let i = 0; i < groupOrder.length; i++) {
+    const g = store.groups.find((gr) => gr.id === groupOrder[i]);
+    if (g) g.order = i;
+  }
+  store.groups.sort((a, b) => a.order - b.order);
+  saveProjectGroups(store);
+}
+
+// ===== Install Registry =====
+const INSTALL_REGISTRY_FILE = join(DATA_DIR, "install_registry.json");
+
+export interface InstallRecord {
+  skillName: string;
+  sourceUrl: string;
+  installedAt: string;
+  installMode: string;
+  targetPath: string;
+  contentHash: string;
+  projectPath?: string;
+}
+
+function loadInstallRegistry(): InstallRecord[] {
+  ensureDir();
+  if (!existsSync(INSTALL_REGISTRY_FILE)) return [];
+  try { return JSON.parse(readFileSync(INSTALL_REGISTRY_FILE, "utf-8")); } catch { return []; }
+}
+
+function saveInstallRegistry(records: InstallRecord[]): void {
+  ensureDir();
+  writeFileSync(INSTALL_REGISTRY_FILE, JSON.stringify(records, null, 2), "utf-8");
+}
+
+export function simpleHash(content: string): string {
+  let h = 0;
+  for (let i = 0; i < content.length; i++) {
+    h = ((h << 5) - h + content.charCodeAt(i)) | 0;
+  }
+  return (h >>> 0).toString(36);
+}
+
+export function registerInstall(record: InstallRecord): void {
+  const records = loadInstallRegistry();
+  const idx = records.findIndex(
+    (r) => r.skillName === record.skillName && r.targetPath === record.targetPath
+  );
+  if (idx >= 0) records[idx] = record;
+  else records.push(record);
+  saveInstallRegistry(records);
+}
+
+export function getInstallRegistry(): InstallRecord[] {
+  return loadInstallRegistry();
+}
+
+export function getInstallRecord(skillName: string, targetPath?: string): InstallRecord | undefined {
+  const records = loadInstallRegistry();
+  if (targetPath) return records.find((r) => r.skillName === skillName && r.targetPath === targetPath);
+  return records.find((r) => r.skillName === skillName);
 }

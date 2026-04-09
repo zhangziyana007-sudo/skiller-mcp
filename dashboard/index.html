@@ -1352,6 +1352,32 @@
 
     .log-section { margin-top: 12px; }
 
+    .usage-stats-panel {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px; margin-bottom: 16px;
+    }
+    .usage-stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px;
+    }
+    .usage-stat-card {
+      background: var(--bg2); border-radius: 10px; padding: 12px; text-align: center;
+    }
+    .usage-stat-number { font-size: 22px; font-weight: 700; color: var(--text); }
+    .usage-stat-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
+    .usage-stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .usage-stat-section { margin-bottom: 10px; }
+    .usage-stat-section-title { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+    .usage-bar-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .usage-bar-label { font-size: 11px; color: var(--text); width: 100px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+    .usage-bar-bg { flex: 1; height: 6px; background: var(--bg2); border-radius: 3px; overflow: hidden; }
+    .usage-bar-fill { height: 100%; background: #6366f1; border-radius: 3px; transition: width .3s; }
+    .usage-bar-fill-skill { background: #22c55e; }
+    .usage-bar-val { font-size: 10px; color: var(--text2); width: 30px; text-align: right; }
+    .usage-mini-chart { display: flex; align-items: flex-end; gap: 6px; height: 50px; }
+    .usage-mini-bar-col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .usage-mini-bar { width: 20px; background: #6366f1; border-radius: 3px 3px 0 0; transition: height .3s; }
+    .usage-mini-day { font-size: 9px; color: var(--text2); }
+
     .log-entry {
       background: var(--surface);
       border: 3px solid var(--border2);
@@ -1840,313 +1866,537 @@
       .plaza-grid { grid-template-columns: 1fr; }
     }
 
-    /* ===== My Repo dual-panel layout ===== */
+    /* ===== My Repo - Card Grid Layout ===== */
     .myrepo-layout {
       display: flex;
-      gap: 0;
+      flex-direction: column;
       height: calc(100vh - 140px);
-      border: 1.5px solid rgba(255,255,255,0.25);
       border-radius: 20px;
       overflow: hidden;
-      background: rgba(255,255,255,0.2);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      box-shadow: 0 8px 40px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.02);
     }
-    .myrepo-left {
-      width: 42%;
-      min-width: 340px;
-      max-width: 520px;
-      border-right: 1px solid rgba(255,255,255,0.15);
+    .myrepo-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .project-sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.35) 100%);
+      backdrop-filter: blur(12px);
+      border-right: 1px solid rgba(0,0,0,0.05);
       display: flex;
       flex-direction: column;
-      background: rgba(245,247,250,0.4);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      overflow: hidden;
     }
-    .myrepo-left-header {
+    .project-sidebar-header {
+      padding: 14px 16px 12px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      color: var(--text);
+      border-bottom: 1px solid rgba(0,0,0,0.04);
       flex-shrink: 0;
-      padding: 18px 20px 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.12);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .project-sidebar-header .sidebar-title { flex: 1; font-weight: 700; letter-spacing: 0.3px; }
+    .sidebar-add-group-btn {
+      background: none; border: none; cursor: pointer; font-size: 16px;
+      opacity: 0.4; transition: all 0.2s; padding: 4px 6px; border-radius: 8px;
+    }
+    .sidebar-add-group-btn:hover { opacity: 1; background: rgba(0,0,0,0.06); transform: scale(1.1); }
+    .project-sidebar-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 8px;
+    }
+    .project-sidebar-list::-webkit-scrollbar { width: 4px; }
+    .project-sidebar-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 4px; }
+    .project-sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      margin-bottom: 2px;
+      font-size: 12px;
+      border: 1px solid transparent;
+    }
+    .project-sidebar-item:hover {
+      background: rgba(255,255,255,0.7);
+      border-color: rgba(0,0,0,0.04);
+    }
+    .project-sidebar-item.active {
+      background: var(--theme-active);
+      color: white;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+      border-color: transparent;
+    }
+    .project-sidebar-item.active .proj-count { background: rgba(255,255,255,0.22); color: white; }
+    .proj-icon { font-size: 15px; flex-shrink: 0; }
+    .proj-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 600;
+      letter-spacing: -0.1px;
+    }
+    .proj-count {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: rgba(0,0,0,0.05);
+      color: var(--text2);
+      font-weight: 700;
+      flex-shrink: 0;
+      min-width: 20px;
+      text-align: center;
+    }
+    .myrepo-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .project-filter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(34,139,230,0.08);
+      color: #228be6;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .project-filter-badge:hover { background: rgba(34,139,230,0.15); }
+    .card-link-badge {
+      font-size: 12px;
+      opacity: 0.6;
+    }
+    .myrepo-grid .skill-card.linked {
+      border-color: rgba(34,139,230,0.25);
+    }
+    .myrepo-grid .skill-card.linked::before {
+      background: #228be6;
+    }
+    .project-group {
+      margin-bottom: 6px;
+      border-radius: 10px;
+      transition: all 0.2s;
+      border: 1.5px solid transparent;
+      background: rgba(0,0,0,0.015);
+    }
+    .project-group.drag-over {
+      background: rgba(34,139,230,0.06);
+      border-color: rgba(34,139,230,0.35);
+    }
+    .ungrouped.drag-over {
+      background: rgba(0,0,0,0.03);
+      border: 1.5px dashed rgba(0,0,0,0.12);
+      border-radius: 10px;
+    }
+    .project-group-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.15s;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text2);
+      position: relative;
+      letter-spacing: 0.2px;
+    }
+    .project-group-header:hover { background: rgba(0,0,0,0.04); }
+    .group-icon { font-size: 15px; flex-shrink: 0; }
+    .group-name {
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      cursor: pointer; border-radius: 4px; padding: 1px 4px;
+    }
+    .group-name:hover { background: rgba(0,0,0,0.04); }
+    .group-name-input {
+      flex: 1; font-size: 11px; font-weight: 600; border: 1.5px solid var(--theme-active);
+      border-radius: 6px; padding: 2px 6px; background: var(--bg2); outline: none;
+      font-family: inherit;
+    }
+    .group-toggle { font-size: 8px; opacity: 0.4; margin-left: 2px; flex-shrink: 0; }
+    .group-del-btn {
+      display: none; background: none; border: none; cursor: pointer;
+      font-size: 10px; opacity: 0.3; padding: 2px 4px; border-radius: 4px;
+      flex-shrink: 0; transition: opacity 0.15s;
+    }
+    .project-group-header:hover .group-del-btn { display: block; }
+    .group-del-btn:hover { opacity: 0.8; background: rgba(255,0,0,0.08); }
+    .project-group-items { padding-left: 4px; }
+    .project-group-divider {
+      text-align: center;
+      font-size: 10px;
+      color: var(--text2);
+      opacity: 0.4;
+      padding: 10px 0 4px;
+    }
+    .group-empty-hint {
+      font-size: 10px;
+      color: var(--text2);
+      opacity: 0.4;
+      padding: 8px 12px;
+      text-align: center;
+      font-style: italic;
+    }
+    .inline-group-input-wrap {
+      display: flex; gap: 4px; padding: 4px 8px; align-items: center;
+    }
+    .inline-group-input-wrap input {
+      flex: 1; font-size: 11px; padding: 6px 10px; border-radius: 8px;
+      border: 1.5px solid var(--theme-active); background: var(--bg2);
+      outline: none; font-family: inherit;
+    }
+    .inline-group-input-wrap button {
+      background: var(--theme-active); color: #fff; border: none; border-radius: 8px;
+      padding: 6px 10px; font-size: 11px; cursor: pointer; font-weight: 600;
+      white-space: nowrap;
+    }
+    .inline-group-input-wrap .cancel-btn {
+      background: none; color: var(--text2); padding: 6px 6px;
+    }
+    .drag-handle { opacity: 0.2; font-size: 10px !important; transition: opacity 0.15s; }
+    .project-sidebar-item:hover .drag-handle { opacity: 0.6; }
+    .project-sidebar-item.dragging {
+      opacity: 0.35;
+      transform: scale(0.96);
+      background: rgba(0,0,0,0.03);
+    }
+    .drop-indicator {
+      height: 2px;
+      background: var(--theme-active, #228be6);
+      border-radius: 2px;
+      margin: 0 8px;
+      transition: opacity 0.1s;
+      pointer-events: none;
+      box-shadow: 0 0 4px rgba(34,139,230,0.3);
+    }
+    @media (max-width: 900px) {
+      .project-sidebar { width: 180px; min-width: 180px; }
+    }
+    @media (max-width: 680px) {
+      .myrepo-body { flex-direction: column; }
+      .project-sidebar { width: 100%; min-width: auto; max-height: 120px; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.06); }
+      .project-sidebar-list { display: flex; flex-wrap: nowrap; overflow-x: auto; padding: 4px 8px; gap: 4px; }
+      .project-sidebar-item { white-space: nowrap; flex-shrink: 0; }
+    }
+    .myrepo-toolbar {
+      display: flex;
+      gap: 10px;
+      padding: 16px 20px;
+      align-items: center;
       background: rgba(255,255,255,0.5);
       backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      flex-wrap: wrap;
+    }
+    .myrepo-scope-tabs {
+      display: flex;
+      gap: 2px;
+      background: rgba(0,0,0,0.04);
+      border-radius: 12px;
+      padding: 3px;
+    }
+    .myrepo-scope-tab {
+      padding: 8px 18px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font-body);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .myrepo-scope-tab:hover { color: var(--text); background: rgba(255,255,255,0.5); }
+    .myrepo-scope-tab.active {
+      background: var(--theme-active);
+      color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
     .myrepo-search {
-      width: 100%;
-      padding: 12px 20px;
-      border-radius: 24px;
-      border: 1.5px solid rgba(255,255,255,0.3);
-      background: rgba(255,255,255,0.6);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      font-size: 14px;
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 18px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.7);
+      font-size: 13px;
       font-family: var(--font-body);
       outline: none;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04), inset 0 1px 2px rgba(255,255,255,0.4);
+      transition: all 0.2s;
       color: var(--text);
     }
     .myrepo-search:focus {
-      border-color: rgba(99,102,241,0.5);
-      box-shadow: 0 0 0 4px rgba(99,102,241,0.08), 0 4px 16px rgba(99,102,241,0.1);
-      background: rgba(255,255,255,0.8);
+      border-color: var(--theme-active);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
     }
     .myrepo-filter-bar {
-      flex-shrink: 0;
       display: flex;
-      gap: 6px;
-      padding: 10px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 20px;
       align-items: center;
       background: rgba(255,255,255,0.35);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+    .create-skill-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 600;
+      background: var(--theme-active); color: white; border: none; cursor: pointer;
+      transition: all 0.15s; font-family: var(--font-body); white-space: nowrap;
+    }
+    .create-skill-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
+    .add-skill-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 10px; cursor: pointer;
+      border: 1.5px solid transparent; transition: all 0.15s;
+      margin-bottom: 4px;
+    }
+    .add-skill-item:hover { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.06); }
+    .add-skill-item.already-added {
+      opacity: 0.5; cursor: default; background: rgba(0,0,0,0.01);
+    }
+    .add-skill-item.already-added:hover { background: rgba(0,0,0,0.01); border-color: transparent; }
+    .add-skill-info { flex: 1; min-width: 0; }
+    .add-skill-name { font-size: 13px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .add-skill-desc { font-size: 11px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+    .add-skill-action { flex-shrink: 0; }
+    .myrepo-filter-bar select {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.7);
+      font-size: 12px;
+      font-family: var(--font-body);
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
     }
     .myrepo-filter-btn {
-      font-size: 12px;
-      padding: 6px 16px;
-      border-radius: 24px;
-      border: 1.5px solid rgba(255,255,255,0.3);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.08);
       background: rgba(255,255,255,0.5);
-      backdrop-filter: blur(6px);
       color: var(--text2);
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      font-family: var(--font-body);
-      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s;
     }
-    .myrepo-filter-btn:hover {
-      border-color: rgba(99,102,241,0.4);
-      color: #6366f1;
-      background: rgba(99,102,241,0.06);
-      transform: translateY(-1px);
-    }
-    .myrepo-filter-btn.active {
-      background: var(--theme-active);
-      color: var(--theme-active-text);
-      border-color: transparent;
-      box-shadow: 0 4px 14px rgba(99,102,241,0.3);
-      transform: translateY(-1px);
-    }
+    .myrepo-filter-btn:hover { background: rgba(255,255,255,0.9); color: var(--text); transform: scale(1.05); }
     .myrepo-stats {
-      flex-shrink: 0;
       display: flex;
       gap: 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
       background: rgba(255,255,255,0.3);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0,0,0,0.04);
     }
     .myrepo-stat {
       flex: 1;
       text-align: center;
-      padding: 14px 6px;
-      border-right: 1px solid rgba(255,255,255,0.12);
-      transition: background 0.2s;
+      padding: 10px 6px;
+      border-right: 1px solid rgba(0,0,0,0.04);
     }
     .myrepo-stat:last-child { border-right: none; }
-    .myrepo-stat:hover { background: rgba(255,255,255,0.2); }
-    .myrepo-stat .val { font-size: 24px; font-weight: 700; font-family: var(--font-display); letter-spacing: -0.5px; }
-    .myrepo-stat .lbl { font-size: 11px; color: var(--text2); margin-top: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-    .myrepo-list {
-      flex: 1 1 0;
-      min-height: 0;
+    .myrepo-stat .val { font-size: 20px; font-weight: 700; font-family: var(--font-display); }
+    .myrepo-stat .lbl { font-size: 10px; color: var(--text2); margin-top: 2px; }
+    .myrepo-grid {
+      flex: 1;
       overflow-y: auto;
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+      align-content: start;
     }
-    .myrepo-list .empty-msg {
-      padding: 30px;
+    .myrepo-grid .empty-msg {
+      grid-column: 1 / -1;
       text-align: center;
+      padding: 60px 20px;
       color: var(--text2);
-      font-size: 13px;
+      font-size: 14px;
     }
-    .myrepo-item {
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      padding: 14px 16px;
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      border-radius: 16px;
-      background: rgba(255,255,255,0.45);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      border: 1.5px solid rgba(255,255,255,0.3);
+    .myrepo-grid .skill-card {
       position: relative;
+      padding: 18px 18px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(6px);
+      border: 1.5px solid rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: all 0.25s ease;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
     }
-    .myrepo-item::before {
+    .myrepo-grid .skill-card::before {
       content: '';
       position: absolute;
       top: 0; left: 0; bottom: 0;
-      width: 3px;
-      background: var(--theme-active);
-      opacity: 0;
-      transition: opacity 0.25s;
+      width: 4px;
+      border-radius: 4px 0 0 4px;
+      transition: width 0.2s;
     }
-    .myrepo-item:hover {
-      background: rgba(255,255,255,0.7);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
-      transform: translateY(-1px);
-      border-color: rgba(255,255,255,0.5);
+    .myrepo-grid .skill-card.scope-global::before { background: linear-gradient(180deg, #228be6, #1c7ed6); }
+    .myrepo-grid .skill-card.scope-project::before { background: linear-gradient(180deg, #7c4dff, #651fff); }
+    .myrepo-grid .skill-card:hover {
+      border-color: rgba(0,0,0,0.1);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+      transform: translateY(-3px);
     }
-    .myrepo-item:hover::before { opacity: 1; }
-    .myrepo-item.selected {
-      background: rgba(255,255,255,0.75);
-      border-color: var(--theme-active);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1), 0 0 0 1px var(--theme-active);
-    }
-    .myrepo-item.selected::before { opacity: 1; }
-    .myrepo-item .item-header {
+    .myrepo-grid .skill-card:hover::before { width: 5px; }
+    .myrepo-grid .skill-card .card-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 6px;
+      gap: 12px;
+      margin-bottom: 10px;
     }
-    .myrepo-item .scope-icon {
-      font-size: 18px;
-      flex-shrink: 0;
-      width: 34px;
-      height: 34px;
+    .myrepo-grid .skill-card .card-scope {
+      font-size: 22px;
+      width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(255,255,255,0.5);
-      border-radius: 10px;
-      backdrop-filter: blur(4px);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border-radius: 12px;
+      flex-shrink: 0;
     }
-    .myrepo-item .item-name {
+    .myrepo-grid .skill-card.scope-global .card-scope { background: rgba(34,139,230,0.1); }
+    .myrepo-grid .skill-card.scope-project .card-scope { background: rgba(124,77,255,0.1); }
+    .myrepo-grid .skill-card .card-name {
       font-size: 14px;
       font-weight: 700;
       color: var(--text);
-      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      letter-spacing: -0.2px;
+      white-space: nowrap;
       flex: 1;
-      min-width: 0;
+      letter-spacing: -0.2px;
     }
-    .myrepo-item .item-desc {
+    .myrepo-grid .skill-card .card-desc {
       font-size: 12px;
       color: var(--text2);
-      line-height: 1.5;
+      line-height: 1.6;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
+      min-height: 38px;
     }
-    .myrepo-item .item-tags {
+    .myrepo-grid .skill-card .card-tags {
       display: flex;
-      gap: 4px;
+      gap: 5px;
       flex-wrap: wrap;
-      margin-top: auto;
     }
-    .myrepo-item .item-badge {
+    .myrepo-grid .skill-card .card-tag {
       font-size: 10px;
-      padding: 2px 8px;
-      border-radius: 24px;
-      font-weight: 500;
-      letter-spacing: 0.2px;
-      backdrop-filter: blur(4px);
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 0.1px;
     }
-    .myrepo-item.scope-project .scope-icon {
-      background: rgba(139,92,246,0.12);
+    .myrepo-grid .skill-card .card-actions {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: none;
+      gap: 4px;
     }
-    .scope-filter-bar {
-      flex-shrink: 0;
-      display: flex;
-      gap: 6px;
-      padding: 6px 20px 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .scope-filter-btn {
-      font-size: 11px;
-      padding: 5px 13px;
-      border-radius: 24px;
-      border: 1px solid rgba(255,255,255,0.25);
-      background: rgba(255,255,255,0.4);
-      color: var(--text2);
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      font-weight: 500;
-      backdrop-filter: blur(4px);
-    }
-    .scope-filter-btn:hover { border-color: var(--theme-active); color: var(--theme-active); }
-    .scope-filter-btn.active {
-      background: var(--theme-active);
-      color: var(--theme-active-text);
-      border-color: transparent;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-    }
-    .scope-info-box {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 18px;
-      border-radius: 14px;
-      font-size: 14px;
-      margin-bottom: 16px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-    .scope-info-box.global {
-      background: rgba(99,102,241,0.06);
-      border: 1.5px solid rgba(99,102,241,0.15);
-      color: #6366f1;
-    }
-    .scope-info-box.project {
-      background: rgba(139,92,246,0.06);
-      border: 1.5px solid rgba(139,92,246,0.15);
-      color: #8b5cf6;
-    }
-    .migrate-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 18px;
-      border-radius: 12px;
-      border: 1.5px solid rgba(255,255,255,0.3);
-      background: rgba(255,255,255,0.6);
-      backdrop-filter: blur(8px);
-      color: var(--text);
+    .myrepo-grid .skill-card:hover .card-actions { display: flex; }
+    .card-action-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.9);
       cursor: pointer;
       font-size: 13px;
-      font-weight: 500;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .migrate-btn:hover {
-      border-color: rgba(139,92,246,0.4);
-      color: #8b5cf6;
-      background: rgba(139,92,246,0.06);
-      box-shadow: 0 4px 16px rgba(139,92,246,0.12);
-      transform: translateY(-2px);
-    }
-    .myrepo-right {
-      flex: 1;
-      overflow-y: auto;
-      padding: 28px 32px;
-      background: rgba(255,255,255,0.15);
-    }
-    .myrepo-right-empty {
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100%;
-      color: var(--text2);
-      font-size: 16px;
-      gap: 16px;
+      transition: all 0.15s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     }
-    .myrepo-right-empty .icon { font-size: 60px; opacity: 0.3; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08)); }
+    .card-action-btn:hover { transform: scale(1.15); background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+    .card-action-btn.danger:hover { background: #fee; }
+    /* Detail Drawer */
+    .detail-drawer-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.25s;
+      display: none;
+    }
+    .detail-drawer-overlay.open { display: block; opacity: 1; }
+    .detail-drawer {
+      position: fixed;
+      top: 0; right: -500px; bottom: 0;
+      width: 500px;
+      max-width: 90vw;
+      background: var(--bg);
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 28px 24px;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+      transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .detail-drawer.drawer-flex {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0;
+    }
+    .detail-drawer.open { right: 0; }
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .drawer-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0;
+      font-family: var(--font-display);
+    }
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+    }
+    .drawer-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.06);
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .drawer-close:hover { background: rgba(0,0,0,0.12); transform: scale(1.1); }
     .myrepo-section {
       background: rgba(255,255,255,0.55);
       backdrop-filter: blur(16px);
@@ -2186,10 +2436,670 @@
       font-family: var(--font-body);
       cursor: pointer;
     }
+    /* GHC community split-panel layout */
+    .ghc-layout {
+      display: flex;
+      flex-direction: row;
+      height: calc(100vh - 140px);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .myrepo-left {
+      width: 340px;
+      max-width: 40%;
+      border-right: 2px solid var(--border2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .myrepo-left-header {
+      padding: 12px 16px 8px;
+      flex-shrink: 0;
+    }
+    .myrepo-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .myrepo-right {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .myrepo-right-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 200px;
+      color: var(--text2);
+      font-size: 14px;
+      gap: 8px;
+    }
+    .myrepo-right-empty .icon {
+      font-size: 32px;
+      margin-bottom: 4px;
+    }
     @media (max-width: 768px) {
-      .myrepo-layout { flex-direction: column; height: auto; }
+      .myrepo-layout { height: auto; }
+      .ghc-layout { flex-direction: column; height: auto; }
       .myrepo-left { width: 100%; max-width: none; border-right: none; border-bottom: 2px solid var(--border2); max-height: 50vh; }
       .myrepo-right { min-height: 50vh; }
+    }
+
+    /* ===== 项目网格首页 ===== */
+    .project-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .project-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 22px 24px;
+      border-radius: 16px;
+      border: 1.5px solid rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .project-card:hover {
+      border-color: rgba(99,102,241,0.25);
+      box-shadow: 0 8px 28px rgba(99,102,241,0.08), 0 2px 6px rgba(0,0,0,0.04);
+      transform: translateY(-2px);
+    }
+    .project-card-icon {
+      font-size: 32px;
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(99,102,241,0.02));
+      border-radius: 12px;
+    }
+    .project-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .project-card-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: var(--font-display);
+    }
+    .project-card-count {
+      font-size: 12px;
+      color: var(--text2);
+      margin-top: 4px;
+    }
+    .project-card-arrow {
+      font-size: 18px;
+      color: var(--text2);
+      opacity: 0;
+      transition: all 0.2s;
+      transform: translateX(-4px);
+    }
+    .project-card:hover .project-card-arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ===== 项目详情页 ===== */
+    .myrepo-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.6);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--font-body);
+    }
+    .myrepo-back-btn:hover {
+      background: rgba(255,255,255,0.9);
+      border-color: rgba(0,0,0,0.12);
+    }
+    .myrepo-project-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      font-family: var(--font-display);
+    }
+    .myrepo-project-count {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text2);
+      background: rgba(0,0,0,0.04);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .project-detail-section {
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.45);
+      border-radius: 18px;
+      padding: 20px 24px;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .section-header h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
+      font-family: var(--font-display);
+    }
+    .section-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 20px;
+      background: rgba(99,102,241,0.08);
+      color: #6366f1;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .section-search {
+      margin-left: auto;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.7);
+      font-size: 12px;
+      font-family: var(--font-body);
+      outline: none;
+      min-width: 180px;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+    .section-search:focus {
+      border-color: var(--theme-active);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    }
+    .card-installed-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #22c55e;
+      background: rgba(34,197,94,0.08);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .card-mode-row {
+      margin: 4px 0 2px;
+    }
+    .install-mode-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      line-height: 1.4;
+    }
+    .badge-global-skill {
+      color: #6366f1;
+      background: rgba(99,102,241,0.1);
+    }
+    .badge-rule-smart {
+      color: #f59e0b;
+      background: rgba(245,158,11,0.1);
+    }
+    .badge-rule-always {
+      color: #ef4444;
+      background: rgba(239,68,68,0.1);
+    }
+    .badge-project-skill {
+      color: #06b6d4;
+      background: rgba(6,182,212,0.1);
+    }
+
+    .add-project-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      animation: fadeIn .15s;
+    }
+    .add-project-modal {
+      background: var(--bg); border-radius: 16px; width: 520px; max-width: 90vw;
+      max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid var(--border);
+    }
+    .add-project-modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+    }
+    .add-project-modal-header h3 { margin: 0; font-size: 15px; }
+    .add-project-modal-body { padding: 16px 20px; overflow-y: auto; }
+    .add-project-input-row {
+      display: flex; gap: 8px; margin-bottom: 12px;
+    }
+    .add-project-path-input {
+      flex: 1; padding: 8px 12px; border-radius: 8px;
+      border: 1.5px solid var(--border2); background: var(--bg2);
+      font-size: 13px; font-family: monospace; outline: none;
+      color: var(--text); transition: border-color .2s;
+    }
+    .add-project-path-input:focus { border-color: #6366f1; }
+    .add-project-recent-title {
+      font-size: 12px; font-weight: 600; color: var(--text2); margin: 8px 0 6px;
+    }
+    .add-project-recent-list { display: flex; flex-direction: column; gap: 4px; }
+    .add-project-recent-item {
+      display: flex; flex-direction: column; gap: 1px;
+      padding: 8px 12px; border-radius: 8px; cursor: pointer;
+      border: 1.5px solid transparent; transition: all .15s;
+    }
+    .add-project-recent-item:hover { background: var(--bg2); border-color: var(--border2); }
+    .add-project-recent-item.selected { background: rgba(99,102,241,0.08); border-color: #6366f1; }
+    .add-project-recent-path { font-size: 13px; font-weight: 600; color: var(--text); }
+    .add-project-recent-full { font-size: 10px; color: var(--text2); font-family: monospace; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    .shake { animation: shake .3s; border-color: #ef4444 !important; }
+
+    .batch-toggle-btn {
+      font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer;
+      background: rgba(99,102,241,0.08); color: #6366f1; border: 1px solid transparent;
+      font-weight: 600; transition: all .15s;
+    }
+    .batch-toggle-btn:hover { background: rgba(99,102,241,0.15); }
+    .batch-toggle-btn.active { background: #6366f1; color: white; }
+    .batch-bar {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      background: rgba(99,102,241,0.05); border-radius: 8px; margin-bottom: 8px;
+      border: 1px solid rgba(99,102,241,0.15);
+    }
+    .batch-bar span { font-size: 12px; font-weight: 600; color: var(--text2); }
+    .batch-action-btn {
+      font-size: 11px; padding: 3px 10px; border-radius: 6px; cursor: pointer;
+      background: var(--bg2); color: var(--text); border: 1px solid var(--border2);
+      transition: all .15s;
+    }
+    .batch-action-btn:hover { background: var(--bg); }
+    .batch-delete-btn { color: #ef4444; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); }
+    .batch-delete-btn:hover { background: rgba(239,68,68,0.15); }
+    .skill-card.batch-mode { cursor: pointer; }
+    .skill-card.batch-mode.batch-selected { border-color: #6366f1; background: rgba(99,102,241,0.06); }
+    .batch-checkbox {
+      position: absolute; top: 8px; left: 8px; width: 18px; height: 18px;
+      border-radius: 4px; border: 2px solid var(--border2); background: var(--bg);
+      display: flex; align-items: center; justify-content: center; font-size: 12px;
+      transition: all .15s;
+    }
+    .batch-selected .batch-checkbox { background: #6366f1; border-color: #6366f1; color: white; }
+
+    .update-badge {
+      display: inline-flex; align-items: center;
+      font-size: 10px; font-weight: 600; color: #f59e0b;
+      background: rgba(245,158,11,0.12); padding: 2px 6px;
+      border-radius: 4px; margin-left: 6px; cursor: pointer;
+      transition: background .15s;
+    }
+    .update-badge:hover { background: rgba(245,158,11,0.25); }
+
+    .card-action-btn {
+      width: 30px;
+      height: 30px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.04);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-action-btn:hover {
+      background: rgba(0,0,0,0.08);
+      transform: scale(1.1);
+    }
+    .card-add-btn {
+      background: rgba(99,102,241,0.08) !important;
+      color: #6366f1;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .card-add-btn:hover {
+      background: rgba(99,102,241,0.15) !important;
+    }
+    .card-actions {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: none;
+      gap: 4px;
+      z-index: 2;
+    }
+    .skill-card:hover .card-actions { display: flex; }
+    .skill-card.already-in-project {
+      opacity: 0.5;
+      border-style: dashed;
+    }
+    .skill-card.already-in-project:hover {
+      transform: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    }
+    .empty-msg {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text2);
+      font-size: 14px;
+    }
+
+    /* ===== 工具栏操作按钮 ===== */
+    .myrepo-action-btn {
+      padding: 6px 14px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.7);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--font-body);
+      white-space: nowrap;
+    }
+    .myrepo-action-btn:hover {
+      border-color: var(--theme-active);
+      color: var(--theme-active);
+      background: rgba(99,102,241,0.06);
+    }
+
+    /* ===== 项目卡片路径 & 移除按钮 ===== */
+    .project-card-path {
+      font-size: 11px;
+      color: var(--text2);
+      opacity: 0.6;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+    .project-card-remove {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      font-size: 12px;
+      opacity: 0;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .project-card { position: relative; }
+    .project-card:hover .project-card-remove { opacity: 1; }
+    .project-card-remove:hover {
+      background: rgba(229,57,53,0.1);
+      color: #e53935;
+    }
+
+    /* ===== 项目分组区块 ===== */
+    .project-group-section {
+      margin-bottom: 20px;
+      border-radius: 16px;
+      border: 1.5px solid transparent;
+      transition: all 0.2s;
+    }
+    .project-group-section.drag-over-highlight,
+    .project-cards-grid.drag-over-highlight {
+      border-color: var(--theme-active);
+      background: rgba(99,102,241,0.03);
+    }
+    .project-group-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      margin-bottom: 8px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.02);
+    }
+    .project-group-bar.ungrouped-bar {
+      margin-top: 16px;
+    }
+    .group-bar-toggle {
+      font-size: 10px;
+      color: var(--text2);
+      transition: transform 0.2s;
+      width: 16px;
+      text-align: center;
+    }
+    .group-bar-icon { font-size: 16px; }
+    .group-bar-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      font-family: var(--font-display);
+      cursor: text;
+    }
+    .group-bar-count {
+      font-size: 11px;
+      background: rgba(0,0,0,0.05);
+      padding: 1px 8px;
+      border-radius: 20px;
+      color: var(--text2);
+    }
+    .group-bar-del {
+      margin-left: auto;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--text2);
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.15s;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .project-group-bar:hover .group-bar-del { opacity: 1; }
+    .group-bar-del:hover { background: rgba(229,57,53,0.1); color: #e53935; }
+    .project-card.dragging { opacity: 0.4; }
+    .project-card.drag-insert-before {
+      border-left: 3px solid var(--theme-active) !important;
+    }
+    .project-card.drag-insert-after {
+      border-right: 3px solid var(--theme-active) !important;
+    }
+    .group-drop-hint {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 24px;
+      color: var(--text2);
+      font-size: 13px;
+      border: 2px dashed rgba(0,0,0,0.06);
+      border-radius: 12px;
+    }
+    .group-cards { margin-bottom: 4px; }
+
+    /* ===== 扫描项目弹窗 ===== */
+    .scan-project-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-bottom: 1px solid rgba(0,0,0,0.03);
+    }
+    .scan-project-item:hover { background: rgba(0,0,0,0.02); }
+    .scan-project-item.already-managed { opacity: 0.5; }
+    .scan-project-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--theme-active);
+      flex-shrink: 0;
+    }
+    .scan-project-info { flex: 1; min-width: 0; }
+    .scan-project-name {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .scan-project-path {
+      display: block;
+      font-size: 11px;
+      color: var(--text2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .scan-badge {
+      font-size: 10px;
+      color: #22c55e;
+      background: rgba(34,197,94,0.08);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .drawer-footer {
+      padding: 12px 20px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      text-align: right;
+    }
+    .primary-btn {
+      padding: 8px 20px;
+      border-radius: 10px;
+      border: none;
+      background: var(--theme-active);
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--font-body);
+    }
+    .primary-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
+
+    /* ===== 添加模式选择 ===== */
+    .mode-option {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-radius: 14px;
+      border: 1.5px solid rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.7);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 12px;
+    }
+    .mode-option:hover {
+      border-color: var(--theme-active);
+      background: rgba(99,102,241,0.04);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(99,102,241,0.08);
+    }
+    .mode-option-icon {
+      font-size: 28px;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: rgba(99,102,241,0.06);
+      flex-shrink: 0;
+    }
+    .mode-option-info { flex: 1; }
+    .mode-option-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      font-family: var(--font-display);
+    }
+    .mode-option-desc {
+      font-size: 12px;
+      color: var(--text2);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    .install-mode-options {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .install-mode-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.7);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 12px;
+    }
+    .install-mode-opt:hover {
+      border-color: var(--blue, #1e88e5);
+      background: rgba(30,136,229,0.04);
+    }
+    .install-mode-opt span { font-size: 18px; flex-shrink: 0; }
+    .install-mode-opt b { font-size: 12px; }
+
+    /* ===== 模式对比表 ===== */
+    .mode-compare-hint {
+      margin-bottom: 16px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.06);
+      font-size: 11px;
+    }
+    .compare-row {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr 1fr 0.5fr;
+      gap: 4px;
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.7);
+    }
+    .compare-row:first-child {
+      background: rgba(0,0,0,0.03);
+    }
+    .compare-label {
+      font-weight: 700;
+      color: var(--text2);
+      font-size: 10px;
     }
   </style>
 </head>
@@ -2261,18 +3171,12 @@
   <div class="main">
     <aside class="sidebar" id="sidebar">
       <h3>导航</h3>
-      <div class="nav-item active" onclick="showView('community')" onmouseenter="prefetchView('community')">
-        <span>🌍 社区广场</span>
-      </div>
-      <div class="nav-item" onclick="showView('myrepo')" onmouseenter="prefetchView('myrepo')">
-        <span>📦 我的本地仓库</span>
+      <div class="nav-item active" onclick="showView('myrepo')" onmouseenter="prefetchView('myrepo')">
+        <span>📦 本地 Skill 管理</span>
         <span class="count" id="totalCount">0</span>
       </div>
-      <div class="nav-item" onclick="showView('ghcommunity')" onmouseenter="prefetchView('ghcommunity')">
-        <span>🔗 我的 GitHub 社区</span>
-      </div>
-      <div class="nav-item" onclick="showView('sources')">
-        <span>📡 订阅外部GitHub仓库</span>
+      <div class="nav-item" onclick="showView('community')" onmouseenter="prefetchView('community')">
+        <span>🌍 社区</span>
       </div>
       <div class="nav-item" onclick="showView('mcp')">
         <span>⚙️ MCP 管理</span>
@@ -2471,9 +3375,82 @@
       }
 
       document.getElementById('totalCount').textContent = stats.total;
-      showView('community');
+      showView('myrepo');
       connectSSE();
       loadVersionInfo();
+      checkFirstVisit();
+    }
+
+    function checkFirstVisit() {
+      if (localStorage.getItem('skiller_onboarded')) return;
+      showOnboarding();
+    }
+
+    function showOnboarding() {
+      var overlay = document.createElement('div');
+      overlay.id = 'onboardingOverlay';
+      overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px)';
+
+      var pages = [
+        {
+          icon: '🎉',
+          title: '欢迎使用 Skiller',
+          desc: 'AI 技能管理器 — 帮你管理和部署 Cursor AI 的技能与规则',
+          detail: '接下来简单了解一下主要功能区域'
+        },
+        {
+          icon: '📁',
+          title: '本地 Skill 管理',
+          desc: '以项目为中心管理你的 AI 技能',
+          detail: '<b>项目网格</b>：查看所有管理的项目<br><b>扫描项目</b>：从 Cursor 历史中导入项目<br><b>项目详情</b>：查看已安装的技能、添加新技能<br><b>分组</b>：按分类整理项目'
+        },
+        {
+          icon: '🧠',
+          title: 'Skill 和 Rule 的区别',
+          desc: '安装技能时可选择三种模式',
+          detail: '<div style="display:grid; gap:8px; margin-top:8px">'
+            + '<div style="padding:8px 12px; border-radius:8px; background:rgba(99,102,241,0.06); border-left:3px solid #6366f1"><b>🧠 全局 Skill</b><br><span style="font-size:11px; color:var(--text2)">存放在 ~/.cursor/skills/<br>AI 按需加载，节省 token，所有项目共享</span></div>'
+            + '<div style="padding:8px 12px; border-radius:8px; background:rgba(245,158,11,0.06); border-left:3px solid #f59e0b"><b>⚡ 智能 Rule</b><br><span style="font-size:11px; color:var(--text2)">存放在 项目/.cursor/rules/<br>alwaysApply: false，AI 按上下文判断是否使用</span></div>'
+            + '<div style="padding:8px 12px; border-radius:8px; background:rgba(239,68,68,0.06); border-left:3px solid #ef4444"><b>📜 常驻 Rule</b><br><span style="font-size:11px; color:var(--text2)">存放在 项目/.cursor/rules/<br>alwaysApply: true，始终注入 AI 上下文</span></div>'
+            + '</div>'
+        },
+        {
+          icon: '🌐',
+          title: '社区广场',
+          desc: '浏览和安装社区分享的技能',
+          detail: '<b>订阅源</b>：添加 GitHub 仓库作为技能源<br><b>浏览技能</b>：搜索、筛选、一键安装<br><b>三种安装模式</b>：和本地管理一样的选择'
+        }
+      ];
+
+      var currentPage = 0;
+      function renderPage() {
+        var p = pages[currentPage];
+        var isLast = currentPage === pages.length - 1;
+        overlay.innerHTML = '<div style="background:var(--bg); border-radius:20px; max-width:480px; width:90%; padding:36px 32px; box-shadow:0 20px 60px rgba(0,0,0,0.2); text-align:center; position:relative">'
+          + '<div style="font-size:48px; margin-bottom:16px">' + p.icon + '</div>'
+          + '<h2 style="font-size:20px; font-weight:700; color:var(--text); font-family:var(--font-display); margin-bottom:8px">' + p.title + '</h2>'
+          + '<p style="font-size:14px; color:var(--text); margin-bottom:12px">' + p.desc + '</p>'
+          + '<div style="font-size:12px; color:var(--text2); line-height:1.8; text-align:left; max-width:360px; margin:0 auto 20px">' + p.detail + '</div>'
+          + '<div style="display:flex; justify-content:center; gap:6px; margin-bottom:16px">'
+          +   pages.map(function(_, i) { return '<span style="width:8px; height:8px; border-radius:50%; background:' + (i === currentPage ? 'var(--theme-active)' : 'rgba(0,0,0,0.1)') + '"></span>'; }).join('')
+          + '</div>'
+          + '<div style="display:flex; gap:10px; justify-content:center">'
+          +   (currentPage > 0 ? '<button onclick="onboardPrev()" style="padding:8px 20px; border-radius:10px; border:1.5px solid rgba(0,0,0,0.08); background:white; cursor:pointer; font-size:13px; font-family:var(--font-body)">上一步</button>' : '')
+          +   '<button onclick="' + (isLast ? 'finishOnboarding()' : 'onboardNext()') + '" style="padding:8px 24px; border-radius:10px; border:none; background:var(--theme-active); color:white; cursor:pointer; font-size:13px; font-weight:600; font-family:var(--font-body)">' + (isLast ? '开始使用' : '下一步') + '</button>'
+          + '</div>'
+          + '<button onclick="finishOnboarding()" style="position:absolute; top:12px; right:16px; border:none; background:none; color:var(--text2); cursor:pointer; font-size:14px" title="跳过">✕</button>'
+          + '</div>';
+      }
+
+      window.onboardNext = function() { currentPage = Math.min(currentPage + 1, pages.length - 1); renderPage(); };
+      window.onboardPrev = function() { currentPage = Math.max(currentPage - 1, 0); renderPage(); };
+      window.finishOnboarding = function() {
+        localStorage.setItem('skiller_onboarded', '1');
+        overlay.remove();
+      };
+
+      renderPage();
+      document.body.appendChild(overlay);
     }
 
     let versionInfo = null;
@@ -2618,7 +3595,7 @@
       currentCategory = null;
 
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      const viewMap = { community: 0, myrepo: 1, ghcommunity: 2, sources: 3, mcp: 4, log: 5, help: 6 };
+      const viewMap = { myrepo: 0, community: 1, mcp: 2, log: 3, help: 4 };
       const idx = viewMap[view];
       if (idx !== undefined) {
         const items = document.querySelectorAll('#sidebar .nav-item');
@@ -2629,15 +3606,17 @@
         if (_dirtyViews.myrepo) { _dirtyViews.myrepo = false; allSkills = []; }
         renderMyRepo();
       } else if (view === 'ghcommunity') {
+        communityTab = 'mycommunity';
         if (_dirtyViews.ghcommunity) { _dirtyViews.ghcommunity = false; ghcSkills = []; }
-        renderGhCommunity();
+        renderCommunity();
       } else if (view === 'log') {
         renderLog();
       } else if (view === 'community') {
         if (_dirtyViews.community) { _dirtyViews.community = false; communityLoaded = false; communitySkills = []; }
         renderCommunity();
       } else if (view === 'sources') {
-        renderSourcesPage();
+        communityTab = 'sources';
+        renderCommunity();
       } else if (view === 'help') {
         renderHelpPage();
       } else if (view === 'mcp') {
@@ -2658,67 +3637,277 @@
       return ids;
     }
 
-    // ========== 我的本地 Skill 仓库 (双栏) ==========
+    // ========== 我的本地 Skill 仓库 ==========
     let myrepoSelectedSkill = null;
     let myrepoFilter = 'all';
     let myrepoCatFilter = '';
     let myrepoSearchQuery = '';
     let myrepoScopeFilter = '';
     let recentProjectsCache = [];
+    let skillProjectLinks = {};
+    let selectedProject = '';
+    let myrepoViewMode = 'projects';
+    var _collapsedGroups = {};
+    let projectGroupsData = { groups: [], assignments: {}, projectOrder: [] };
+    var _cachedProjectsWithSkills = {};
+
+    let myrepoBatchMode = false;
+    let myrepoBatchSelected = new Set();
 
     async function renderMyRepo() {
       const content = document.getElementById('content');
       await fetchOwnSkills(false);
-      try { recentProjectsCache = await api('/api/recent-projects'); } catch(e) { recentProjectsCache = []; }
-      const ownSet = new Set(ownSkillsList.map(n => n.toLowerCase()));
-      const uploadedCount = allSkills.filter(s => ownSet.has(s.name.toLowerCase())).length;
-      const pendingCount = allSkills.length - uploadedCount;
-      const projectCount = allSkills.filter(s => s.source === 'project-rules').length;
-      const globalCount = allSkills.length - projectCount;
+      try { projectGroupsData = await api('/api/project-groups'); } catch(e) { projectGroupsData = { groups: [], assignments: {}, projectOrder: [] }; }
+      const globalCount = allSkills.filter(function(s) { return s.source !== 'project-rules'; }).length;
+      const uncatCount = allSkills.filter(function(s) { return s.categories.length === 0; }).length;
 
-      content.innerHTML = '<div class="myrepo-layout view-content">'
-        + '<div class="myrepo-left">'
-        +   '<div class="myrepo-left-header">'
-        +     '<input class="myrepo-search" id="myrepoSearch" placeholder="搜索技能名称、标签..." oninput="debouncedMyRepoSearch(this.value)">'
-        +   '</div>'
-        +   '<div class="myrepo-filter-bar">'
-        +     '<button class="myrepo-filter-btn' + (myrepoFilter === 'all' ? ' active' : '') + '" onclick="myrepoFilter=\'all\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.myrepo-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">全部</button>'
-        +     '<button class="myrepo-filter-btn' + (myrepoFilter === 'uploaded' ? ' active' : '') + '" onclick="myrepoFilter=\'uploaded\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.myrepo-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">已上传</button>'
-        +     '<button class="myrepo-filter-btn' + (myrepoFilter === 'pending' ? ' active' : '') + '" onclick="myrepoFilter=\'pending\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.myrepo-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">未上传</button>'
-        +     '<select class="myrepo-cat-select" id="myrepoCatSelect" onchange="myrepoCatFilter=this.value; renderMyRepoList()">'
-        +       '<option value="">全部分类</option>'
-        +       '<option value="__uncategorized__">未分类</option>'
-        +       userCategories.map(function(uc) { return '<option value="' + escapeAttr(uc.id) + '">' + escapeHtml((uc.icon || '') + ' ' + uc.label) + '</option>'; }).join('')
-        +     '</select>'
-        +     '<button class="myrepo-filter-btn" onclick="showCatManagerInMyRepo()" style="margin-left:auto">🏷️ 分类管理</button>'
-        +   '</div>'
-        +   '<div class="scope-filter-bar">'
-        +     '<span style="font-size:10px; color:var(--text2)">作用域:</span>'
-        +     '<button class="scope-filter-btn' + (myrepoScopeFilter === '' ? ' active' : '') + '" onclick="myrepoScopeFilter=\'\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.scope-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">全部</button>'
-        +     '<button class="scope-filter-btn' + (myrepoScopeFilter === 'global' ? ' active' : '') + '" onclick="myrepoScopeFilter=\'global\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.scope-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">🌐 全局 (' + globalCount + ')</button>'
-        +     '<button class="scope-filter-btn' + (myrepoScopeFilter === 'project' ? ' active' : '') + '" onclick="myrepoScopeFilter=\'project\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.scope-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">📁 项目 (' + projectCount + ')</button>'
-        +   '</div>'
-        +   '<div class="myrepo-stats">'
-        +     '<div class="myrepo-stat"><div class="val" style="color:var(--blue)">' + allSkills.length + '</div><div class="lbl">本地总数</div></div>'
-        +     '<div class="myrepo-stat"><div class="val" style="color:var(--green)">' + uploadedCount + '</div><div class="lbl">已上架</div></div>'
-        +     '<div class="myrepo-stat"><div class="val" style="color:var(--orange)">' + pendingCount + '</div><div class="lbl">待上传</div></div>'
-        +     '<div class="myrepo-stat"><div class="val" style="color:var(--purple, #7c4dff)">' + projectCount + '</div><div class="lbl">项目级</div></div>'
-        +   '</div>'
-        +   '<div class="myrepo-list" id="myrepoList"></div>'
-        + '</div>'
-        + '<div class="myrepo-right" id="myrepoRight">'
-        +   '<div class="myrepo-right-empty"><div class="icon">📦</div><div>选择左侧技能查看详情</div></div>'
-        + '</div>'
-        + '</div>';
+      var managedProjects = projectGroupsData.projectOrder || [];
+      var projectSkillCounts = {};
+      allSkills.forEach(function(s) {
+        if (s.source === 'project-rules' && s.projectName) {
+          if (!projectSkillCounts[s.projectName]) projectSkillCounts[s.projectName] = 0;
+          projectSkillCounts[s.projectName]++;
+        }
+      });
 
+      var groups = (projectGroupsData.groups || []).slice().sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
+      var assignments = projectGroupsData.assignments || {};
+
+      if (!selectedProject && myrepoViewMode !== 'global') {
+        // ===== 项目网格首页 =====
+        function buildProjectCard(proj) {
+          var count = projectSkillCounts[proj] || 0;
+          var shortName = proj.split('/').slice(-2).join('/');
+          var eProj = escapeAttr(proj).replace(/'/g, "\\'");
+          return '<div class="project-card" draggable="true" data-project="' + escapeAttr(proj) + '" onclick="selectProject(\'' + eProj + '\')" ondragstart="onProjectCardDragStart(event)" ondragend="onProjectCardDragEnd(event)" ondragover="onProjectCardDragOver(event)" ondrop="onProjectCardDrop(event)">'
+            + '<div class="project-card-icon">' + (count > 0 ? '📁' : '📂') + '</div>'
+            + '<div class="project-card-info">'
+            +   '<div class="project-card-name">' + escapeHtml(shortName) + '</div>'
+            +   '<div class="project-card-path" title="' + escapeAttr(proj) + '">' + escapeHtml(proj) + '</div>'
+            +   '<div class="project-card-count">' + count + ' 个技能</div>'
+            + '</div>'
+            + '<button class="project-card-remove" onclick="event.stopPropagation(); removeManagedProjectUI(\'' + eProj + '\')" title="从列表移除">✕</button>'
+            + '</div>';
+        }
+
+        var groupedHtml = '';
+        var assignedSet = {};
+        groups.forEach(function(g) {
+          var gProjects = managedProjects.filter(function(p) { return assignments[p] === g.id; });
+          gProjects.forEach(function(p) { assignedSet[p] = true; });
+          var eGid = escapeAttr(g.id).replace(/'/g, "\\'");
+          var isCollapsed = _collapsedGroups[g.id];
+          groupedHtml += '<div class="project-group-section" data-group="' + escapeAttr(g.id) + '" ondragover="onGroupSectionDragOver(event)" ondragleave="onGroupSectionDragLeave(event)" ondrop="onGroupSectionDrop(event, \'' + eGid + '\')">'
+            + '<div class="project-group-bar" onclick="toggleGroupCollapse(\'' + eGid + '\')" style="cursor:pointer">'
+            +   '<span class="group-bar-toggle">' + (isCollapsed ? '▶' : '▼') + '</span>'
+            +   '<span class="group-bar-icon">' + (g.icon || '📁') + '</span>'
+            +   '<span class="group-bar-name" ondblclick="event.stopPropagation(); startRenameGroup(\'' + eGid + '\', this)">' + escapeHtml(g.name) + '</span>'
+            +   '<span class="group-bar-count">' + gProjects.length + '</span>'
+            +   '<button class="group-bar-del" onclick="event.stopPropagation(); deleteGroupInline(\'' + eGid + '\')" title="删除分组">✕</button>'
+            + '</div>'
+            + '<div class="project-cards-grid group-cards" id="groupCards_' + escapeAttr(g.id) + '" style="' + (isCollapsed ? 'display:none' : '') + '">';
+          if (gProjects.length > 0) {
+            gProjects.forEach(function(p) { groupedHtml += buildProjectCard(p); });
+          } else {
+            groupedHtml += '<div class="group-drop-hint">拖入项目到此分组</div>';
+          }
+          groupedHtml += '</div></div>';
+        });
+
+        var ungrouped = managedProjects.filter(function(p) { return !assignedSet[p]; });
+        var ungroupedHtml = '';
+        if (ungrouped.length > 0 || groups.length === 0) {
+          if (groups.length > 0) {
+            ungroupedHtml += '<div class="project-group-bar ungrouped-bar" ondragover="onGroupSectionDragOver(event)" ondragleave="onGroupSectionDragLeave(event)" ondrop="onGroupSectionDrop(event, \'\')">'
+              + '<span class="group-bar-icon">📂</span><span class="group-bar-name">未分组</span><span class="group-bar-count">' + ungrouped.length + '</span></div>';
+          }
+          ungroupedHtml += '<div class="project-cards-grid" ondragover="onGroupSectionDragOver(event)" ondragleave="onGroupSectionDragLeave(event)" ondrop="onGroupSectionDrop(event, \'\')">';
+          ungrouped.forEach(function(p) { ungroupedHtml += buildProjectCard(p); });
+          ungroupedHtml += '</div>';
+        }
+
+        var emptyHtml = '';
+        if (managedProjects.length === 0) {
+          emptyHtml = '<div class="empty-state" style="padding:60px 20px; text-align:center">'
+            + '<div style="font-size:48px; margin-bottom:16px">📂</div>'
+            + '<p style="font-size:16px; font-weight:600; color:var(--text)">还没有管理的项目</p>'
+            + '<p style="font-size:13px; color:var(--text2); margin-top:8px">点击上方 "扫描项目" 从 Cursor 历史中导入，或 "手动添加" 输入路径</p>'
+            + '</div>';
+        }
+
+        content.innerHTML = '<div class="myrepo-layout view-content">'
+          + '<div class="myrepo-toolbar">'
+          +   '<div class="myrepo-scope-tabs">'
+          +     '<button class="myrepo-scope-tab active">📁 项目管理</button>'
+          +     '<button class="myrepo-scope-tab" onclick="myrepoViewMode=\'global\'; renderMyRepo()">📦 全局技能 <b>' + globalCount + '</b></button>'
+          +   '</div>'
+          +   '<span style="flex:1"></span>'
+          +   '<button class="myrepo-action-btn" onclick="openScanProjectsDrawer()">🔍 扫描项目</button>'
+          +   '<button class="myrepo-action-btn" onclick="showAddProjectInput()">＋ 手动添加</button>'
+          +   '<button class="myrepo-action-btn" onclick="showInlineGroupInput()">📁 新建分组</button>'
+          +   '<button class="myrepo-action-btn" onclick="exportConfig()" title="导出技能配置备份">💾 导出</button>'
+          +   '<input class="myrepo-search" id="myrepoSearch" placeholder="搜索项目..." oninput="filterProjectCards(this.value)" style="max-width:200px">'
+          + '</div>'
+          + '<div style="flex:1; overflow-y:auto; padding:20px">'
+          +   groupedHtml + ungroupedHtml + emptyHtml
+          + '</div>'
+          + '</div>'
+          + '<div class="detail-drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>'
+          + '<div class="detail-drawer" id="detailDrawer"></div>';
+
+      } else if (selectedProject) {
+        // ===== 项目详情页 =====
+        var projShort = selectedProject.split('/').slice(-2).join('/');
+        var installedSkills = allSkills.filter(function(s) {
+          return s.source === 'project-rules' && s.projectName === selectedProject;
+        });
+        var availableSkills = allSkills.filter(function(s) {
+          return s.source !== 'project-rules';
+        });
+        var installedNames = installedSkills.map(function(s) { return s.name; });
+
+        content.innerHTML = '<div class="myrepo-layout view-content">'
+          + '<div class="myrepo-toolbar">'
+          +   '<button class="myrepo-back-btn" onclick="selectProject(\'\')" title="返回项目列表">← 返回</button>'
+          +   '<div class="myrepo-project-title">'
+          +     '<span style="font-size:20px">📁</span>'
+          +     '<span>' + escapeHtml(projShort) + '</span>'
+          +     '<span class="myrepo-project-count">' + installedSkills.length + ' 个技能</span>'
+          +   '</div>'
+          +   '<span style="flex:1"></span>'
+          +   '<button class="myrepo-filter-btn" onclick="checkProjectUpdates()" title="检查更新" id="checkUpdatesBtn">🔄 检查更新</button>'
+          +   '<button class="myrepo-filter-btn" onclick="refreshSkills()" title="刷新">🔄</button>'
+          + '</div>'
+          + '<div style="flex:1; overflow-y:auto; padding:20px">'
+          +   '<div class="project-detail-section">'
+          +     '<div class="section-header">'
+          +       '<h3>📋 已安装的技能</h3>'
+          +       '<span class="section-count">' + installedSkills.length + '</span>'
+          +       '<span style="flex:1"></span>'
+          +       (installedSkills.length > 0 ? '<button class="batch-toggle-btn" onclick="toggleBatchMode()" id="batchToggleBtn">☑ 批量管理</button>' : '')
+          +     '</div>'
+          +     '<div class="batch-bar" id="batchBar" style="display:none">'
+          +       '<span id="batchSelectedCount">已选 0 项</span>'
+          +       '<button class="batch-action-btn batch-select-all" onclick="batchSelectAll()">全选</button>'
+          +       '<button class="batch-action-btn batch-deselect" onclick="batchDeselectAll()">取消全选</button>'
+          +       '<button class="batch-action-btn batch-delete-btn" onclick="batchRemoveSelected()">🗑 批量删除</button>'
+          +     '</div>'
+          +     '<div class="myrepo-grid" id="installedGrid">'
+          +       (installedSkills.length > 0
+                    ? installedSkills.map(function(s) { return renderProjectSkillCard(s, true); }).join('')
+                    : '<div class="empty-msg" style="grid-column:1/-1">此项目还没有安装任何技能</div>')
+          +     '</div>'
+          +   '</div>'
+          +   '<div class="project-detail-section" style="margin-top:28px">'
+          +     '<div class="section-header">'
+          +       '<h3>📦 可添加的全局技能</h3>'
+          +       '<span class="section-count">' + availableSkills.length + '</span>'
+          +       '<input type="text" class="section-search" id="availableSearch" placeholder="搜索..." oninput="filterAvailableSkills(this.value)">'
+          +     '</div>'
+          +     '<div class="myrepo-grid" id="availableGrid">'
+          +       availableSkills.map(function(s) {
+                    var already = installedNames.indexOf(s.name) >= 0;
+                    return renderProjectSkillCard(s, false, already);
+                  }).join('')
+          +     '</div>'
+          +   '</div>'
+          + '</div>'
+          + '</div>'
+          + '<div class="detail-drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>'
+          + '<div class="detail-drawer" id="detailDrawer"></div>';
+
+      } else {
+        // ===== 全局技能视图 =====
+        content.innerHTML = '<div class="myrepo-layout view-content">'
+          + '<div class="myrepo-toolbar">'
+          +   '<div class="myrepo-scope-tabs">'
+          +     '<button class="myrepo-scope-tab" onclick="myrepoViewMode=\'projects\'; renderMyRepo()">📁 项目管理</button>'
+          +     '<button class="myrepo-scope-tab active">📦 全局技能 <b>' + allSkills.length + '</b></button>'
+          +   '</div>'
+          +   '<input class="myrepo-search" id="myrepoSearch" placeholder="搜索技能名称、标签..." oninput="debouncedMyRepoSearch(this.value)">'
+          +   '<button class="myrepo-filter-btn" onclick="showCatManagerDrawer()" title="分类管理">🏷️</button>'
+          +   '<button class="myrepo-filter-btn" onclick="refreshSkills()" title="刷新">🔄</button>'
+          + '</div>'
+          + '<div style="flex:1; overflow-y:auto">'
+          +   '<div class="myrepo-filter-bar">'
+          +     '<select onchange="myrepoCatFilter=this.value; renderMyRepoList()">'
+          +       '<option value="">全部分类</option>'
+          +       '<option value="__uncategorized__">📭 未分类 (' + uncatCount + ')</option>'
+          +       userCategories.map(function(uc) {
+                    var cnt = allSkills.filter(function(s) { return s.categories.indexOf(uc.id) >= 0; }).length;
+                    return '<option value="' + escapeAttr(uc.id) + '">' + escapeHtml((uc.icon || '') + ' ' + uc.label) + ' (' + cnt + ')</option>';
+                  }).join('')
+          +     '</select>'
+          +     '<span style="flex:1"></span>'
+          +     '<span style="font-size:11px; color:var(--text2)" id="myrepoResultCount"></span>'
+          +   '</div>'
+          +   '<div class="myrepo-grid" id="myrepoGrid"></div>'
+          + '</div>'
+          + '</div>'
+          + '<div class="detail-drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>'
+          + '<div class="detail-drawer" id="detailDrawer"></div>';
+
+        renderMyRepoList();
+      }
+    }
+
+    function setScopeTab(scope) {
+      myrepoScopeFilter = scope;
+      document.querySelectorAll('.myrepo-scope-tab').forEach(function(el) { el.classList.remove('active'); });
+      var tabs = document.querySelectorAll('.myrepo-scope-tab');
+      if (scope === '') tabs[0] && tabs[0].classList.add('active');
+      else if (scope === 'global') tabs[1] && tabs[1].classList.add('active');
+      else if (scope === 'project') tabs[2] && tabs[2].classList.add('active');
       renderMyRepoList();
-      if (myrepoSelectedSkill) selectMyRepoSkill(myrepoSelectedSkill);
+    }
+
+    function toggleGroupCollapse(groupId) {
+      _collapsedGroups[groupId] = !_collapsedGroups[groupId];
+      var cards = document.getElementById('groupCards_' + groupId);
+      var section = cards ? cards.closest('.project-group-section') : null;
+      var toggle = section ? section.querySelector('.group-bar-toggle') : null;
+      if (cards) {
+        cards.style.display = _collapsedGroups[groupId] ? 'none' : '';
+      }
+      if (toggle) {
+        toggle.textContent = _collapsedGroups[groupId] ? '▶' : '▼';
+      }
+    }
+
+    function selectProject(proj) {
+      selectedProject = proj;
+      myrepoViewMode = proj ? 'project-detail' : 'projects';
+      renderMyRepo();
+    }
+
+    function closeDrawer() {
+      var overlay = document.getElementById('drawerOverlay');
+      var drawer = document.getElementById('detailDrawer');
+      if (overlay) overlay.classList.remove('open');
+      if (drawer) { drawer.classList.remove('open', 'drawer-flex'); }
+      myrepoSelectedSkill = null;
+    }
+
+    async function refreshSkills() {
+      try {
+        await api('/api/scan');
+        allSkills = await api('/api/skills');
+        categories = await api('/api/categories');
+        userCategories = await api('/api/categories/list');
+        renderMyRepo();
+      } catch(e) { alert('刷新失败: ' + e.message); }
+    }
+
+    function showCatManagerDrawer() {
+      myrepoSelectedSkill = null;
+      showView('catmgr');
     }
 
     async function showCatManagerInMyRepo() {
       myrepoSelectedSkill = null;
-      var rightPanel = document.getElementById('myrepoRight');
-      if (!rightPanel) return;
+      var drawer = document.getElementById('detailDrawer');
+      var overlay = document.getElementById('drawerOverlay');
+      if (!drawer) return;
       userCategories = await api('/api/categories/list');
       var roots = userCategories.filter(function(c) { return !c.parentId; });
 
@@ -2762,7 +3951,9 @@
       }
 
       html += '</div>';
-      rightPanel.innerHTML = html;
+      drawer.innerHTML = '<button class="drawer-close" onclick="closeDrawer()" title="关闭">✕</button>' + html;
+      drawer.classList.add('open');
+      if (overlay) overlay.classList.add('open');
     }
 
     async function addRootCategoryInMyRepo() {
@@ -2778,12 +3969,543 @@
       showCatManagerInMyRepo();
     }
 
+    function getInstallModeBadge(mode) {
+      var map = {
+        'global-skill': { label: '全局 Skill', cls: 'badge-global-skill', icon: '🌐' },
+        'rule-smart': { label: '智能 Rule', cls: 'badge-rule-smart', icon: '🧠' },
+        'rule-always': { label: '常驻 Rule', cls: 'badge-rule-always', icon: '📌' },
+        'project-skill': { label: '项目 Skill', cls: 'badge-project-skill', icon: '📁' }
+      };
+      var info = map[mode];
+      if (!info) return '';
+      return '<span class="install-mode-badge ' + info.cls + '">' + info.icon + ' ' + info.label + '</span>';
+    }
+
+    function renderProjectSkillCard(s, isInstalled, alreadyInstalled) {
+      var showName = s.displayName || s.name;
+      var desc = s.customDescription || s.description || '暂无描述';
+      if (desc.length > 100) desc = desc.substring(0, 100) + '...';
+      var isProject = s.source === 'project-rules';
+      var scopeClass = isProject ? 'scope-project' : 'scope-global';
+      var scopeIcon = isProject ? '📁' : '🌐';
+      var eName = escapeAttr(s.name).replace(/'/g, "\\'");
+
+      var modeBadge = (isInstalled && s.installMode) ? getInstallModeBadge(s.installMode) : '';
+
+      var actionHtml = '';
+      if (isInstalled) {
+        actionHtml = '<div class="card-actions" style="display:flex">'
+          + '<button class="card-action-btn" onclick="event.stopPropagation(); removeSkillFromProject(\'' + eName + '\')" title="从项目移除" style="background:rgba(229,57,53,0.08)">🗑</button>'
+          + '</div>';
+      } else if (alreadyInstalled) {
+        actionHtml = '<div class="card-installed-badge">✓ 已安装</div>';
+      } else {
+        actionHtml = '<div class="card-actions" style="display:flex">'
+          + '<button class="card-action-btn card-add-btn" onclick="event.stopPropagation(); addSkillToCurrentProject(\'' + eName + '\', this)" title="添加到项目">＋</button>'
+          + '</div>';
+      }
+
+      return '<div class="skill-card ' + scopeClass + (alreadyInstalled ? ' already-in-project' : '') + '" data-skill="' + escapeAttr(s.name) + '" onclick="showMyRepoDetail(\'' + eName + '\')">'
+        + actionHtml
+        + '<div class="card-header">'
+        +   '<div class="card-scope">' + scopeIcon + '</div>'
+        +   '<div class="card-name">' + escapeHtml(showName) + '</div>'
+        + '</div>'
+        + (modeBadge ? '<div class="card-mode-row">' + modeBadge + '</div>' : '')
+        + '<div class="card-desc">' + escapeHtml(desc) + '</div>'
+        + '<div class="card-tags">'
+        +   s.categories.map(function(cid) {
+              var cat = userCategories.find(function(uc) { return uc.id === cid; });
+              return cat ? '<span class="card-tag" style="background:rgba(99,102,241,0.08); color:#6366f1">' + escapeHtml((cat.icon || '') + ' ' + cat.label) + '</span>' : '';
+            }).join('')
+        + '</div>'
+        + '</div>';
+    }
+
+    function filterProjectCards(query) {
+      var grid = document.getElementById('projectCardsGrid');
+      if (!grid) return;
+      var q = query.toLowerCase().trim();
+      var cards = grid.querySelectorAll('.project-card');
+      cards.forEach(function(card) {
+        var name = card.querySelector('.project-card-name').textContent.toLowerCase();
+        card.style.display = (!q || name.indexOf(q) >= 0) ? '' : 'none';
+      });
+    }
+
+    function filterAvailableSkills(query) {
+      var grid = document.getElementById('availableGrid');
+      if (!grid) return;
+      var q = query.toLowerCase().trim();
+      var cards = grid.querySelectorAll('.skill-card');
+      cards.forEach(function(card) {
+        var name = (card.querySelector('.card-name') || {}).textContent || '';
+        var desc = (card.querySelector('.card-desc') || {}).textContent || '';
+        var match = !q || name.toLowerCase().indexOf(q) >= 0 || desc.toLowerCase().indexOf(q) >= 0;
+        card.style.display = match ? '' : 'none';
+      });
+    }
+
+    function addSkillToCurrentProject(skillName, btnEl) {
+      if (!selectedProject) return;
+      var existing = allSkills.find(function(s) {
+        return s.source === 'project-rules' && s.projectName === selectedProject && s.name === skillName;
+      });
+      if (existing) {
+        var modeLabel = {
+          'global-skill': '全局 Skill', 'rule-smart': '智能 Rule',
+          'rule-always': '常驻 Rule', 'project-skill': '项目 Skill'
+        }[existing.installMode] || '未知模式';
+        if (!confirm('⚠️ "' + skillName + '" 已以「' + modeLabel + '」模式安装在此项目中。\n\n重新安装将覆盖现有文件，是否继续？')) return;
+      }
+      showAddSkillModeDialog(skillName, btnEl);
+    }
+
+    function showAddSkillModeDialog(skillName, btnEl) {
+      var overlay = document.getElementById('drawerOverlay');
+      var drawer = document.getElementById('detailDrawer');
+      if (!overlay || !drawer) return;
+      overlay.classList.add('open');
+      drawer.classList.add('open', 'drawer-flex');
+      var eName = escapeAttr(skillName).replace(/'/g, "\\'");
+      drawer.innerHTML = '<div class="drawer-header"><h2>添加 "' + escapeHtml(skillName) + '"</h2><button class="drawer-close" onclick="closeDrawer()">✕</button></div>'
+        + '<div class="drawer-body" style="padding:24px">'
+        +   '<div class="mode-compare-hint">'
+        +     '<div class="compare-row"><span class="compare-label">模式</span><span class="compare-label">存储位置</span><span class="compare-label">加载方式</span><span class="compare-label">Token</span></div>'
+        +     '<div class="compare-row"><span>Skill</span><span>~/.cursor/skills/</span><span>按需</span><span style="color:#22c55e">省</span></div>'
+        +     '<div class="compare-row"><span>智能Rule</span><span>.cursor/rules/</span><span>按上下文</span><span style="color:#f59e0b">中</span></div>'
+        +     '<div class="compare-row"><span>常驻Rule</span><span>.cursor/rules/</span><span>始终注入</span><span style="color:#ef4444">多</span></div>'
+        +   '</div>'
+        +   '<div class="mode-option" onclick="doAddSkill(\'' + eName + '\', \'global-skill\')">'
+        +     '<div class="mode-option-icon">🧠</div>'
+        +     '<div class="mode-option-info">'
+        +       '<div class="mode-option-title">全局 Skill <span style="font-size:10px; color:white; background:#22c55e; padding:1px 6px; border-radius:10px">推荐</span></div>'
+        +       '<div class="mode-option-desc">复制到 ~/.cursor/skills/，AI 看到描述后按需加载全文，所有项目共享</div>'
+        +     '</div>'
+        +   '</div>'
+        +   '<div class="mode-option" onclick="doAddSkill(\'' + eName + '\', \'rule-smart\')">'
+        +     '<div class="mode-option-icon">⚡</div>'
+        +     '<div class="mode-option-info">'
+        +       '<div class="mode-option-title">项目 Rule（智能模式）</div>'
+        +       '<div class="mode-option-desc">仅当前项目生效，Cursor 判断上下文相关时才注入</div>'
+        +     '</div>'
+        +   '</div>'
+        +   '<div class="mode-option" onclick="doAddSkill(\'' + eName + '\', \'rule-always\')">'
+        +     '<div class="mode-option-icon">📜</div>'
+        +     '<div class="mode-option-info">'
+        +       '<div class="mode-option-title">项目 Rule（常驻模式）</div>'
+        +       '<div class="mode-option-desc">仅当前项目生效，每次对话都全量注入 AI 上下文</div>'
+        +     '</div>'
+        +   '</div>'
+        + '</div>';
+    }
+
+    async function doAddSkill(skillName, mode) {
+      closeDrawer();
+      try {
+        var result = await api('/api/skill/copy-to-project?name=' + encodeURIComponent(skillName) + '&projectPath=' + encodeURIComponent(selectedProject) + '&mode=' + mode);
+        if (result.success) {
+          allSkills = await api('/api/skills');
+          document.getElementById('totalCount').textContent = allSkills.length;
+          renderMyRepo();
+        } else {
+          alert('添加失败: ' + (result.message || ''));
+        }
+      } catch(err) {
+        alert('添加出错');
+      }
+    }
+
+    async function removeSkillFromProject(skillName, skipConfirm) {
+      if (!selectedProject) return;
+      if (!skipConfirm && !confirm('确定从此项目移除 "' + skillName + '" 吗？')) return;
+      try {
+        var result = await api('/api/skill/delete?name=' + encodeURIComponent(skillName) + '&projectPath=' + encodeURIComponent(selectedProject));
+        if (result.success) {
+          allSkills = await api('/api/skills');
+          document.getElementById('totalCount').textContent = allSkills.length;
+          if (!skipConfirm) renderMyRepo();
+        } else {
+          if (!skipConfirm) alert('移除失败: ' + (result.message || ''));
+        }
+      } catch(err) {}
+    }
+
+    async function openScanProjectsDrawer() {
+      var overlay = document.getElementById('drawerOverlay');
+      var drawer = document.getElementById('detailDrawer');
+      if (!overlay || !drawer) return;
+      overlay.classList.add('open');
+      drawer.classList.add('open', 'drawer-flex');
+      drawer.innerHTML = '<div class="drawer-header"><h2>🔍 扫描项目</h2><button class="drawer-close" onclick="closeDrawer()">✕</button></div>'
+        + '<div class="drawer-body"><div style="text-align:center; padding:40px"><div class="spinner"></div><p style="margin-top:12px; color:var(--text2)">正在扫描 Cursor 历史项目...</p></div></div>';
+      try {
+        var result = await api('/api/managed-projects/scan');
+        var allScanned = result.scanned || [];
+        var managed = result.managed || [];
+        var html = '<div class="drawer-header"><h2>🔍 扫描到的项目</h2><button class="drawer-close" onclick="closeDrawer()">✕</button></div>'
+          + '<div class="drawer-body" style="padding:16px">'
+          + '<p style="font-size:12px; color:var(--text2); margin-bottom:12px">共扫描到 ' + allScanned.length + ' 个项目，勾选后点击底部按钮添加</p>'
+          + '<div id="scanProjectList">';
+        allScanned.forEach(function(p) {
+          var isManaged = managed.indexOf(p) >= 0;
+          var shortName = p.split('/').slice(-2).join('/');
+          var ep = escapeAttr(p);
+          html += '<label class="scan-project-item' + (isManaged ? ' already-managed' : '') + '">'
+            + '<input type="checkbox" value="' + ep + '"' + (isManaged ? ' checked disabled' : '') + '>'
+            + '<div class="scan-project-info">'
+            +   '<span class="scan-project-name">' + escapeHtml(shortName) + '</span>'
+            +   '<span class="scan-project-path">' + escapeHtml(p) + '</span>'
+            + '</div>'
+            + (isManaged ? '<span class="scan-badge">已添加</span>' : '')
+            + '</label>';
+        });
+        if (allScanned.length === 0) {
+          html += '<p style="text-align:center; color:var(--text2); padding:20px">未扫描到项目</p>';
+        }
+        html += '</div></div>'
+          + '<div class="drawer-footer"><button class="primary-btn" onclick="addSelectedScannedProjects()">添加选中的项目</button></div>';
+        drawer.innerHTML = html;
+      } catch(err) {
+        drawer.innerHTML = '<div class="drawer-header"><h2>扫描失败</h2><button class="drawer-close" onclick="closeDrawer()">✕</button></div>'
+          + '<div class="drawer-body"><p style="color:red; padding:20px">' + String(err) + '</p></div>';
+      }
+    }
+
+    async function addSelectedScannedProjects() {
+      var checkboxes = document.querySelectorAll('#scanProjectList input[type="checkbox"]:checked:not(:disabled)');
+      var count = 0;
+      for (var i = 0; i < checkboxes.length; i++) {
+        var path = checkboxes[i].value;
+        await api('/api/managed-projects/add?path=' + encodeURIComponent(path));
+        count++;
+      }
+      closeDrawer();
+      if (count > 0) renderMyRepo();
+    }
+
+    async function showAddProjectInput() {
+      var existing = document.getElementById('addProjectModal');
+      if (existing) { existing.remove(); return; }
+
+      var recent = [];
+      try { recent = await api('/api/recent-projects'); } catch {}
+
+      var managedSet = {};
+      try { var mp = await api('/api/managed-projects/list'); (mp || []).forEach(function(p) { managedSet[p] = true; }); } catch {}
+      var candidates = recent.filter(function(p) { return !managedSet[p]; });
+
+      var modal = document.createElement('div');
+      modal.id = 'addProjectModal';
+      modal.className = 'add-project-modal-overlay';
+      var candHtml = '';
+      if (candidates.length > 0) {
+        candHtml = '<div class="add-project-recent-title">📂 从 Cursor 历史项目中选择</div>'
+          + '<div class="add-project-recent-list">'
+          + candidates.map(function(p) {
+              var short = p.split('/').slice(-2).join('/');
+              return '<div class="add-project-recent-item" onclick="selectRecentProject(this, \'' + escapeAttr(p).replace(/'/g, "\\'") + '\')">'
+                + '<span class="add-project-recent-path">' + escapeHtml(short) + '</span>'
+                + '<span class="add-project-recent-full">' + escapeHtml(p) + '</span>'
+                + '</div>';
+            }).join('')
+          + '</div>';
+      }
+
+      modal.innerHTML = '<div class="add-project-modal">'
+        + '<div class="add-project-modal-header">'
+        +   '<h3>添加项目</h3>'
+        +   '<button class="drawer-close" onclick="document.getElementById(\'addProjectModal\').remove()">✕</button>'
+        + '</div>'
+        + '<div class="add-project-modal-body">'
+        +   '<div class="add-project-input-row">'
+        +     '<input type="text" id="addProjectPathInput" class="add-project-path-input" placeholder="/home/user/my-project" list="addProjectDatalist" autocomplete="off">'
+        +     '<datalist id="addProjectDatalist">'
+        +       candidates.map(function(p) { return '<option value="' + escapeAttr(p) + '">'; }).join('')
+        +     '</datalist>'
+        +     '<button class="btn-install" id="addProjectConfirmBtn" onclick="confirmAddProject()">添加</button>'
+        +   '</div>'
+        +   candHtml
+        + '</div>'
+        + '</div>';
+      document.body.appendChild(modal);
+      var inp = document.getElementById('addProjectPathInput');
+      if (inp) {
+        inp.focus();
+        inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmAddProject(); if (e.key === 'Escape') modal.remove(); });
+      }
+    }
+
+    function selectRecentProject(el, path) {
+      var inp = document.getElementById('addProjectPathInput');
+      if (inp) inp.value = path;
+      var items = document.querySelectorAll('.add-project-recent-item');
+      items.forEach(function(it) { it.classList.remove('selected'); });
+      el.classList.add('selected');
+    }
+
+    async function confirmAddProject() {
+      var inp = document.getElementById('addProjectPathInput');
+      if (!inp) return;
+      var path = inp.value.trim();
+      if (!path) { inp.classList.add('shake'); setTimeout(function() { inp.classList.remove('shake'); }, 500); return; }
+      var btn = document.getElementById('addProjectConfirmBtn');
+      if (btn) { btn.disabled = true; btn.textContent = '添加中...'; }
+      try {
+        await api('/api/managed-projects/add?path=' + encodeURIComponent(path));
+        var modal = document.getElementById('addProjectModal');
+        if (modal) modal.remove();
+        renderMyRepo();
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = '添加'; }
+        alert('添加失败: ' + e.message);
+      }
+    }
+
+    var batchMode = false;
+    var batchSelected = new Set();
+
+    function toggleBatchMode() {
+      batchMode = !batchMode;
+      var btn = document.getElementById('batchToggleBtn');
+      var bar = document.getElementById('batchBar');
+      var grid = document.getElementById('installedGrid');
+      if (btn) btn.classList.toggle('active', batchMode);
+      if (bar) bar.style.display = batchMode ? 'flex' : 'none';
+      batchSelected.clear();
+      updateBatchCount();
+      if (grid) {
+        var cards = grid.querySelectorAll('.skill-card');
+        cards.forEach(function(card) {
+          if (batchMode) {
+            card.classList.add('batch-mode');
+            if (!card.querySelector('.batch-checkbox')) {
+              var cb = document.createElement('div');
+              cb.className = 'batch-checkbox';
+              card.insertBefore(cb, card.firstChild);
+            }
+            card._origOnclick = card.getAttribute('onclick');
+            card.setAttribute('onclick', 'toggleBatchSelect(this)');
+          } else {
+            card.classList.remove('batch-mode', 'batch-selected');
+            var cb = card.querySelector('.batch-checkbox');
+            if (cb) cb.remove();
+            if (card._origOnclick) card.setAttribute('onclick', card._origOnclick);
+          }
+        });
+      }
+    }
+
+    function toggleBatchSelect(card) {
+      var name = card.getAttribute('data-skill');
+      if (batchSelected.has(name)) {
+        batchSelected.delete(name);
+        card.classList.remove('batch-selected');
+      } else {
+        batchSelected.add(name);
+        card.classList.add('batch-selected');
+      }
+      updateBatchCount();
+    }
+
+    function updateBatchCount() {
+      var el = document.getElementById('batchSelectedCount');
+      if (el) el.textContent = '已选 ' + batchSelected.size + ' 项';
+    }
+
+    function batchSelectAll() {
+      var grid = document.getElementById('installedGrid');
+      if (!grid) return;
+      grid.querySelectorAll('.skill-card.batch-mode').forEach(function(card) {
+        var name = card.getAttribute('data-skill');
+        batchSelected.add(name);
+        card.classList.add('batch-selected');
+      });
+      updateBatchCount();
+    }
+
+    function batchDeselectAll() {
+      batchSelected.clear();
+      var grid = document.getElementById('installedGrid');
+      if (grid) grid.querySelectorAll('.skill-card.batch-selected').forEach(function(c) { c.classList.remove('batch-selected'); });
+      updateBatchCount();
+    }
+
+    async function batchRemoveSelected() {
+      if (batchSelected.size === 0) return;
+      if (!confirm('确定删除选中的 ' + batchSelected.size + ' 个技能？')) return;
+      var names = Array.from(batchSelected);
+      for (var i = 0; i < names.length; i++) {
+        try { await removeSkillFromProject(names[i], true); } catch {}
+      }
+      batchMode = false;
+      batchSelected.clear();
+      allSkills = await api('/api/skills');
+      renderMyRepo();
+    }
+
+    async function checkProjectUpdates() {
+      var btn = document.getElementById('checkUpdatesBtn');
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ 检查中...'; }
+      try {
+        var result = await api('/api/skill/check-updates');
+        var updates = result.updates || [];
+        var hasAny = updates.filter(function(u) { return u.hasUpdate; });
+        if (hasAny.length > 0) {
+          showToast({ tool: 'updates', resultSummary: hasAny.length + ' 个技能有可用更新', timestamp: new Date().toISOString() });
+          hasAny.forEach(function(u) {
+            var card = document.querySelector('.skill-card[data-skill="' + u.skillName + '"]');
+            if (card && !card.querySelector('.update-badge')) {
+              var badge = document.createElement('span');
+              badge.className = 'update-badge';
+              badge.textContent = '🔺 有更新';
+              badge.title = '来源: ' + u.sourceUrl + '\n安装于: ' + u.installedAt;
+              badge.onclick = function(e) { e.stopPropagation(); updateSingleSkill(u.skillName, u.sourceUrl); };
+              card.querySelector('.card-header').appendChild(badge);
+            }
+          });
+        } else {
+          showToast({ tool: 'updates', resultSummary: '所有技能已是最新版本 ✅', timestamp: new Date().toISOString() });
+        }
+      } catch (e) {
+        showToast({ tool: 'updates', resultSummary: '检查更新失败: ' + (e.message || e), timestamp: new Date().toISOString() });
+      }
+      if (btn) { btn.disabled = false; btn.textContent = '🔄 检查更新'; }
+    }
+
+    async function updateSingleSkill(name, sourceUrl) {
+      if (!confirm('更新 "' + name + '" 到最新版本？')) return;
+      try {
+        var record = await api('/api/skill/install-registry');
+        var rec = (record || []).find(function(r) { return r.skillName === name; });
+        if (!rec) { alert('未找到安装记录'); return; }
+        var result = await api('/api/community/install?name=' + encodeURIComponent(name) + '&url=' + encodeURIComponent(sourceUrl) + '&mode=' + encodeURIComponent(rec.installMode) + (rec.projectPath ? '&projectPath=' + encodeURIComponent(rec.projectPath) : ''));
+        if (result.success) {
+          showToast({ tool: 'update', resultSummary: name + ' 已更新 ✅', timestamp: new Date().toISOString() });
+          allSkills = await api('/api/skills');
+          renderMyRepo();
+        } else {
+          alert('更新失败: ' + (result.error || '未知错误'));
+        }
+      } catch (e) {
+        alert('更新失败: ' + (e.message || e));
+      }
+    }
+
+    async function exportConfig() {
+      try {
+        var data = await api('/api/export-config');
+        var json = JSON.stringify(data, null, 2);
+        var blob = new Blob([json], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'skiller-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast({ tool: 'export', resultSummary: '配置已导出为 JSON 文件', timestamp: new Date().toISOString() });
+      } catch (e) {
+        alert('导出失败: ' + (e.message || e));
+      }
+    }
+
+    async function removeManagedProjectUI(proj) {
+      if (!confirm('从管理列表中移除此项目？\n（不会删除项目文件）')) return;
+      await api('/api/managed-projects/remove?path=' + encodeURIComponent(proj));
+      renderMyRepo();
+    }
+
+    var _draggedProjectPath = '';
+    var _draggedCardEl = null;
+    function onProjectCardDragStart(e) {
+      _draggedProjectPath = e.currentTarget.getAttribute('data-project') || '';
+      _draggedCardEl = e.currentTarget;
+      e.dataTransfer.effectAllowed = 'move';
+      e.currentTarget.style.opacity = '0.4';
+      e.currentTarget.classList.add('dragging');
+    }
+    function onProjectCardDragEnd(e) {
+      _draggedProjectPath = '';
+      _draggedCardEl = null;
+      e.currentTarget.style.opacity = '1';
+      e.currentTarget.classList.remove('dragging');
+      document.querySelectorAll('.drag-over-highlight, .drag-insert-before, .drag-insert-after').forEach(function(el) {
+        el.classList.remove('drag-over-highlight', 'drag-insert-before', 'drag-insert-after');
+      });
+    }
+    function onProjectCardDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'move';
+      if (!_draggedCardEl || e.currentTarget === _draggedCardEl) return;
+      var rect = e.currentTarget.getBoundingClientRect();
+      var midX = rect.left + rect.width / 2;
+      if (e.clientX < midX) {
+        e.currentTarget.classList.add('drag-insert-before');
+        e.currentTarget.classList.remove('drag-insert-after');
+      } else {
+        e.currentTarget.classList.add('drag-insert-after');
+        e.currentTarget.classList.remove('drag-insert-before');
+      }
+    }
+    function onProjectCardDrop(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!_draggedCardEl || e.currentTarget === _draggedCardEl) return;
+      var target = e.currentTarget;
+      var grid = target.parentElement;
+      if (!grid) return;
+      var rect = target.getBoundingClientRect();
+      var midX = rect.left + rect.width / 2;
+      if (e.clientX < midX) {
+        grid.insertBefore(_draggedCardEl, target);
+      } else {
+        grid.insertBefore(_draggedCardEl, target.nextSibling);
+      }
+      target.classList.remove('drag-insert-before', 'drag-insert-after');
+      saveProjectOrderFromDOM();
+    }
+    function saveProjectOrderFromDOM() {
+      var allCards = document.querySelectorAll('.project-card[data-project]');
+      var order = [];
+      allCards.forEach(function(card) {
+        var p = card.getAttribute('data-project');
+        if (p && order.indexOf(p) < 0) order.push(p);
+      });
+      if (order.length > 0) {
+        api('/api/project-groups/reorder-projects?order=' + order.map(encodeURIComponent).join('|||'));
+      }
+    }
+    function onGroupSectionDragOver(e) {
+      if (e.target.closest && e.target.closest('.project-card')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      e.currentTarget.classList.add('drag-over-highlight');
+    }
+    function onGroupSectionDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over-highlight');
+    }
+    async function onGroupSectionDrop(e, groupId) {
+      if (e.target.closest && e.target.closest('.project-card')) return;
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over-highlight');
+      if (!_draggedProjectPath) return;
+      await api('/api/project-groups/assign?project=' + encodeURIComponent(_draggedProjectPath) + '&group=' + encodeURIComponent(groupId || ''));
+      _draggedProjectPath = '';
+      renderMyRepo();
+    }
+
     function renderMyRepoList() {
-      var ownSet = new Set(ownSkillsList.map(function(n) { return n.toLowerCase(); }));
       var q = (myrepoSearchQuery || '').toLowerCase().trim();
+      var linkedSkillNames = selectedProject && skillProjectLinks[selectedProject] ? skillProjectLinks[selectedProject] : [];
       var filtered = allSkills.filter(function(s) {
-        if (myrepoFilter === 'uploaded' && !ownSet.has(s.name.toLowerCase())) return false;
-        if (myrepoFilter === 'pending' && ownSet.has(s.name.toLowerCase())) return false;
+        if (selectedProject) {
+          var isNative = s.source === 'project-rules' && s.projectName === selectedProject;
+          var isLinked = linkedSkillNames.indexOf(s.name) >= 0;
+          if (!isNative && !isLinked) return false;
+        }
         if (myrepoScopeFilter === 'global' && s.source === 'project-rules') return false;
         if (myrepoScopeFilter === 'project' && s.source !== 'project-rules') return false;
         if (myrepoCatFilter === '__uncategorized__' && s.categories.length > 0) return false;
@@ -2801,65 +4523,469 @@
         return true;
       });
 
-      var listEl = document.getElementById('myrepoList');
-      if (!listEl) return;
+      var gridEl = document.getElementById('myrepoGrid');
+      if (!gridEl) return;
+
+      var countEl = document.getElementById('myrepoResultCount');
+      if (countEl) countEl.textContent = filtered.length + ' / ' + allSkills.length + ' 个技能';
 
       if (filtered.length === 0) {
-        listEl.innerHTML = '<div class="empty-msg">没有匹配的技能</div>';
+        gridEl.innerHTML = '<div class="empty-msg">没有匹配的技能</div>';
         return;
       }
 
-      listEl.innerHTML = filtered.map(function(s) {
-        var isUploaded = ownSet.has(s.name.toLowerCase());
-        var selected = myrepoSelectedSkill === s.name;
+      gridEl.innerHTML = filtered.map(function(s) {
         var isProject = s.source === 'project-rules';
+        var scopeClass = isProject ? 'scope-project' : 'scope-global';
         var scopeIcon = isProject ? '📁' : '🌐';
-        var scopeClass = isProject ? ' scope-project' : '';
-        var projectLabel = s.projectName ? s.projectName : '';
         var showName = s.displayName || s.name;
-        var desc = s.customDescription || s.description || '';
-        if (desc.length > 80) desc = desc.substring(0, 80) + '...';
+        var desc = s.customDescription || s.description || '暂无描述';
+        if (desc.length > 100) desc = desc.substring(0, 100) + '...';
         var catLabels = s.categories.slice(0, 2).map(function(c) {
           var cat = userCategories.find(function(uc) { return uc.id === c; });
           return cat ? (cat.icon || '') + cat.label : c;
         });
-        return '<div class="myrepo-item' + (selected ? ' selected' : '') + scopeClass + '" data-skill="' + escapeAttr(s.name) + '" onclick="selectMyRepoSkill(\'' + escapeAttr(s.name).replace(/'/g, "\\'") + '\')">'
-          + '<div class="item-header">'
-          +   '<div class="scope-icon">' + scopeIcon + '</div>'
-          +   '<div class="item-name">' + escapeHtml(showName) + '</div>'
+        var eName = escapeAttr(s.name).replace(/'/g, "\\'");
+        var isLinkedToSelected = selectedProject && linkedSkillNames.indexOf(s.name) >= 0;
+        var linkBadge = isLinkedToSelected ? '<span class="card-link-badge" title="已关联到此项目">🔗</span>' : '';
+        var linkedProjs = getLinkedProjectsForSkill(s.name);
+        var linkCount = linkedProjs.length;
+        return '<div class="skill-card ' + scopeClass + (isLinkedToSelected ? ' linked' : '') + '" data-skill="' + escapeAttr(s.name) + '" onclick="selectMyRepoSkill(\'' + eName + '\')">'
+          + '<div class="card-actions">'
+          +   '<button class="card-action-btn" onclick="event.stopPropagation(); openLinkToProjectPanel(\'' + eName + '\')" title="关联项目">🔗</button>'
+          +   '<button class="card-action-btn" onclick="event.stopPropagation(); exportLocalSkill(\'' + eName + '\')" title="复制内容">📋</button>'
+          +   '<button class="card-action-btn danger" onclick="event.stopPropagation(); myrepoDeleteLocal(\'' + eName + '\')" title="删除">🗑️</button>'
           + '</div>'
-          + (s.displayName ? '<div style="font-size:10px; color:var(--text2); margin:-2px 0 2px 0; opacity:0.7">' + escapeHtml(s.name) + '</div>' : '')
-          + '<div class="item-desc">' + escapeHtml(desc || '暂无描述') + '</div>'
-          + '<div class="item-tags">'
-          +   (isUploaded
-            ? '<span class="item-badge upload-badge" style="background:#e8f5e9; color:#2e7d32">已上传</span>'
-            : '<span class="item-badge upload-badge" style="background:#fff3e0; color:#e65100">未上传</span>')
-          +   (isProject
-            ? '<span class="item-badge" style="background:rgba(124,77,255,0.1); color:#7c4dff">' + escapeHtml(projectLabel || 'project') + '</span>'
-            : '')
-          +   catLabels.map(function(l) { return '<span class="item-badge" style="background:var(--theme-active-light); color:var(--theme-active)">' + escapeHtml(l) + '</span>'; }).join('')
+          + '<div class="card-header">'
+          +   '<div class="card-scope">' + scopeIcon + '</div>'
+          +   '<div class="card-name">' + escapeHtml(showName) + '</div>'
+          +   linkBadge
+          + '</div>'
+          + '<div class="card-desc">' + escapeHtml(desc) + '</div>'
+          + '<div class="card-tags">'
+          +   (isProject && s.projectName ? '<span class="card-tag" style="background:rgba(124,77,255,0.08); color:#7c4dff">' + escapeHtml(s.projectName.split('/').slice(-2).join('/')) + '</span>' : '')
+          +   (linkCount > 0 && !isProject ? '<span class="card-tag" style="background:rgba(34,139,230,0.08); color:#228be6">🔗 ' + linkCount + ' 项目</span>' : '')
+          +   catLabels.map(function(l) { return '<span class="card-tag" style="background:rgba(99,102,241,0.08); color:#6366f1">' + escapeHtml(l) + '</span>'; }).join('')
           + '</div>'
           + '</div>';
       }).join('');
     }
 
-    async function selectMyRepoSkill(name) {
-      myrepoSelectedSkill = name;
-      var items = document.querySelectorAll('.myrepo-item');
-      items.forEach(function(el) { el.classList.remove('selected'); });
-      items.forEach(function(el) {
-        if (el.querySelector('.item-name') && el.querySelector('.item-name').textContent === name) {
-          el.classList.add('selected');
+    // ===== Project Drag & Drop (smooth DOM-based) =====
+    var _draggedProject = null;
+    var _draggedEl = null;
+    var _dropIndicator = null;
+    var _dropTarget = null;
+    var _dropPos = null;
+
+    function ensureDropIndicator() {
+      if (!_dropIndicator) {
+        _dropIndicator = document.createElement('div');
+        _dropIndicator.className = 'drop-indicator';
+      }
+      return _dropIndicator;
+    }
+
+    function clearDropIndicator() {
+      if (_dropIndicator && _dropIndicator.parentNode) _dropIndicator.remove();
+      _dropTarget = null;
+      _dropPos = null;
+      document.querySelectorAll('.project-group.drag-over, .ungrouped.drag-over').forEach(function(g) { g.classList.remove('drag-over'); });
+    }
+
+    function onProjectDragStart(e) {
+      var el = e.currentTarget;
+      _draggedProject = el.getAttribute('data-project');
+      _draggedEl = el;
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', _draggedProject);
+    }
+
+    function onProjectDragEnd(e) {
+      var el = e.currentTarget;
+      el.classList.remove('dragging');
+      _draggedProject = null;
+      _draggedEl = null;
+      clearDropIndicator();
+    }
+
+    function onItemDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'move';
+      var target = e.currentTarget;
+      if (target === _draggedEl) return;
+      var rect = target.getBoundingClientRect();
+      var midY = rect.top + rect.height / 2;
+      var indicator = ensureDropIndicator();
+      if (e.clientY < midY) {
+        target.parentNode.insertBefore(indicator, target);
+        _dropTarget = target;
+        _dropPos = 'before';
+      } else {
+        target.parentNode.insertBefore(indicator, target.nextSibling);
+        _dropTarget = target;
+        _dropPos = 'after';
+      }
+    }
+
+    function onItemDrop(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!_draggedEl || !_dropTarget || _draggedEl === _dropTarget) { clearDropIndicator(); return; }
+      var targetProject = _dropTarget.getAttribute('data-project');
+      if (!targetProject) { clearDropIndicator(); return; }
+
+      var container = _dropTarget.closest('.project-group-items') || _dropTarget.parentNode;
+      if (_dropPos === 'before') {
+        container.insertBefore(_draggedEl, _dropTarget);
+      } else {
+        container.insertBefore(_draggedEl, _dropTarget.nextSibling);
+      }
+
+      var targetGroup = container.closest('.project-group');
+      var groupId = targetGroup ? targetGroup.getAttribute('data-group') : '';
+      clearDropIndicator();
+      saveSidebarState(groupId);
+    }
+
+    function onGroupDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      e.currentTarget.classList.add('drag-over');
+    }
+
+    function onGroupDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+
+    function onGroupDrop(e, groupId) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      if (!_draggedEl) return;
+      var targetContainer = groupId
+        ? document.getElementById('groupItems_' + groupId)
+        : document.querySelector('.project-group-items.ungrouped');
+      if (!targetContainer) { clearDropIndicator(); return; }
+      var hint = targetContainer.querySelector('.group-empty-hint');
+      if (hint) hint.remove();
+      targetContainer.appendChild(_draggedEl);
+      clearDropIndicator();
+      saveSidebarState(groupId);
+    }
+
+    function saveSidebarState(movedToGroupId) {
+      var allItems = document.querySelectorAll('.project-sidebar-item[data-project]');
+      var order = [];
+      allItems.forEach(function(el) {
+        var p = el.getAttribute('data-project');
+        if (p) order.push(p);
+      });
+      api('/api/project-groups/reorder-projects?order=' + encodeURIComponent(order.join('|||')));
+      if (_draggedProject && movedToGroupId !== undefined) {
+        var currentGroup = (projectGroupsData.assignments || {})[_draggedProject] || '';
+        if (currentGroup !== movedToGroupId) {
+          api('/api/project-groups/assign?project=' + encodeURIComponent(_draggedProject) + '&group=' + encodeURIComponent(movedToGroupId));
+          if (movedToGroupId) {
+            projectGroupsData.assignments[_draggedProject] = movedToGroupId;
+          } else {
+            delete projectGroupsData.assignments[_draggedProject];
+          }
         }
+      }
+      projectGroupsData.projectOrder = order;
+    }
+
+    function toggleGroup(groupId) {
+      var items = document.getElementById('groupItems_' + groupId);
+      var toggle = document.getElementById('groupToggle_' + groupId);
+      if (items) {
+        var hidden = items.style.display === 'none';
+        items.style.display = hidden ? 'block' : 'none';
+        if (toggle) toggle.textContent = hidden ? '▼' : '▶';
+      }
+    }
+
+    function showInlineGroupInput() {
+      var name = prompt('请输入分组名称：');
+      if (!name || !name.trim()) return;
+      api('/api/project-groups/add?name=' + encodeURIComponent(name.trim()) + '&icon=' + encodeURIComponent('📁')).then(function() {
+        renderMyRepo();
+      });
+    }
+
+    async function deleteGroupInline(groupId) {
+      if (!confirm('确定删除此分组？（项目不会被删除）')) return;
+      await api('/api/project-groups/remove?id=' + encodeURIComponent(groupId));
+      renderMyRepo();
+    }
+
+    function startRenameGroup(groupId, nameEl) {
+      var oldName = nameEl.textContent;
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'group-name-input';
+      input.value = oldName;
+      input.onkeydown = function(ev) {
+        if (ev.key === 'Enter') { finishRenameGroup(groupId, input.value.trim(), nameEl, oldName); }
+        if (ev.key === 'Escape') { restoreGroupName(nameEl, oldName); }
+      };
+      input.onblur = function() { finishRenameGroup(groupId, input.value.trim(), nameEl, oldName); };
+      nameEl.textContent = '';
+      nameEl.appendChild(input);
+      input.focus();
+      input.select();
+    }
+
+    function restoreGroupName(nameEl, oldName) {
+      nameEl.textContent = oldName;
+    }
+
+    async function finishRenameGroup(groupId, newName, nameEl, oldName) {
+      if (!newName || newName === oldName) { restoreGroupName(nameEl, oldName); return; }
+      var url = '/api/project-groups/rename?id=' + encodeURIComponent(groupId) + '&name=' + encodeURIComponent(newName);
+      await api(url);
+      renderMyRepo();
+    }
+
+    function updateSidebarOnly() {
+      var allProjects = Object.keys(_cachedProjectsWithSkills || {});
+      if (projectGroupsData.projectOrder && projectGroupsData.projectOrder.length > 0) {
+        var ordered = [];
+        projectGroupsData.projectOrder.forEach(function(p) { if (allProjects.indexOf(p) >= 0) ordered.push(p); });
+        allProjects.forEach(function(p) { if (ordered.indexOf(p) < 0) ordered.push(p); });
+        allProjects = ordered;
+      }
+      var groups = (projectGroupsData.groups || []).slice().sort(function(a, b) { return (a.order || 0) - (b.order || 0); });
+      var assignments = projectGroupsData.assignments || {};
+      var projectsWithSkills = _cachedProjectsWithSkills || {};
+
+      var projectSidebarHtml = '<div class="project-sidebar-item' + (selectedProject === '' ? ' active' : '') + '" onclick="selectProject(\'\')">'
+        + '<span class="proj-icon">📦</span><span class="proj-name">全部技能</span><span class="proj-count">' + allSkills.length + '</span></div>';
+
+      function renderProjectItemInline(proj) {
+        var info = projectsWithSkills[proj] || { native: 0, linked: 0 };
+        var total = info.native + info.linked;
+        var shortName = proj.split('/').slice(-2).join('/');
+        var isActive = selectedProject === proj;
+        var eProj = escapeAttr(proj).replace(/'/g, "\\'");
+        return '<div class="project-sidebar-item' + (isActive ? ' active' : '') + '" draggable="true" data-project="' + escapeAttr(proj) + '" onclick="selectProject(\'' + eProj + '\')" ondragstart="onProjectDragStart(event)" ondragend="onProjectDragEnd(event)" ondragover="onItemDragOver(event)" ondrop="onItemDrop(event)" title="' + escapeAttr(proj) + '">'
+          + '<span class="proj-icon drag-handle" style="cursor:grab">⠿</span>'
+          + '<span class="proj-icon">' + (total > 0 ? '📁' : '📂') + '</span>'
+          + '<span class="proj-name">' + escapeHtml(shortName) + '</span>'
+          + '<span class="proj-count">' + total + '</span>'
+          + '</div>';
+      }
+
+      groups.forEach(function(g) {
+        var groupProjects = allProjects.filter(function(p) { return assignments[p] === g.id; });
+        var groupTotal = groupProjects.reduce(function(sum, p) { var i = projectsWithSkills[p] || { native: 0, linked: 0 }; return sum + i.native + i.linked; }, 0);
+        var eGid = escapeAttr(g.id).replace(/'/g, "\\'");
+        projectSidebarHtml += '<div class="project-group" data-group="' + escapeAttr(g.id) + '" ondragover="onGroupDragOver(event)" ondragleave="onGroupDragLeave(event)" ondrop="onGroupDrop(event, \'' + eGid + '\')">'
+          + '<div class="project-group-header" onclick="toggleGroup(\'' + eGid + '\')">'
+          +   '<span class="group-icon">' + (g.icon || '📁') + '</span>'
+          +   '<span class="group-name" ondblclick="event.stopPropagation(); startRenameGroup(\'' + eGid + '\', this)" title="双击重命名">' + escapeHtml(g.name) + '</span>'
+          +   '<span class="proj-count">' + groupTotal + '</span>'
+          +   '<button class="group-del-btn" onclick="event.stopPropagation(); deleteGroupInline(\'' + eGid + '\')" title="删除分组">✕</button>'
+          +   '<span class="group-toggle" id="groupToggle_' + escapeAttr(g.id) + '">▼</span>'
+          + '</div>'
+          + '<div class="project-group-items" id="groupItems_' + escapeAttr(g.id) + '">';
+        groupProjects.forEach(function(p) { projectSidebarHtml += renderProjectItemInline(p); });
+        if (groupProjects.length === 0) {
+          projectSidebarHtml += '<div class="group-empty-hint">拖入项目</div>';
+        }
+        projectSidebarHtml += '</div></div>';
       });
 
-      var right = document.getElementById('myrepoRight');
-      if (!right) return;
-      right.innerHTML = '<div class="myrepo-right-empty"><div class="icon" style="animation:spin 1s linear infinite">⏳</div><div>加载中...</div></div>';
+      var ungroupedProjects = allProjects.filter(function(p) { return !assignments[p]; });
+      if (ungroupedProjects.length > 0 || groups.length === 0) {
+        if (groups.length > 0) {
+          projectSidebarHtml += '<div class="project-group-divider">── 未分组 ──</div>';
+        }
+        projectSidebarHtml += '<div class="project-group-items ungrouped" ondragover="onGroupDragOver(event)" ondragleave="onGroupDragLeave(event)" ondrop="onGroupDrop(event, \'\')">';
+        ungroupedProjects.forEach(function(p) { projectSidebarHtml += renderProjectItemInline(p); });
+        projectSidebarHtml += '</div>';
+      }
+
+      var sidebarList = document.getElementById('projectSidebarList');
+      if (sidebarList) sidebarList.innerHTML = projectSidebarHtml;
+    }
+
+    function getLinkedProjectsForSkill(skillName) {
+      var projects = [];
+      Object.keys(skillProjectLinks).forEach(function(proj) {
+        if (skillProjectLinks[proj] && skillProjectLinks[proj].indexOf(skillName) >= 0) {
+          projects.push(proj);
+        }
+      });
+      return projects;
+    }
+
+    var _addSkillSearchQuery = '';
+
+    function openAddSkillToProjectDrawer() {
+      var drawer = document.getElementById('detailDrawer');
+      var overlay = document.getElementById('drawerOverlay');
+      if (!drawer || !overlay || !selectedProject) return;
+
+      var projShort = selectedProject.split('/').slice(-2).join('/');
+      var existingInProject = allSkills.filter(function(s) {
+        return s.source === 'project-rules' && s.projectName === selectedProject;
+      }).map(function(s) { return s.name; });
+
+      var globalSkills = allSkills.filter(function(s) {
+        return s.source !== 'project-rules';
+      });
+
+      var html = '<button class="drawer-close" onclick="closeDrawer()" title="关闭">✕</button>'
+        + '<h2 style="font-family:var(--font-display); font-size:20px; margin-bottom:4px">📥 添加技能到项目</h2>'
+        + '<p style="color:var(--text2); font-size:12px; margin-bottom:12px">将技能复制到 <b>' + escapeHtml(projShort) + '</b> 的 <code>.cursor/rules/</code></p>'
+        + '<input type="text" id="addSkillSearch" placeholder="搜索技能..." oninput="filterAddSkillList(this.value)" style="width:100%; padding:10px 14px; border-radius:10px; border:1.5px solid var(--border2); background:var(--bg2); font-size:13px; font-family:var(--font-body); outline:none; margin-bottom:12px">'
+        + '<div id="addSkillListContainer" style="max-height:calc(100vh - 280px); overflow-y:auto">';
+
+      html += renderAddSkillList(globalSkills, existingInProject, '');
+      html += '</div>';
+      html += '<div id="addSkillResult" style="margin-top:12px"></div>';
+
+      drawer.innerHTML = html;
+      drawer.classList.add('open');
+      overlay.classList.add('open');
+      setTimeout(function() { var inp = document.getElementById('addSkillSearch'); if (inp) inp.focus(); }, 100);
+    }
+
+    function renderAddSkillList(skills, existingNames, query) {
+      var filtered = skills;
+      if (query) {
+        var q = query.toLowerCase();
+        filtered = skills.filter(function(s) {
+          return (s.name || '').toLowerCase().indexOf(q) >= 0
+            || (s.description || '').toLowerCase().indexOf(q) >= 0
+            || (s.displayName || '').toLowerCase().indexOf(q) >= 0
+            || (s.tags || []).some(function(t) { return t.toLowerCase().indexOf(q) >= 0; });
+        });
+      }
+      if (filtered.length === 0) {
+        return '<div style="text-align:center; color:var(--text2); padding:20px; font-size:13px">' + (query ? '没有匹配的技能' : '没有可添加的技能') + '</div>';
+      }
+      return filtered.map(function(s) {
+        var already = existingNames.indexOf(s.name) >= 0;
+        var showName = s.displayName || s.name;
+        var desc = s.customDescription || s.description || '';
+        if (desc.length > 80) desc = desc.substring(0, 80) + '...';
+        var eName = escapeAttr(s.name).replace(/'/g, "\\'");
+        return '<div class="add-skill-item' + (already ? ' already-added' : '') + '" onclick="' + (already ? '' : 'copySkillToProject(\'' + eName + '\')') + '">'
+          + '<div class="add-skill-info">'
+          +   '<div class="add-skill-name">' + escapeHtml(showName) + '</div>'
+          +   '<div class="add-skill-desc">' + escapeHtml(desc) + '</div>'
+          + '</div>'
+          + '<div class="add-skill-action">'
+          + (already
+            ? '<span style="font-size:11px; color:var(--green); font-weight:600">✓ 已添加</span>'
+            : '<button class="btn btn-blue" style="padding:4px 12px; font-size:11px; white-space:nowrap" onclick="event.stopPropagation(); copySkillToProject(\'' + eName + '\', this)">📥 添加</button>')
+          + '</div>'
+          + '</div>';
+      }).join('');
+    }
+
+    function filterAddSkillList(query) {
+      _addSkillSearchQuery = query;
+      var container = document.getElementById('addSkillListContainer');
+      if (!container) return;
+      var existingInProject = allSkills.filter(function(s) {
+        return s.source === 'project-rules' && s.projectName === selectedProject;
+      }).map(function(s) { return s.name; });
+      var globalSkills = allSkills.filter(function(s) {
+        return s.source !== 'project-rules';
+      });
+      container.innerHTML = renderAddSkillList(globalSkills, existingInProject, query);
+    }
+
+    async function copySkillToProject(skillName, btnEl) {
+      if (!selectedProject) return;
+      if (btnEl) { btnEl.disabled = true; btnEl.textContent = '添加中...'; }
+      var resultEl = document.getElementById('addSkillResult');
+      try {
+        var result = await api('/api/skill/copy-to-project?name=' + encodeURIComponent(skillName) + '&projectPath=' + encodeURIComponent(selectedProject));
+        if (result.success) {
+          if (btnEl) {
+            var parent = btnEl.closest('.add-skill-item');
+            if (parent) {
+              parent.classList.add('already-added');
+              parent.onclick = null;
+            }
+            btnEl.outerHTML = '<span style="font-size:11px; color:var(--green); font-weight:600">✓ 已添加</span>';
+          }
+          if (resultEl) resultEl.innerHTML = '<div style="color:var(--green); font-size:12px">✅ ' + escapeHtml(skillName) + ' 已添加到项目</div>';
+          allSkills = await api('/api/skills');
+          document.getElementById('totalCount').textContent = allSkills.length;
+          renderMyRepoList();
+        } else {
+          if (btnEl) { btnEl.disabled = false; btnEl.textContent = '📥 添加'; }
+          if (resultEl) resultEl.innerHTML = '<div style="color:var(--red); font-size:12px">❌ ' + escapeHtml(result.message || '添加失败') + '</div>';
+        }
+      } catch(err) {
+        if (btnEl) { btnEl.disabled = false; btnEl.textContent = '📥 添加'; }
+        if (resultEl) resultEl.innerHTML = '<div style="color:var(--red); font-size:12px">❌ ' + escapeHtml(String(err)) + '</div>';
+      }
+    }
+
+    async function openLinkToProjectPanel(skillName) {
+      var drawer = document.getElementById('detailDrawer');
+      var overlay = document.getElementById('drawerOverlay');
+      if (!drawer || !overlay) return;
+
+      var linkedProjs = getLinkedProjectsForSkill(skillName);
+      var html = '<button class="drawer-close" onclick="closeDrawer()" title="关闭">✕</button>'
+        + '<div style="padding:4px 0 16px"><h2 style="font-family:var(--font-display); font-size:20px; margin-bottom:4px">🔗 关联项目</h2>'
+        + '<p style="color:var(--text2); font-size:12px; margin-bottom:16px">为「' + escapeHtml(skillName) + '」选择关联的项目（软关联，不复制文件）</p></div>';
+
+      html += '<div style="margin-bottom:12px">';
+      var allProjects = recentProjectsCache.slice();
+      Object.keys(skillProjectLinks).forEach(function(p) {
+        if (allProjects.indexOf(p) < 0) allProjects.push(p);
+      });
+      allProjects.forEach(function(proj) {
+        var checked = linkedProjs.indexOf(proj) >= 0;
+        var shortName = proj.split('/').slice(-2).join('/');
+        html += '<label class="link-project-row" style="display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:12px; border:1.5px solid ' + (checked ? 'var(--blue)' : 'var(--border2)') + '; background:' + (checked ? 'rgba(34,139,230,0.04)' : 'var(--surface)') + '; cursor:pointer; margin-bottom:6px; transition:all 0.2s">'
+          + '<input type="checkbox" ' + (checked ? 'checked' : '') + ' onchange="toggleSkillProjectLink(\'' + escapeAttr(skillName).replace(/'/g, "\\'") + '\', \'' + escapeAttr(proj).replace(/'/g, "\\'") + '\', this.checked)" style="width:16px; height:16px; accent-color:var(--blue)">'
+          + '<span style="flex:1"><span style="font-size:13px; font-weight:600">' + escapeHtml(shortName) + '</span><br><span style="font-size:10px; color:var(--text2)">' + escapeHtml(proj) + '</span></span>'
+          + '</label>';
+      });
+      html += '</div>';
+
+      drawer.innerHTML = html;
+      drawer.classList.add('open');
+      overlay.classList.add('open');
+    }
+
+    async function toggleSkillProjectLink(skillName, projectPath, checked) {
+      var endpoint = checked ? '/api/skill-projects/link' : '/api/skill-projects/unlink';
+      await api(endpoint + '?skill=' + encodeURIComponent(skillName) + '&project=' + encodeURIComponent(projectPath));
+      try { skillProjectLinks = await api('/api/skill-projects'); } catch(e) {}
+      var row = event.target.closest('.link-project-row');
+      if (row) {
+        row.style.borderColor = checked ? 'var(--blue)' : 'var(--border2)';
+        row.style.background = checked ? 'rgba(34,139,230,0.04)' : 'var(--surface)';
+      }
+      renderMyRepoList();
+    }
+
+    async function selectMyRepoSkill(name) {
+      myrepoSelectedSkill = name;
+
+      var drawer = document.getElementById('detailDrawer');
+      var overlay = document.getElementById('drawerOverlay');
+      if (!drawer || !overlay) return;
+      drawer.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:200px; color:var(--text2)"><span style="animation:spin 1s linear infinite; display:inline-block; font-size:24px">⏳</span></div>';
+      drawer.classList.add('open');
+      overlay.classList.add('open');
 
       var data = await api('/api/skill?name=' + encodeURIComponent(name));
       if (data.error) {
-        right.innerHTML = '<div class="myrepo-right-empty"><div class="icon">❌</div><div>' + escapeHtml(data.error) + '</div></div>';
+        drawer.innerHTML = '<button class="drawer-close" onclick="closeDrawer()" title="关闭">✕</button>'
+          + '<div style="text-align:center; padding:40px; color:var(--text2)"><div style="font-size:32px; margin-bottom:12px">❌</div><div>' + escapeHtml(data.error) + '</div></div>';
         return;
       }
 
@@ -2878,13 +5004,26 @@
       var projectName = data.projectName || '';
       var html = '';
 
-      // Info header
       var showTitle = data.displayName || data.name;
+      var scopeTag = isProject
+        ? '<span class="tag" style="background:rgba(124,77,255,0.1); color:#7c4dff; font-weight:600">📁 项目级' + (data.projectName ? ' — ' + escapeHtml(data.projectName) : '') + '</span>'
+        : '<span class="tag" style="background:rgba(34,139,230,0.08); color:#228be6; font-weight:600">🌐 全局技能</span>';
       html += '<div style="margin-bottom:16px">'
-        + '<h2 style="font-family:var(--font-display); font-size:22px; margin-bottom:4px">' + escapeHtml(showTitle) + '</h2>'
+        + '<div style="display:flex; align-items:center; gap:8px; margin-bottom:4px">'
+        + '<h2 style="font-family:var(--font-display); font-size:22px; margin:0; flex:1">' + escapeHtml(showTitle) + '</h2>'
+        + '<div style="position:relative; display:inline-block">'
+        + '<button class="btn" style="padding:6px 10px; font-size:12px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'block\'?\'none\':\'block\'">⋯ 更多</button>'
+        + '<div style="display:none; position:absolute; right:0; top:100%; margin-top:4px; background:var(--surface); border:1.5px solid var(--border2); border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:100; min-width:180px; padding:6px 0">'
+        + '<div style="padding:8px 16px; font-size:12px; cursor:pointer; transition:background 0.2s" onmouseover="this.style.background=\'var(--bg2)\'" onmouseout="this.style.background=\'transparent\'" onclick="myrepoUpload(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\', this); this.parentNode.style.display=\'none\'">'
+        + (isUploaded ? '🔄 更新到社区' : '📤 上传到社区') + '</div>'
+        + (isUploaded ? '<div style="padding:8px 16px; font-size:12px; cursor:pointer; color:var(--orange); transition:background 0.2s" onmouseover="this.style.background=\'var(--bg2)\'" onmouseout="this.style.background=\'transparent\'" onclick="myrepoUnpublish(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\', this); this.parentNode.style.display=\'none\'">🗑️ 从社区下架</div>' : '')
+        + '<div style="padding:8px 16px; font-size:12px; cursor:pointer; transition:background 0.2s" onmouseover="this.style.background=\'var(--bg2)\'" onmouseout="this.style.background=\'transparent\'" onclick="exportLocalSkill(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\'); this.parentNode.style.display=\'none\'">📋 复制内容</div>'
+        + '<div style="height:1px; background:var(--border2); margin:4px 8px"></div>'
+        + '<div style="padding:8px 16px; font-size:12px; cursor:pointer; color:#e53935; transition:background 0.2s" onmouseover="this.style.background=\'rgba(229,57,53,0.05)\'" onmouseout="this.style.background=\'transparent\'" onclick="myrepoDeleteLocal(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\'); this.parentNode.style.display=\'none\'">🗑️ 删除本地</div>'
+        + '</div></div></div>'
         + (data.displayName ? '<div style="font-size:11px; color:var(--text2); margin-bottom:6px; opacity:0.7">原名: ' + escapeHtml(data.name) + '</div>' : '')
         + '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px">'
-        + (isUploaded ? '<span class="tag" style="background:#e8f5e9; color:#2e7d32; font-weight:600">已上传到社区</span>' : '<span class="tag" style="background:#fff3e0; color:#e65100; font-weight:600">未上传</span>')
+        + scopeTag
         + '<span class="tag source">' + escapeHtml(data.source) + '</span>'
         + '<span class="tag tokens">~' + (data.tokenEstimate || 0) + ' tokens</span>'
         + '</div>'
@@ -2892,19 +5031,7 @@
         + '<div style="font-size:11px; color:var(--text2)">📂 ' + escapeHtml(data.path || '') + '</div>'
         + '</div>';
 
-      // Scope info
-      if (isProject) {
-        var projPath = (data.path || '').replace(/\/\.cursor\/rules\/.*$/, '');
-        html += '<div class="scope-info-box project">'
-          + '<span style="font-size:18px">📁</span>'
-          + '<div><strong>项目级技能</strong> — 仅作用于 <code style="font-size:11px">' + escapeHtml(projPath) + '</code></div>'
-          + '</div>';
-      } else {
-        html += '<div class="scope-info-box global">'
-          + '<span style="font-size:18px">🌐</span>'
-          + '<div><strong>全局技能</strong> — 所有项目共享</div>'
-          + '</div>';
-      }
+      // scope info integrated into header tags
 
       // Category management
       html += '<div class="myrepo-section">'
@@ -2942,59 +5069,47 @@
         + '<div style="font-size:10px; color:var(--text2); margin-top:4px">自定义显示名称和描述仅影响 Dashboard 展示，不修改 SKILL.md 文件</div>'
         + '</div>';
 
-      // Description editor for upload
+      // Project associations
+      var skillLinkedProjs = getLinkedProjectsForSkill(data.name);
       html += '<div class="myrepo-section">'
-        + '<div class="myrepo-section-title">📝 上传描述</div>'
-        + '<div style="display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap">'
-        + '<span style="font-size:11px; color:var(--text2); line-height:28px">模板:</span>';
-      for (var pi = 0; pi < UPLOAD_DESC_PRESETS.length; pi++) {
-        html += '<button class="btn-preview" style="font-size:10px; padding:3px 8px" onclick="myrepoApplyPreset(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\',' + pi + ')">' + escapeHtml(UPLOAD_DESC_PRESETS[pi].label) + '</button>';
+        + '<div class="myrepo-section-title">🔗 项目关联</div>'
+        + '<div style="font-size:11px; color:var(--text2); margin-bottom:8px">软关联到项目后，在项目工作区中可快速查看。不复制文件。</div>'
+        + '<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px">';
+      if (skillLinkedProjs.length > 0) {
+        skillLinkedProjs.forEach(function(p) {
+          html += '<span class="tag" style="background:rgba(34,139,230,0.08); color:#228be6; display:inline-flex; align-items:center; gap:4px">'
+            + '📁 ' + escapeHtml(p.split('/').slice(-2).join('/'))
+            + ' <span style="cursor:pointer; opacity:0.6" onclick="toggleSkillProjectLink(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\', \'' + escapeAttr(p).replace(/'/g, "\\'") + '\', false)" title="取消关联">✕</span>'
+            + '</span>';
+        });
+      } else {
+        html += '<span style="color:var(--text2); font-size:12px">暂无关联项目</span>';
       }
-      html += '<button class="btn-preview" style="font-size:10px; padding:3px 8px" onclick="myrepoApplyPreset(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\',-1)">通用</button>';
-      html += '</div>';
-      var descSafeId = name.replace(/[^a-zA-Z0-9]/g, '_');
-      html += '<textarea id="myrepo-desc-' + descSafeId + '" style="width:100%; min-height:120px; padding:10px; border-radius:10px; border:1.5px solid var(--border2); background:var(--bg2); font-size:12px; font-family:var(--font-body); line-height:1.6; resize:vertical; outline:none; transition:border-color 0.2s" onfocus="this.style.borderColor=\'var(--blue)\'" onblur="this.style.borderColor=\'var(--border2)\'" placeholder="（可选）填写技能使用场景描述..." oninput="uploadDescriptions[\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\']=this.value">' + escapeHtml(uploadDescriptions[name] || '') + '</textarea>';
-      html += '<div style="font-size:10px; color:var(--text2); margin-top:4px">描述将单独保存为 DESCRIPTION.md，不影响 SKILL.md 内容</div>';
-      html += '</div>';
+      html += '</div>'
+        + '<button class="btn" style="padding:6px 14px; font-size:12px" onclick="openLinkToProjectPanel(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\')">🔗 管理关联项目</button>'
+        + '</div>';
 
-      // Action buttons
+      // Quick actions
       html += '<div class="myrepo-section">'
-        + '<div class="myrepo-section-title">⚡ 操作</div>'
+        + '<div class="myrepo-section-title">⚡ 快捷操作</div>'
         + '<div class="myrepo-actions">';
-      html += '<button class="action-btn action-export" id="myrepo-upload-btn" onclick="myrepoUpload(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\', this)">'
-        + '<span class="action-icon">' + (isUploaded ? '🔄' : '📤') + '</span> ' + (isUploaded ? '更新到社区' : '上传到社区')
-        + '</button>';
+      if (isProject) {
+        html += '<button class="action-btn action-export" onclick="promoteToGlobal(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\', false)">'
+          + '<span class="action-icon">🌐</span> 复制为全局'
+          + '</button>';
+      } else {
+        html += '<button class="action-btn action-export" onclick="showCopyToProject(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\')">'
+          + '<span class="action-icon">📁</span> 复制到项目'
+          + '</button>';
+      }
       html += '<button class="action-btn action-export" onclick="exportLocalSkill(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\')">'
         + '<span class="action-icon">📋</span> 复制内容'
         + '</button>';
-      if (isUploaded) {
-        html += '<button class="action-btn" style="color:var(--orange); border-color:var(--orange)" onclick="myrepoUnpublish(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\', this)">'
-          + '<span class="action-icon">🗑️</span> 从社区下架'
-          + '</button>';
-      }
-      html += '<button class="action-btn action-delete" onclick="myrepoDeleteLocal(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\')">'
-        + '<span class="action-icon">🗑️</span> 删除本地'
-        + '</button>';
-      html += '</div></div>';
+      html += '</div>'
+        + '<div id="copyToProjectPanel" style="display:none"></div>'
+        + '</div>';
 
-      // Scope migration section
-      html += '<div class="myrepo-section">'
-        + '<div class="myrepo-section-title">🔄 作用域迁移</div>';
-      if (isProject) {
-        html += '<div style="display:flex; gap:8px; flex-wrap:wrap">'
-          + '<button class="migrate-btn" onclick="promoteToGlobal(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\', false)">'
-          + '🌐 复制为全局技能</button>'
-          + '<button class="migrate-btn" style="color:var(--orange); border-color:var(--orange)" onclick="promoteToGlobal(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\', true)">'
-          + '🌐 移动为全局（删除原文件）</button>'
-          + '</div>';
-      } else {
-        html += '<div style="margin-bottom:8px">'
-          + '<button class="migrate-btn" onclick="showCopyToProject(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\')">'
-          + '📁 复制到项目</button>'
-          + '</div>'
-          + '<div id="copyToProjectPanel" style="display:none"></div>';
-      }
-      html += '</div>';
+      // no separate scope migration section - integrated into quick actions
 
       // Content tabs: sub-skill tree + raw
       html += '<div class="tab-bar" style="margin-top:0">'
@@ -3012,7 +5127,7 @@
       html += '</div>';
       html += '<div id="myrepoTabRaw" class="tab-content" style="display:none"><pre style="font-size:12px; line-height:1.6; white-space:pre-wrap; word-break:break-word">' + escapeHtml(data.content || 'No content') + '</pre></div>';
 
-      right.innerHTML = html;
+      drawer.innerHTML = '<button class="drawer-close" onclick="closeDrawer()" title="关闭">✕</button>' + html;
     }
 
     function myrepoSwitchTab(tab, el) {
@@ -3166,8 +5281,7 @@
         document.getElementById('totalCount').textContent = allSkills.length;
         myrepoSelectedSkill = null;
         removeMyRepoListItem(name);
-        var right = document.getElementById('myrepoRight');
-        if (right) right.innerHTML = '<div class="myrepo-right-empty"><div class="icon">📦</div><div>选择左侧技能查看详情</div></div>';
+        closeDrawer();
       } else {
         alert('删除失败: ' + (result.message || '未知错误'));
       }
@@ -3245,12 +5359,78 @@
         return;
       }
 
+      var statsHtml = buildUsageStats(log);
+
       content.innerHTML = `
         <div class="page-title">📋 使用日志 <span class="live-badge">${log.length} 条 · 实时更新</span></div>
+        ${statsHtml}
         <div class="log-section" id="logSection">
           ${log.map((entry, i) => renderLogEntry(entry, i === 0)).join('')}
         </div>
       `;
+    }
+
+    function buildUsageStats(log) {
+      if (log.length < 2) return '';
+      var toolCounts = {};
+      var skillCounts = {};
+      var dailyCounts = {};
+      log.forEach(function(e) {
+        toolCounts[e.tool] = (toolCounts[e.tool] || 0) + 1;
+        if (e.args) {
+          var sn = e.args.skillName || e.args.name || e.args.query || '';
+          if (sn) skillCounts[sn] = (skillCounts[sn] || 0) + 1;
+        }
+        var day = (e.timestamp || '').substring(0, 10);
+        if (day) dailyCounts[day] = (dailyCounts[day] || 0) + 1;
+      });
+      var topTools = Object.entries(toolCounts).sort(function(a,b) { return b[1]-a[1]; }).slice(0, 5);
+      var topSkills = Object.entries(skillCounts).sort(function(a,b) { return b[1]-a[1]; }).slice(0, 5);
+      var days = Object.keys(dailyCounts).sort().slice(-7);
+
+      var html = '<div class="usage-stats-panel">';
+      html += '<div class="usage-stats-grid">';
+
+      html += '<div class="usage-stat-card"><div class="usage-stat-number">' + log.length + '</div><div class="usage-stat-label">总调用次数</div></div>';
+      html += '<div class="usage-stat-card"><div class="usage-stat-number">' + Object.keys(toolCounts).length + '</div><div class="usage-stat-label">不同工具</div></div>';
+      html += '<div class="usage-stat-card"><div class="usage-stat-number">' + Object.keys(skillCounts).length + '</div><div class="usage-stat-label">涉及技能</div></div>';
+      html += '<div class="usage-stat-card"><div class="usage-stat-number">' + Object.keys(dailyCounts).length + '</div><div class="usage-stat-label">活跃天数</div></div>';
+
+      html += '</div>';
+
+      if (topTools.length > 0) {
+        html += '<div class="usage-stats-row">';
+        html += '<div class="usage-stat-section"><div class="usage-stat-section-title">🔧 最常用工具</div>';
+        topTools.forEach(function(t) {
+          var pct = Math.round(t[1] / log.length * 100);
+          html += '<div class="usage-bar-row"><span class="usage-bar-label">' + escapeHtml(t[0]) + '</span><div class="usage-bar-bg"><div class="usage-bar-fill" style="width:' + pct + '%"></div></div><span class="usage-bar-val">' + t[1] + '</span></div>';
+        });
+        html += '</div>';
+
+        if (topSkills.length > 0) {
+          html += '<div class="usage-stat-section"><div class="usage-stat-section-title">⭐ 最常用技能</div>';
+          topSkills.forEach(function(s) {
+            var pct = Math.round(s[1] / log.length * 100);
+            html += '<div class="usage-bar-row"><span class="usage-bar-label">' + escapeHtml(s[0]) + '</span><div class="usage-bar-bg"><div class="usage-bar-fill usage-bar-fill-skill" style="width:' + pct + '%"></div></div><span class="usage-bar-val">' + s[1] + '</span></div>';
+          });
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+
+      if (days.length > 1) {
+        var maxDay = Math.max.apply(null, days.map(function(d) { return dailyCounts[d]; }));
+        html += '<div class="usage-stat-section"><div class="usage-stat-section-title">📅 最近 7 天活跃度</div>';
+        html += '<div class="usage-mini-chart">';
+        days.forEach(function(d) {
+          var h = maxDay > 0 ? Math.round(dailyCounts[d] / maxDay * 40) : 0;
+          html += '<div class="usage-mini-bar-col"><div class="usage-mini-bar" style="height:' + Math.max(h, 3) + 'px"></div><div class="usage-mini-day">' + d.substring(5) + '</div></div>';
+        });
+        html += '</div></div>';
+      }
+
+      html += '</div>';
+      return html;
     }
 
     function renderLogEntry(entry, isNew) {
@@ -3431,15 +5611,15 @@
     let ghcCategoriesSha = null;
     let ghcCatFilter = '';
 
-    async function renderGhCommunity() {
-      var content = document.getElementById('content');
+    async function renderGhCommunity(targetEl) {
+      var content = targetEl || document.getElementById('communityBody') || document.getElementById('content');
       if (!communityConfig || !communityConfig.sources) {
         try { communityConfig = await api('/api/community/config'); } catch(e) { communityConfig = { sources: [] }; }
       }
       var allSources = (communityConfig.sources || []).filter(function(s) { return s.writable; });
 
       if (allSources.length === 0) {
-        content.innerHTML = '<div class="myrepo-layout">'
+        content.innerHTML = '<div class="ghc-layout">'
           + '<div style="display:flex; align-items:center; justify-content:center; height:100%; width:100%">'
           + '<div class="empty-state" style="max-width:400px; text-align:center">'
           + '<div class="icon" style="font-size:48px">🔗</div>'
@@ -3455,41 +5635,38 @@
       }
 
       content.innerHTML = '<div class="myrepo-layout view-content">'
-        + '<div class="myrepo-left">'
-        +   '<div class="myrepo-left-header">'
-        +     '<select class="myrepo-cat-select" id="ghcSourceSelect" onchange="ghcSelectedSourceId=this.value; ghcSkills=[]; ghcSelectedSkill=null; loadGhcSkills()" style="width:100%; margin-bottom:6px; font-size:12px">'
-        +       allSources.map(function(s) {
-                  var label = s.label || s.repo;
-                  return '<option value="' + escapeAttr(s.id) + '"' + (ghcSelectedSourceId === s.id ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
-                }).join('')
-        +     '</select>'
-        +     '<input class="myrepo-search" id="ghcSearch" placeholder="搜索技能..." oninput="debouncedGhcSearch(this.value)">'
-        +   '</div>'
-        +   '<div class="myrepo-filter-bar">'
-        +     '<button class="btn btn-blue" style="font-size:11px; padding:4px 10px" onclick="showGhcImportPanel()">📥 从 GitHub 导入</button>'
-        +     '<button class="btn" style="font-size:11px; padding:4px 10px" onclick="ghcSkills=[]; loadGhcSkills(true)">🔄 刷新</button>'
-        +     '<button class="btn btn-green" style="font-size:11px; padding:4px 10px" onclick="showGhcAddRepoPanel()">➕ 添加我的仓库</button>'
-        +     '<button class="btn" style="font-size:11px; padding:4px 10px" onclick="showGhcCatManager()">🏷️ 分类</button>'
-        +     '<button class="btn" style="font-size:11px; padding:4px 10px" onclick="showGhcSettings()">⚙️ 配置</button>'
-        +   '</div>'
-        +   '<div style="padding:4px 16px">'
-        +     '<select class="myrepo-cat-select" id="ghcCatSelect" onchange="ghcCatFilter=this.value; renderGhcList()" style="width:100%; font-size:11px">'
-        +       '<option value="">全部分类</option>'
-        +       '<option value="__uncategorized__">未分类</option>'
-        +     '</select>'
-        +   '</div>'
-        +   '<div class="myrepo-stats" id="ghcStats">'
-        +     '<div class="myrepo-stat"><div class="val" style="color:var(--blue)">-</div><div class="lbl">仓库技能</div></div>'
-        +     '<div class="myrepo-stat"><div class="val" style="color:var(--green)">-</div><div class="lbl">我的仓库</div></div>'
-        +   '</div>'
-        +   '<div id="ghcImportPanel" style="display:none; padding:12px 16px; border-bottom:1px solid var(--border2); background:var(--bg2)"></div>'
-        +   '<div id="ghcAddRepoPanel" style="display:none; padding:12px 16px; border-bottom:1px solid var(--border2); background:var(--bg2)"></div>'
-        +   '<div class="myrepo-list" id="ghcList"></div>'
+        + '<div class="myrepo-toolbar">'
+        +   '<select style="padding:8px 14px; border-radius:10px; border:1.5px solid rgba(0,0,0,0.08); background:rgba(255,255,255,0.7); font-size:13px; font-family:var(--font-body); cursor:pointer; outline:none; font-weight:600; color:var(--text)" id="ghcSourceSelect" onchange="ghcSelectedSourceId=this.value; ghcSkills=[]; ghcSelectedSkill=null; loadGhcSkills()">'
+        +     allSources.map(function(s) {
+                var label = s.label || s.repo;
+                return '<option value="' + escapeAttr(s.id) + '"' + (ghcSelectedSourceId === s.id ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
+              }).join('')
+        +   '</select>'
+        +   '<input class="myrepo-search" id="ghcSearch" placeholder="搜索技能名称、作者..." oninput="debouncedGhcSearch(this.value)">'
+        +   '<button class="myrepo-filter-btn" onclick="ghcSkills=[]; loadGhcSkills(true)" title="刷新">🔄</button>'
+        +   '<button class="myrepo-filter-btn" onclick="showGhcImportPanel()" title="从 GitHub 导入">📥</button>'
+        +   '<button class="myrepo-filter-btn" onclick="showGhcAddRepoPanel()" title="添加仓库">➕</button>'
+        +   '<button class="myrepo-filter-btn" onclick="showGhcCatManager()" title="分类管理">🏷️</button>'
+        +   '<button class="myrepo-filter-btn" onclick="showGhcSettings()" title="配置">⚙️</button>'
         + '</div>'
-        + '<div class="myrepo-right" id="ghcRight">'
-        +   '<div class="myrepo-right-empty"><div class="icon">🔗</div><div>选择左侧技能查看详情</div></div>'
+        + '<div class="myrepo-filter-bar">'
+        +   '<select id="ghcCatSelect" onchange="ghcCatFilter=this.value; renderGhcList()">'
+        +     '<option value="">全部分类</option>'
+        +     '<option value="__uncategorized__">未分类</option>'
+        +   '</select>'
+        +   '<div class="myrepo-stats" id="ghcStats" style="display:flex; gap:12px; border:none; background:none">'
+        +     '<span style="font-size:11px; color:var(--text2)">仓库: <b style="color:var(--blue)">-</b></span>'
+        +     '<span style="font-size:11px; color:var(--text2)">已安装: <b style="color:var(--green)">-</b></span>'
+        +   '</div>'
+        +   '<span style="flex:1"></span>'
+        +   '<span style="font-size:11px; color:var(--text2)" id="ghcResultCount"></span>'
         + '</div>'
-        + '</div>';
+        + '<div id="ghcImportPanel" style="display:none; padding:12px 20px; border-bottom:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.3)"></div>'
+        + '<div id="ghcAddRepoPanel" style="display:none; padding:12px 20px; border-bottom:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.3)"></div>'
+        + '<div class="community-grid" id="ghcList" style="padding:16px 20px; flex:1; overflow-y:auto; align-content:start"></div>'
+        + '</div>'
+        + '<div class="detail-drawer-overlay" id="ghcDrawerOverlay" onclick="closeGhcDrawer()"></div>'
+        + '<div class="detail-drawer" id="ghcDrawer"></div>';
 
       loadGhcSkills();
     }
@@ -3548,50 +5725,36 @@
     }
 
     function removeGhcListItem(name) {
-      var el = document.querySelector('#ghcList .myrepo-item[data-skill="' + CSS.escape(name) + '"]');
+      var el = document.querySelector('#ghcList .community-card[data-skill="' + CSS.escape(name) + '"]');
       if (el) {
         el.style.transition = 'opacity 0.2s, transform 0.2s';
         el.style.opacity = '0';
-        el.style.transform = 'translateX(-20px)';
+        el.style.transform = 'scale(0.95)';
         setTimeout(function() { el.remove(); }, 200);
       }
     }
 
     function removeMyRepoListItem(name) {
-      var el = document.querySelector('#myrepoList .myrepo-item[data-skill="' + CSS.escape(name) + '"]');
+      var el = document.querySelector('#myrepoGrid .skill-card[data-skill="' + CSS.escape(name) + '"]');
       if (el) {
+        el.style.transition = 'opacity 0.2s, transform 0.2s';
         el.style.opacity = '0';
-        el.style.transform = 'translateX(-20px)';
+        el.style.transform = 'scale(0.95)';
         setTimeout(function() { el.remove(); }, 200);
       }
     }
 
     function updateMyRepoItemBadge(name, isUploaded) {
-      var el = document.querySelector('#myrepoList .myrepo-item[data-skill="' + CSS.escape(name) + '"]');
-      if (!el) return;
-      var badge = el.querySelector('.upload-badge');
-      if (badge) {
-        if (isUploaded) {
-          badge.style.background = '#e8f5e9';
-          badge.style.color = '#2e7d32';
-          badge.textContent = '已上传';
-        } else {
-          badge.style.background = '#fff3e0';
-          badge.style.color = '#e65100';
-          badge.textContent = '未上传';
-        }
-        badge.style.transition = 'transform 0.2s';
-        badge.style.transform = 'scale(1.2)';
-        setTimeout(function() { badge.style.transform = 'scale(1)'; }, 200);
-      }
+      // no-op: card grid doesn't show upload badges inline
     }
 
     function updateGhcStats() {
       var writableSources = (communityConfig.sources || []).filter(function(s) { return s.writable; });
+      var installedCount = ghcSkills.filter(function(s) { return s.installed; }).length;
       var statsEl = document.getElementById('ghcStats');
       if (statsEl) {
-        statsEl.innerHTML = '<div class="myrepo-stat"><div class="val" style="color:var(--blue)">' + ghcSkills.length + '</div><div class="lbl">仓库技能</div></div>'
-          + '<div class="myrepo-stat"><div class="val" style="color:var(--green)">' + writableSources.length + '</div><div class="lbl">我的仓库</div></div>';
+        statsEl.innerHTML = '<span style="font-size:11px; color:var(--text2)">仓库: <b style="color:var(--blue)">' + ghcSkills.length + '</b></span>'
+          + '<span style="font-size:11px; color:var(--text2)">已安装: <b style="color:var(--green)">' + installedCount + '</b></span>';
       }
     }
 
@@ -3611,8 +5774,8 @@
     }
 
     function renderGhcList() {
-      var listEl = document.getElementById('ghcList');
-      if (!listEl) return;
+      var gridEl = document.getElementById('ghcList');
+      if (!gridEl) return;
       var q = (ghcSearchQuery || '').toLowerCase().trim();
       var filtered = ghcSkills.filter(function(s) {
         if (ghcCatFilter === '__uncategorized__' && getGhcSkillCats(s.name).length > 0) return false;
@@ -3623,52 +5786,70 @@
           || (s.author || '').toLowerCase().indexOf(q) >= 0;
       });
 
+      var countEl = document.getElementById('ghcResultCount');
+      if (countEl) countEl.textContent = filtered.length + ' / ' + ghcSkills.length + ' 个技能';
+
       if (filtered.length === 0) {
-        listEl.innerHTML = '<div class="empty-msg">' + (ghcSkills.length === 0 ? '此仓库暂无技能' : '没有匹配的技能') + '</div>';
+        gridEl.innerHTML = '<div class="empty-state" style="grid-column:1/-1; padding:40px"><div class="icon">' + (ghcSkills.length === 0 ? '🌱' : '🔍') + '</div><p>' + (ghcSkills.length === 0 ? '此仓库暂无技能' : '没有匹配的技能') + '</p></div>';
         return;
       }
 
-      listEl.innerHTML = filtered.map(function(s) {
-        var selected = ghcSelectedSkill === s.name;
+      gridEl.innerHTML = filtered.map(function(s) {
         var installed = s.installed;
-        var desc = s.description || '';
-        if (desc.length > 80) desc = desc.substring(0, 80) + '...';
+        var desc = s.description || '暂无描述';
+        if (desc.length > 120) desc = desc.substring(0, 120) + '...';
         var cats = getGhcSkillCats(s.name);
         var catLabels = cats.slice(0, 2).map(function(cid) {
           var cat = ghcRepoCategories.find(function(c) { return c.id === cid; });
-          return cat ? (cat.icon || '') + cat.label : cid;
+          return cat ? (cat.icon || '') + ' ' + cat.label : cid;
         });
-        return '<div class="myrepo-item' + (selected ? ' selected' : '') + '" data-skill="' + escapeAttr(s.name) + '" onclick="selectGhcSkill(\'' + escapeAttr(s.name).replace(/'/g, "\\'") + '\')">'
-          + '<div class="item-header">'
-          +   '<div class="scope-icon">📄</div>'
-          +   '<div class="item-name">' + escapeHtml(s.name) + '</div>'
+        var eName = escapeAttr(s.name).replace(/'/g, "\\'");
+        var eUrl = escapeAttr(s.rawUrl || '').replace(/'/g, "\\'");
+        return '<div class="community-card" data-skill="' + escapeAttr(s.name) + '">'
+          + '<div style="display:flex; justify-content:space-between; align-items:flex-start; cursor:pointer" onclick="selectGhcSkill(\'' + eName + '\')">'
+          +   '<div class="plaza-name">' + escapeHtml(s.name) + '</div>'
+          +   (installed ? '<span class="tag" style="font-size:10px; background:var(--green-light,#e8f5e9); color:var(--green,#4caf50)">已安装</span>' : '')
           + '</div>'
-          + '<div class="item-desc">' + escapeHtml(desc || '暂无描述') + '</div>'
-          + '<div class="item-tags">'
+          + '<div style="display:flex; gap:8px; align-items:center; margin-bottom:4px">'
+          +   (s.author ? '<span class="author">by ' + escapeHtml(s.author) + '</span>' : '')
+          +   catLabels.map(function(l) { return '<span class="tag" style="font-size:10px">' + escapeHtml(l) + '</span>'; }).join('')
+          + '</div>'
+          + '<div class="plaza-desc" style="margin-top:6px">' + escapeHtml(desc) + '</div>'
+          + '<div class="plaza-actions" style="margin-top:12px">'
           +   (installed
-            ? '<span class="item-badge" style="background:#e8f5e9; color:#2e7d32">已安装</span>'
-            : '<span class="item-badge" style="background:#fff3e0; color:#e65100">未安装</span>')
-          +   (s.author ? '<span class="item-badge" style="background:var(--bg2); color:var(--text2)">by ' + escapeHtml(s.author) + '</span>' : '')
-          +   catLabels.map(function(l) { return '<span class="item-badge" style="background:var(--theme-active-light); color:var(--theme-active)">' + escapeHtml(l) + '</span>'; }).join('')
+            ? '<button class="btn-install installed" disabled>✓ 已安装</button>'
+            : '<button class="btn-install" onclick="event.stopPropagation(); ghcInstallSkill(\'' + eName + '\', \'' + eUrl + '\', this)">⬇️ 安装</button>')
+          +   '<button class="btn-preview" onclick="event.stopPropagation(); selectGhcSkill(\'' + eName + '\')">📄 查看详情</button>'
+          +   '<button class="btn-preview" onclick="event.stopPropagation(); ghcCopyContent(\'' + eName + '\')">📋 复制</button>'
           + '</div>'
           + '</div>';
       }).join('');
     }
 
+    function closeGhcDrawer() {
+      var overlay = document.getElementById('ghcDrawerOverlay');
+      var drawer = document.getElementById('ghcDrawer');
+      if (overlay) overlay.classList.remove('open');
+      if (drawer) drawer.classList.remove('open');
+      ghcSelectedSkill = null;
+    }
+
     async function selectGhcSkill(name) {
       ghcSelectedSkill = name;
-      var items = document.querySelectorAll('#ghcList .myrepo-item');
-      items.forEach(function(el) { el.classList.remove('selected'); });
-      items.forEach(function(el) {
-        if (el.querySelector('.item-name') && el.querySelector('.item-name').textContent === name) el.classList.add('selected');
-      });
 
-      var right = document.getElementById('ghcRight');
-      if (!right) return;
-      right.innerHTML = '<div class="myrepo-right-empty"><div class="icon" style="animation:spin 1s linear infinite">⏳</div><div>加载中...</div></div>';
+      var drawer = document.getElementById('ghcDrawer');
+      var overlay = document.getElementById('ghcDrawerOverlay');
+      if (!drawer || !overlay) return;
+      drawer.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:200px; color:var(--text2)"><span style="animation:spin 1s linear infinite; display:inline-block; font-size:24px">⏳</span></div>';
+      drawer.classList.add('open');
+      overlay.classList.add('open');
 
       var skill = ghcSkills.find(function(s) { return s.name === name; });
-      if (!skill) { right.innerHTML = '<div class="myrepo-right-empty"><div class="icon">❌</div><div>未找到</div></div>'; return; }
+      if (!skill) {
+        drawer.innerHTML = '<button class="drawer-close" onclick="closeGhcDrawer()" title="关闭">✕</button>'
+          + '<div style="text-align:center; padding:40px; color:var(--text2)"><div style="font-size:32px; margin-bottom:12px">❌</div><div>未找到</div></div>';
+        return;
+      }
 
       var rawContent = '';
       try {
@@ -3759,7 +5940,7 @@
       html += '</div>';
       html += '<div id="ghcTabContent" class="tab-content"><pre style="font-size:12px; line-height:1.6; white-space:pre-wrap; word-break:break-word">' + escapeHtml(rawContent || '无法加载内容') + '</pre></div>';
 
-      right.innerHTML = html;
+      drawer.innerHTML = '<button class="drawer-close" onclick="closeGhcDrawer()" title="关闭">✕</button>' + html;
     }
 
     function ghcSwitchTab(tab, el) {
@@ -3767,26 +5948,84 @@
       el.classList.add('active');
     }
 
-    async function ghcInstallSkill(name, rawUrl, btn) {
-      var origText = btn.innerHTML;
-      btn.innerHTML = '<span class="action-icon" style="animation:spin 1s linear infinite">⏳</span> 安装中...';
-      btn.disabled = true;
+    function ghcInstallSkill(name, rawUrl, btn) {
+      var card = btn.closest('.community-card');
+      if (card) {
+        showInstallDialog(name, rawUrl, btn);
+      } else {
+        showInstallDrawer(name, rawUrl);
+      }
+    }
+
+    function showInstallDrawer(name, rawUrl) {
+      var overlay = document.getElementById('drawerOverlay');
+      var drawer = document.getElementById('detailDrawer');
+      if (!overlay || !drawer) return;
+      overlay.classList.add('open');
+      drawer.classList.add('open', 'drawer-flex');
+      var eName = escapeAttr(name).replace(/'/g, "\\'");
+      var eUrl = escapeAttr(rawUrl).replace(/'/g, "\\'");
+      loadRecentProjects();
+      drawer.innerHTML = '<div class="drawer-header"><h2>安装 "' + escapeHtml(name) + '"</h2><button class="drawer-close" onclick="closeDrawer()">✕</button></div>'
+        + '<div class="drawer-body" style="padding:24px">'
+        +   '<p style="font-size:13px; color:var(--text2); margin-bottom:20px">选择安装方式：</p>'
+        +   '<div class="mode-option" onclick="doCommunityInstallFromDrawer(\'' + eName + '\', \'' + eUrl + '\', \'global-skill\')">'
+        +     '<div class="mode-option-icon">🧠</div>'
+        +     '<div class="mode-option-info">'
+        +       '<div class="mode-option-title">全局 Skill <span style="font-size:11px; color:#22c55e; font-weight:500">推荐</span></div>'
+        +       '<div class="mode-option-desc">复制到 ~/.cursor/skills/，AI 按需加载，节省 token</div>'
+        +     '</div>'
+        +   '</div>'
+        +   '<div class="mode-option" onclick="showDrawerProjectPicker(\'' + eName + '\', \'' + eUrl + '\', \'rule-smart\')">'
+        +     '<div class="mode-option-icon">⚡</div>'
+        +     '<div class="mode-option-info">'
+        +       '<div class="mode-option-title">项目 Rule（智能模式）</div>'
+        +       '<div class="mode-option-desc">按上下文判断是否注入，需要选择项目</div>'
+        +     '</div>'
+        +   '</div>'
+        +   '<div class="mode-option" onclick="showDrawerProjectPicker(\'' + eName + '\', \'' + eUrl + '\', \'rule-always\')">'
+        +     '<div class="mode-option-icon">📜</div>'
+        +     '<div class="mode-option-info">'
+        +       '<div class="mode-option-title">项目 Rule（常驻模式）</div>'
+        +       '<div class="mode-option-desc">始终全量注入 AI 上下文，需要选择项目</div>'
+        +     '</div>'
+        +   '</div>'
+        + '</div>';
+    }
+
+    function showDrawerProjectPicker(name, rawUrl, mode) {
+      var body = document.querySelector('.detail-drawer .drawer-body');
+      if (!body) return;
+      var projOptions = recentProjects.map(function(p) {
+        return '<option value="' + escapeAttr(p) + '">' + escapeHtml(p.split('/').slice(-2).join('/')) + '</option>';
+      }).join('');
+      body.innerHTML = '<p style="font-size:13px; font-weight:600; margin-bottom:12px">选择目标项目</p>'
+        + '<div style="display:flex; gap:8px; margin-bottom:16px">'
+        +   '<input type="text" id="drawerProjectPath" placeholder="项目路径..." style="flex:1; padding:8px 12px; border-radius:10px; border:1.5px solid rgba(0,0,0,0.08); font-size:13px; font-family:monospace; outline:none" value="' + escapeAttr(installProjectPath) + '">'
+        +   (projOptions ? '<select style="padding:6px; border-radius:10px; border:1.5px solid rgba(0,0,0,0.08); font-size:12px; max-width:150px" onchange="if(this.value){document.getElementById(\'drawerProjectPath\').value=this.value}"><option value="">最近项目...</option>' + projOptions + '</select>' : '')
+        + '</div>'
+        + '<button class="primary-btn" onclick="var p=document.getElementById(\'drawerProjectPath\').value.trim(); if(!p){alert(\'请输入项目路径\');return;} doCommunityInstallFromDrawer(\'' + escapeAttr(name).replace(/'/g, "\\'") + '\', \'' + escapeAttr(rawUrl).replace(/'/g, "\\'") + '\', \'' + mode + '\', p)">确认安装</button>';
+    }
+
+    async function doCommunityInstallFromDrawer(name, rawUrl, mode, projectPath) {
+      var body = document.querySelector('.detail-drawer .drawer-body');
+      if (body) body.innerHTML = '<div style="text-align:center; padding:40px"><div class="spinner"></div><p style="margin-top:12px; color:var(--text2)">正在安装...</p></div>';
       try {
-        var result = await api('/api/community/install?name=' + encodeURIComponent(name) + '&url=' + encodeURIComponent(rawUrl) + '&scope=global');
+        var params = '&mode=' + encodeURIComponent(mode);
+        if (projectPath) params += '&projectPath=' + encodeURIComponent(projectPath);
+        var result = await api('/api/community/install?name=' + encodeURIComponent(name) + '&url=' + encodeURIComponent(rawUrl) + params);
         if (result.success) {
-          btn.innerHTML = '<span class="action-icon">✅</span> 已安装';
+          if (body) body.innerHTML = '<div style="text-align:center; padding:40px"><div style="font-size:36px; margin-bottom:12px">✅</div><p style="font-size:15px; font-weight:600; color:var(--text)">安装成功！</p><p style="font-size:12px; color:var(--text2); margin-top:8px">' + escapeHtml(result.modeLabel || mode) + '</p><p style="font-size:11px; color:var(--text2); margin-top:4px; word-break:break-all">' + escapeHtml(result.path || '') + '</p></div>';
           allSkills = await api('/api/skills');
           document.getElementById('totalCount').textContent = allSkills.length;
           ghcSkills = ghcSkills.map(function(s) { return s.name === name ? Object.assign({}, s, {installed: true}) : s; });
-          renderGhcList();
+          setTimeout(function() { closeDrawer(); renderGhcList(); }, 1500);
         } else {
-          btn.innerHTML = '<span class="action-icon">❌</span> ' + (result.error || '失败').slice(0, 20);
+          if (body) body.innerHTML = '<div style="text-align:center; padding:40px; color:red"><p>❌ ' + escapeHtml(result.error || '安装失败') + '</p></div>';
         }
       } catch(e) {
-        btn.innerHTML = '<span class="action-icon">❌</span> 失败';
+        if (body) body.innerHTML = '<div style="text-align:center; padding:40px; color:red"><p>❌ 网络错误</p></div>';
       }
-      btn.disabled = false;
-      setTimeout(function() { btn.innerHTML = origText; }, 3000);
     }
 
     async function ghcRenameSkill(oldName) {
@@ -3866,7 +6105,7 @@
           ghcSelectedSkill = null;
           removeGhcListItem(name);
           updateGhcStats();
-          document.getElementById('ghcRight').innerHTML = '<div class="myrepo-right-empty"><div class="icon">📦</div><div>选择左侧技能查看详情</div></div>';
+          closeGhcDrawer();
         } else {
           btn.innerHTML = '<span class="action-icon">❌</span> ' + (result.message || '失败').slice(0, 20);
         }
@@ -4065,8 +6304,11 @@
     }
 
     function showGhcCatManager() {
-      var right = document.getElementById('ghcRight');
+      var right = document.getElementById('ghcDrawer');
+      var overlay = document.getElementById('ghcDrawerOverlay');
       if (!right) return;
+      if (overlay) overlay.classList.add('open');
+      right.classList.add('open');
       var currentSource = (communityConfig.sources || []).find(function(s) { return s.id === ghcSelectedSourceId; });
       var isWritable = currentSource && currentSource.writable;
 
@@ -4107,7 +6349,7 @@
       }
       html += '</div>';
 
-      right.innerHTML = html;
+      right.innerHTML = '<button class="drawer-close" onclick="closeGhcDrawer()" title="关闭">✕</button>' + html;
     }
 
     async function ghcAddCategory() {
@@ -4166,10 +6408,13 @@
     }
 
     function showGhcSettings() {
-      var right = document.getElementById('ghcRight');
+      var right = document.getElementById('ghcDrawer');
+      var overlay = document.getElementById('ghcDrawerOverlay');
       if (!right) return;
+      if (overlay) overlay.classList.add('open');
+      right.classList.add('open');
       var cfg = communityConfig || {};
-      right.innerHTML = '<div style="padding:4px 0">'
+      right.innerHTML = '<button class="drawer-close" onclick="closeGhcDrawer()" title="关闭">✕</button><div style="padding:4px 0">'
         + '<div class="page-title" style="font-size:18px; margin-bottom:16px">⚙️ 配置我的私人 GitHub 在线社区</div>'
         + '<div class="community-config">'
         + '<h3 style="font-size:14px; margin-bottom:8px">🔗 我的社区仓库</h3>'
@@ -4254,12 +6499,12 @@
 
       content.innerHTML = `
         <div class="view-content">
-        <div class="page-title">🌍 社区技能广场</div>
+        <div class="page-title">🌍 社区</div>
 
         <div class="tab-bar" style="margin-bottom:20px">
           <div class="tab-btn ${communityTab==='browse'?'active':''}" onclick="communityTab='browse'; renderCommunity()">🌐 浏览技能</div>
-          ${hasRepo ? `<div class="tab-btn ${communityTab==='submissions'?'active':''}" onclick="communityTab='submissions'; renderCommunity()">📝 投稿列表</div>` : ''}
-          <div class="tab-btn ${communityTab==='linkinstall'?'active':''}" onclick="communityTab='linkinstall'; renderCommunity()">🔗 链接安装</div>
+          <div class="tab-btn ${communityTab==='sources'?'active':''}" onclick="communityTab='sources'; renderCommunity()">📡 订阅源管理</div>
+          <div class="tab-btn ${communityTab==='mycommunity'?'active':''}" onclick="communityTab='mycommunity'; renderCommunity()">🔗 我的 GitHub 社区</div>
         </div>
 
         <div id="communityBody"></div>
@@ -4271,14 +6516,15 @@
       if (!hasRepo && communityTab === 'submissions') {
         communityTab = 'browse';
       }
-      if (communityTab === 'sources') communityTab = 'browse';
       if (communityTab === 'help') communityTab = 'browse';
+
+      if (communityTab === 'submissions' || communityTab === 'linkinstall') communityTab = 'browse';
 
       switch (communityTab) {
         case 'browse': renderCommunityBrowse(body); break;
-        case 'submissions': renderCommunitySubmissions(body); break;
-        case 'linkinstall': renderLinkInstall(body); break;
+        case 'sources': renderCommunitySources(body); break;
         case 'settings': renderCommunitySettings(body); break;
+        case 'mycommunity': renderGhCommunity(); break;
       }
     }
 
@@ -4293,9 +6539,9 @@
             <div class="icon">🌐</div>
             <p>还没有订阅任何技能源</p>
             <p style="font-family:var(--font-body); font-size:13px; margin-top:8px; color:var(--text2)">
-              在左侧导航「📡 订阅外部GitHub仓库」中添加仓库地址，即可浏览和安装技能！
+              点击「📡 订阅源管理」添加仓库地址，即可浏览和安装技能！
             </p>
-            <button class="btn btn-blue" style="margin-top:16px" onclick="showView('sources')">📡 去订阅</button>
+            <button class="btn btn-blue" style="margin-top:16px" onclick="communityTab='sources'; renderCommunity()">📡 去订阅</button>
           </div>
         `;
         return;
@@ -4501,9 +6747,9 @@
     function filterCommunitySource(source, el) {
       document.querySelectorAll('#communityList .filter-btn').forEach(b => b.classList.remove('active'));
       el.classList.add('active');
-      const grid = document.getElementById('communityGrid');
-      const filtered = source === 'all' ? communitySkills : communitySkills.filter(s => s.sourceLabel === source);
-      grid.innerHTML = filtered.map(renderCommunityCard).join('');
+      communityFilterSource = source;
+      communityPage = 0;
+      renderCommunityList();
     }
 
     function renderCommunityCard(skill) {
@@ -4849,8 +7095,10 @@
         if (result.success) {
           communityConfig.sources = result.sources;
           communityLoaded = false;
+          communitySkills = [];
+          invalidateAllViews();
           showToast({ tool: 'source', resultSummary: `已订阅: ${label}`, timestamp: new Date().toISOString() });
-          renderCommunity();
+          communityTab = 'sources'; renderCommunity();
         } else {
           if (resultEl) resultEl.innerHTML = `<span style="color:var(--red)">❌ ${escapeHtml(result.error || '订阅失败')}</span>`;
         }
@@ -4865,8 +7113,10 @@
         if (result.success) {
           communityConfig.sources = result.sources;
           communityLoaded = false;
+          communitySkills = [];
+          invalidateAllViews();
           showToast({ tool: 'source', resultSummary: '已移除订阅源', timestamp: new Date().toISOString() });
-          renderCommunity();
+          communityTab = 'sources'; renderCommunity();
         }
       } catch {}
     }
@@ -5278,37 +7528,59 @@
       var existingDialog = card.querySelector('.install-scope-dialog');
       if (existingDialog) { existingDialog.remove(); return; }
 
+      var eName = escapeAttr(name).replace(/'/g, "\\'");
+      var eUrl = escapeAttr(rawUrl).replace(/'/g, "\\'");
       var dialog = document.createElement('div');
       dialog.className = 'install-scope-dialog';
-      dialog.style.cssText = 'margin-top:10px; padding:12px; background:var(--surface); border:2px solid var(--blue); border-radius:12px;';
-      dialog.innerHTML = '<div id="scopeSelect_' + escapeAttr(name).replace(/[^a-zA-Z0-9]/g, '_') + '"></div>'
-        + '<div style="margin-top:10px; display:flex; gap:8px">'
-        + '<button class="btn-install" onclick="doInstallCommunitySkill(\'' + escapeAttr(name).replace(/'/g, "\\'") + '\', \'' + escapeAttr(rawUrl).replace(/'/g, "\\'") + '\', this)">确认安装</button>'
-        + '<button class="btn-preview" onclick="this.closest(\'.install-scope-dialog\').remove()">取消</button>'
-        + '</div>';
+      dialog.style.cssText = 'margin-top:10px; padding:14px; background:var(--surface); border:2px solid var(--blue); border-radius:14px;';
+      dialog.innerHTML = '<div style="font-size:12px; font-weight:600; color:var(--text); margin-bottom:10px">选择安装方式</div>'
+        + '<div class="install-mode-options">'
+        +   '<div class="install-mode-opt" onclick="doInstallCommunitySkill(\'' + eName + '\', \'' + eUrl + '\', \'global-skill\', this)">'
+        +     '<span>🧠</span><div><b>全局 Skill</b><br><small style="color:var(--text2)">按需加载，节省 token</small></div>'
+        +   '</div>'
+        +   '<div class="install-mode-opt" onclick="showProjectInputThenInstall(\'' + eName + '\', \'' + eUrl + '\', \'rule-smart\', this)">'
+        +     '<span>⚡</span><div><b>智能 Rule</b><br><small style="color:var(--text2)">按上下文判断</small></div>'
+        +   '</div>'
+        +   '<div class="install-mode-opt" onclick="showProjectInputThenInstall(\'' + eName + '\', \'' + eUrl + '\', \'rule-always\', this)">'
+        +     '<span>📜</span><div><b>常驻 Rule</b><br><small style="color:var(--text2)">始终生效</small></div>'
+        +   '</div>'
+        + '</div>'
+        + '<button class="btn-preview" style="margin-top:8px; font-size:11px" onclick="this.closest(\'.install-scope-dialog\').remove()">取消</button>';
       card.appendChild(dialog);
-      renderScopeSelector('scopeSelect_' + name.replace(/[^a-zA-Z0-9]/g, '_'));
     }
 
-    async function doInstallCommunitySkill(name, rawUrl, btn) {
+    function showProjectInputThenInstall(name, rawUrl, mode, el) {
+      var dialog = el.closest('.install-scope-dialog');
+      if (!dialog) return;
+      loadRecentProjects();
+      var projOptions = recentProjects.map(function(p) {
+        return '<option value="' + escapeAttr(p) + '">' + escapeHtml(p.split('/').slice(-2).join('/')) + '</option>';
+      }).join('');
+      dialog.innerHTML = '<div style="font-size:12px; font-weight:600; margin-bottom:8px">选择项目</div>'
+        + '<div style="display:flex; gap:6px; margin-bottom:8px">'
+        +   '<input type="text" id="communityInstallProjectPath" placeholder="项目路径..." style="flex:1; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--bg2); font-size:11px; font-family:monospace; outline:none" value="' + escapeAttr(installProjectPath) + '">'
+        +   (projOptions ? '<select style="padding:5px; border-radius:8px; border:1.5px solid var(--border2); background:var(--bg2); font-size:10px; max-width:120px" onchange="if(this.value){document.getElementById(\'communityInstallProjectPath\').value=this.value}"><option value="">最近项目...</option>' + projOptions + '</select>' : '')
+        + '</div>'
+        + '<div style="display:flex; gap:6px">'
+        +   '<button class="btn-install" onclick="var p=document.getElementById(\'communityInstallProjectPath\').value.trim(); if(!p){alert(\'请输入项目路径\');return;} doInstallCommunitySkill(\'' + escapeAttr(name).replace(/'/g, "\\'") + '\', \'' + escapeAttr(rawUrl).replace(/'/g, "\\'") + '\', \'' + mode + '\', this, p)">确认安装</button>'
+        +   '<button class="btn-preview" onclick="this.closest(\'.install-scope-dialog\').remove()">取消</button>'
+        + '</div>';
+    }
+
+    async function doInstallCommunitySkill(name, rawUrl, mode, btn, projectPath) {
       btn.textContent = '⏳ 安装中...';
       btn.disabled = true;
 
-      if (installScope === 'project' && !installProjectPath) {
-        btn.textContent = '❌ 请填写项目路径';
-        btn.disabled = false;
-        return;
-      }
-
       try {
-        var scopeParams = getInstallScopeParams();
-        var result = await api('/api/community/install?name=' + encodeURIComponent(name) + '&url=' + encodeURIComponent(rawUrl) + scopeParams);
+        var params = '&mode=' + encodeURIComponent(mode);
+        if (projectPath) params += '&projectPath=' + encodeURIComponent(projectPath);
+        var result = await api('/api/community/install?name=' + encodeURIComponent(name) + '&url=' + encodeURIComponent(rawUrl) + params);
         if (result.success) {
-          var scopeText = result.scope === 'project' ? '项目' : '全局';
-          showToast({ tool: 'install', resultSummary: '已安装 ' + name + ' (' + scopeText + ')', timestamp: new Date().toISOString() });
+          var label = result.modeLabel || mode;
+          showToast({ tool: 'install', resultSummary: '已安装 ' + name + ' (' + label + ')', timestamp: new Date().toISOString() });
           var dialog = btn.closest('.install-scope-dialog');
           if (dialog) {
-            dialog.innerHTML = '<div style="color:var(--green); font-weight:600; padding:8px">✅ 已安装到' + scopeText + (result.path ? ' → ' + escapeHtml(result.path) : '') + '</div>';
+            dialog.innerHTML = '<div style="color:var(--green); font-weight:600; padding:8px">✅ ' + escapeHtml(label) + (result.path ? ' → ' + escapeHtml(result.path) : '') + '</div>';
           }
           allSkills = await api('/api/skills');
         } else {

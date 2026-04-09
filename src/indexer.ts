@@ -86,6 +86,7 @@ function scanDirectory(
         path: skillMdPath,
         source,
         tokenEstimate: estimateTokens(content),
+        installMode: "global-skill",
       });
     } catch (err) {
       console.error(`Failed to parse ${skillMdPath}: ${err}`);
@@ -117,21 +118,54 @@ function scanProjectRules(): SkillEntry[] {
             const { data: frontmatter } = matter(content);
             const name = (frontmatter.name as string) || file.name.replace(/\.(mdc|md)$/, "");
             const description = (frontmatter.description as string) || "";
-            const projectName = projectPath.split("/").slice(-2).join("/");
+            const projectLabel = projectPath.split("/").slice(-2).join("/");
 
+            const alwaysApply = frontmatter.alwaysApply;
+            const ruleMode = alwaysApply === false ? "rule-smart" : alwaysApply === true ? "rule-always" : "rule-always";
             skills.push({
               name,
-              description: description || `[项目: ${projectName}]`,
+              description: description || `[项目: ${projectLabel}]`,
               categories: getSkillCategories(name) || [],
               tags: [...extractTags(name), "project-rule"],
               path: filePath,
               source: "project-rules",
               tokenEstimate: estimateTokens(content),
-              projectName,
+              projectName: projectPath,
+              installMode: ruleMode,
             });
           } catch {}
         }
       } catch {}
+
+      const skillsDir = join(projectPath, ".cursor", "skills");
+      if (existsSync(skillsDir)) {
+        try {
+          for (const sd of readdirSync(skillsDir, { withFileTypes: true })) {
+            if (!sd.isDirectory()) continue;
+            const skillMdPath = join(skillsDir, sd.name, "SKILL.md");
+            if (!existsSync(skillMdPath)) continue;
+            try {
+              const content = readFileSync(skillMdPath, "utf-8");
+              const { data: frontmatter } = matter(content);
+              const name = (frontmatter.name as string) || sd.name;
+              const description = (frontmatter.description as string) || "";
+              const projectLabel = projectPath.split("/").slice(-2).join("/");
+
+              skills.push({
+                name,
+                description: description || `[项目技能: ${projectLabel}]`,
+                categories: getSkillCategories(name) || [],
+                tags: [...extractTags(name), "project-skill"],
+                path: skillMdPath,
+                source: "project-rules",
+                tokenEstimate: estimateTokens(content),
+                projectName: projectPath,
+                installMode: "project-skill",
+              });
+            } catch {}
+          }
+        } catch {}
+      }
     }
   } catch {}
   return skills;

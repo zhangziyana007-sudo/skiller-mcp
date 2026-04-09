@@ -172,10 +172,12 @@ async function fetchSkillsFromRepo(
   const skillDirs = await listSkillDirs(repo, branch, skillsPath, token);
   if (skillDirs.length === 0) return [];
 
+  const isRootPath = skillsPath === "." || skillsPath === "" || skillsPath === "/";
+  const pathPfx = isRootPath ? "" : skillsPath + "/";
   const CONCURRENCY = 10;
   const tasks = skillDirs.map((dir) => async (): Promise<CommunitySkill> => {
-    const rawUrl = `https://raw.githubusercontent.com/${repo}/${branch}/${skillsPath}/${dir.name}/SKILL.md`;
-    const descUrl = `https://raw.githubusercontent.com/${repo}/${branch}/${skillsPath}/${dir.name}/DESCRIPTION.md`;
+    const rawUrl = `https://raw.githubusercontent.com/${repo}/${branch}/${pathPfx}${dir.name}/SKILL.md`;
+    const descUrl = `https://raw.githubusercontent.com/${repo}/${branch}/${pathPfx}${dir.name}/DESCRIPTION.md`;
     const rawHeaders: Record<string, string> = {};
     if (token) rawHeaders["Authorization"] = `token ${token}`;
     let description = "";
@@ -204,7 +206,7 @@ async function fetchSkillsFromRepo(
       name: dir.name,
       description: description || `${dir.name} skill`,
       author: author || "unknown",
-      htmlUrl: `https://github.com/${repo}/tree/${branch}/${skillsPath}/${dir.name}`,
+      htmlUrl: `https://github.com/${repo}/tree/${branch}/${pathPfx}${dir.name}`,
       rawUrl,
       sha: dir.sha,
       size: 0,
@@ -236,13 +238,14 @@ async function listSkillDirs(
         truncated?: boolean;
       };
 
-      const prefix = skillsPath.replace(/\/$/, "") + "/";
+      const isRoot = skillsPath === "." || skillsPath === "" || skillsPath === "/";
+      const prefix = isRoot ? "" : skillsPath.replace(/\/$/, "") + "/";
       const skillMdPaths = data.tree.filter(
-        (t) => t.type === "blob" && t.path.startsWith(prefix) && t.path.endsWith("/SKILL.md")
+        (t) => t.type === "blob" && (isRoot || t.path.startsWith(prefix)) && t.path.endsWith("/SKILL.md")
       );
 
       return skillMdPaths.map((t) => {
-        const relative = t.path.slice(prefix.length);
+        const relative = isRoot ? t.path : t.path.slice(prefix.length);
         const dirName = relative.split("/")[0];
         return { name: dirName, sha: t.sha };
       });
@@ -250,7 +253,8 @@ async function listSkillDirs(
   } catch {}
 
   try {
-    const contentsUrl = `https://api.github.com/repos/${repo}/contents/${skillsPath}?ref=${branch}`;
+    const contentsPath = (skillsPath === "." || skillsPath === "" || skillsPath === "/") ? "" : skillsPath;
+    const contentsUrl = `https://api.github.com/repos/${repo}/contents/${contentsPath}?ref=${branch}`;
     const resp = await fetch(contentsUrl, {
       headers: githubHeaders(token),
       signal: AbortSignal.timeout(15000),
@@ -274,12 +278,14 @@ async function fetchSkillsFromRepoLight(
   sourceLabel: string
 ): Promise<CommunitySkill[]> {
   const dirs = await listSkillDirs(repo, branch, skillsPath, token);
+  const isRoot = skillsPath === "." || skillsPath === "" || skillsPath === "/";
+  const pathPrefix = isRoot ? "" : skillsPath + "/";
   return dirs.map((dir) => ({
     name: dir.name,
     description: "",
     author: "unknown",
-    htmlUrl: `https://github.com/${repo}/tree/${branch}/${skillsPath}/${dir.name}`,
-    rawUrl: `https://raw.githubusercontent.com/${repo}/${branch}/${skillsPath}/${dir.name}/SKILL.md`,
+    htmlUrl: `https://github.com/${repo}/tree/${branch}/${pathPrefix}${dir.name}`,
+    rawUrl: `https://raw.githubusercontent.com/${repo}/${branch}/${pathPrefix}${dir.name}/SKILL.md`,
     sha: dir.sha,
     size: 0,
     updatedAt: "",
@@ -395,12 +401,21 @@ export async function listCommunitySkills(
 
   const sources = collectSources(config);
   const fetchFn = light ? fetchSkillsFromRepoLight : fetchSkillsFromRepo;
+  const PER_SOURCE_TIMEOUT = 20000;
 
-  const sourceResults = await Promise.all(
-    sources.map((s) => fetchFn(s.repo, s.branch, s.skillsPath, s.token, s.id, s.label))
+  const sourceResults = await Promise.allSettled(
+    sources.map((s) => {
+      const fetchPromise = fetchFn(s.repo, s.branch, s.skillsPath, s.token, s.id, s.label);
+      const timeoutPromise = new Promise<CommunitySkill[]>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout fetching ${s.repo}`)), PER_SOURCE_TIMEOUT)
+      );
+      return Promise.race([fetchPromise, timeoutPromise]);
+    })
   );
 
-  const allSkills = sourceResults.flat();
+  const allSkills = sourceResults
+    .filter((r): r is PromiseFulfilledResult<CommunitySkill[]> => r.status === "fulfilled")
+    .flatMap((r) => r.value);
   const cacheKey = light ? "all-light" : "all";
   saveCommunityCache(cacheKey, { updatedAt: new Date().toISOString(), skills: allSkills });
 

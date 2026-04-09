@@ -1,6 +1,6 @@
 {
   "name": "skiller-mcp",
-  "version": "2.1.0",
+  "version": "2.3.0",
   "description": "AI Skill Manager MCP Server for Cursor — search, categorize, share and manage agent skills",
   "type": "module",
   "scripts": {
