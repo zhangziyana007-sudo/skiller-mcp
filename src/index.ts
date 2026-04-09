@@ -404,7 +404,7 @@ const COMMUNITY_SETUP_GUIDE = `
 📢 让别人使用
 
 告诉别人你的仓库地址即可！他们在 Dashboard 的
-社区 → 📡订阅源管理 中粘贴你的地址就能看到你的技能。
+📡 订阅外部GitHub仓库 中粘贴你的地址就能看到你的技能。
 
 ═══════════════════════════════════════
 
@@ -436,7 +436,7 @@ const COMMUNITY_SUBSCRIBE_GUIDE = `
 方法一：Dashboard 图形界面
 
 1. 打开 http://localhost:3737
-2. 点击 🌍社区 → 📡订阅源管理
+2. 点击 📡 订阅外部GitHub仓库
 3. 在输入框粘贴链接或仓库地址：
    - https://github.com/someone/skill-community ✅
    - someone/skill-community ✅
@@ -447,7 +447,7 @@ const COMMUNITY_SUBSCRIBE_GUIDE = `
 
 方法二：推荐列表一键订阅
 
-在「订阅源管理」页面有推荐的社区仓库，点击「一键订阅」即可。
+在「订阅外部GitHub仓库」页面有推荐的社区仓库，点击「一键订阅」即可。
 
 ═══════════════════════════════════════
 

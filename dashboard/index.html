@@ -35,6 +35,9 @@
       --crayon-shadow: 3px 3px 0px rgba(0,0,0,0.08);
       --font-display: 'ZCOOL KuaiLe', 'Comic Neue', cursive;
       --font-body: 'Noto Sans SC', 'Comic Neue', sans-serif;
+      --theme-active: #E53935;
+      --theme-active-light: #FFCDD2;
+      --theme-active-text: white;
     }
 
     [data-theme="clean"] {
@@ -64,6 +67,9 @@
       --crayon-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
       --font-display: 'Inter', 'Noto Sans SC', sans-serif;
       --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+      --theme-active: #339af0;
+      --theme-active-light: #d0ebff;
+      --theme-active-text: white;
     }
 
     [data-theme="clean"] body::before { display: none; }
@@ -91,13 +97,13 @@
     [data-theme="clean"] .sidebar { border-right: 1px solid #e9ecef; box-shadow: none; }
     [data-theme="clean"] .sidebar h3 { color: #339af0; font-family: 'Inter', sans-serif; font-weight: 700; }
     [data-theme="clean"] .sidebar h3::before { content: ''; margin: 0; }
-    [data-theme="clean"] .nav-item { border-radius: 8px; border: 1px solid transparent; font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .nav-item { border-radius: 24px; border: 1px solid transparent; font-family: 'Inter', sans-serif; }
     [data-theme="clean"] .nav-item:hover { background: #e7f5ff; border-color: #d0ebff; transform: none; }
-    [data-theme="clean"] .nav-item.active { background: #339af0; border-color: #228be6; border-radius: 8px; box-shadow: none; }
-    [data-theme="clean"] .nav-item .count { border: 1px solid #dee2e6; border-radius: 6px; font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .nav-item.active { background: #339af0; border-color: #228be6; border-radius: 24px; box-shadow: none; }
+    [data-theme="clean"] .nav-item .count { border: 1px solid #dee2e6; border-radius: 24px; font-family: 'Inter', sans-serif; }
 
     [data-theme="clean"] .btn {
-      border-radius: 8px;
+      border-radius: 24px;
       border: 1px solid #dee2e6;
       box-shadow: none;
       font-family: 'Inter', sans-serif;
@@ -125,7 +131,7 @@
     [data-theme="clean"] .stat-card .value.blue { color: #339af0; }
 
     [data-theme="clean"] .search-box input {
-      border-radius: 10px;
+      border-radius: 24px;
       border: 1px solid #dee2e6;
       box-shadow: none;
       font-family: 'Inter', sans-serif;
@@ -143,7 +149,7 @@
     [data-theme="clean"] .skill-card .name { font-family: 'Inter', sans-serif; font-weight: 600; }
 
     [data-theme="clean"] .tag {
-      border-radius: 6px;
+      border-radius: 24px;
       border: 1px solid #e9ecef;
       font-family: 'Inter', sans-serif;
     }
@@ -174,23 +180,23 @@
     [data-theme="clean"] .plaza-card { border: 1px solid #e9ecef; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
     [data-theme="clean"] .plaza-card:hover { border-color: #339af0; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(51,154,240,0.1); }
     [data-theme="clean"] .plaza-card .plaza-name { font-family: 'Inter', sans-serif; }
-    [data-theme="clean"] .btn-install { border-radius: 8px; }
-    [data-theme="clean"] .btn-preview { border-radius: 8px; }
-    [data-theme="clean"] .action-btn { border-radius: 8px; }
-    [data-theme="clean"] .btn-upload { border-radius: 8px; }
+    [data-theme="clean"] .btn-install { border-radius: 24px; }
+    [data-theme="clean"] .btn-preview { border-radius: 24px; }
+    [data-theme="clean"] .action-btn { border-radius: 24px; }
+    [data-theme="clean"] .btn-upload { border-radius: 24px; }
 
     [data-theme="clean"] .community-config { border: 1px solid #e9ecef; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
     [data-theme="clean"] .community-config h3 { font-family: 'Inter', sans-serif; }
-    [data-theme="clean"] .config-field input { border-radius: 8px; border: 1px solid #dee2e6; }
+    [data-theme="clean"] .config-field input { border-radius: 24px; border: 1px solid #dee2e6; }
     [data-theme="clean"] .upload-section { border: 1px dashed #339af0; border-radius: 12px; }
     [data-theme="clean"] .community-card { border: 1px solid #e9ecef; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
     [data-theme="clean"] .community-card:hover { border-color: #f06595; transform: translateY(-2px); }
 
-    [data-theme="clean"] .filter-btn { border: 1px solid #e9ecef; border-radius: 8px; font-family: 'Inter', sans-serif; }
+    [data-theme="clean"] .filter-btn { border: 1px solid #e9ecef; border-radius: 24px; font-family: 'Inter', sans-serif; }
     [data-theme="clean"] .filter-btn:hover { border-color: #339af0; background: #e7f5ff; }
     [data-theme="clean"] .filter-btn.active { border-color: #339af0; background: #d0ebff; color: #1971c2; }
 
-    [data-theme="clean"] .tree-header { border-radius: 8px; }
+    [data-theme="clean"] .tree-header { border-radius: 24px; }
     [data-theme="clean"] .tree-header:hover { background: #e7f5ff; border-color: #d0ebff; }
     [data-theme="clean"] .tree-header .toggle { border-radius: 4px; border: 1px solid; }
     [data-theme="clean"] .tree-header .node-title { font-family: 'Inter', sans-serif; }
@@ -229,6 +235,9 @@
       --crayon-shadow: 0 2px 8px rgba(0,0,0,0.3);
       --font-display: 'Inter', 'Noto Sans SC', sans-serif;
       --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+      --theme-active: #e94560;
+      --theme-active-light: #3a1525;
+      --theme-active-text: white;
     }
     [data-theme="dark"] body::before { display: none; }
     [data-theme="dark"] .crayon-texture { display: none; }
@@ -246,7 +255,7 @@
     [data-theme="dark"] .nav-item.active { background: #e94560; border-color: #c62050; }
     [data-theme="dark"] .nav-item .count { background: rgba(255,255,255,0.08); border: 1px solid #30475e; color: #a0a0b0; font-family: 'Inter', sans-serif; }
     [data-theme="dark"] .nav-item.active .count { background: rgba(255,255,255,0.2); color: white; border-color: rgba(255,255,255,0.3); }
-    [data-theme="dark"] .btn { border-radius: 8px; border: 1px solid #30475e; box-shadow: none; font-family: 'Inter', sans-serif; background: #16213e; color: #e0e0e0; }
+    [data-theme="dark"] .btn { border-radius: 24px; border: 1px solid #30475e; box-shadow: none; font-family: 'Inter', sans-serif; background: #16213e; color: #e0e0e0; }
     [data-theme="dark"] .btn:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
     [data-theme="dark"] .btn-red { background: #3a1525; border-color: #e94560; color: #e94560; }
     [data-theme="dark"] .btn-blue { background: #1a3040; border-color: #4fc3f7; color: #4fc3f7; }
@@ -321,6 +330,9 @@
       --crayon-shadow: 0 2px 8px rgba(21,101,192,0.08);
       --font-display: 'Inter', 'Noto Sans SC', sans-serif;
       --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+      --theme-active: #1565c0;
+      --theme-active-light: #bbdefb;
+      --theme-active-text: white;
     }
     [data-theme="ocean"] body::before {
       background: linear-gradient(135deg, rgba(21,101,192,0.05) 0%, rgba(0,150,136,0.05) 50%, rgba(25,118,210,0.03) 100%);
@@ -388,6 +400,9 @@
       --crayon-shadow: 0 2px 6px rgba(46,125,50,0.08);
       --font-display: 'Inter', 'Noto Sans SC', sans-serif;
       --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+      --theme-active: #2e7d32;
+      --theme-active-light: #c8e6c9;
+      --theme-active-text: white;
     }
     [data-theme="forest"] body::before {
       background: linear-gradient(135deg, rgba(46,125,50,0.04) 0%, rgba(104,159,56,0.04) 50%, rgba(0,121,107,0.03) 100%);
@@ -452,6 +467,9 @@
       --crayon-shadow: 0 2px 8px rgba(230,81,0,0.08);
       --font-display: 'Inter', 'Noto Sans SC', sans-serif;
       --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+      --theme-active: #e65100;
+      --theme-active-light: #ffe0b2;
+      --theme-active-text: white;
     }
     [data-theme="sunset"] body::before {
       background: linear-gradient(135deg, rgba(255,111,0,0.06) 0%, rgba(230,81,0,0.04) 30%, rgba(255,143,0,0.04) 70%, rgba(173,20,87,0.03) 100%);
@@ -489,22 +507,28 @@
     [data-theme="sunset"] @keyframes wobble { 0%, 100% { transform: none; } }
 
     .theme-toggle {
-      width: 36px;
       height: 36px;
-      border-radius: 50%;
+      padding: 0 16px;
+      border-radius: 24px;
       border: 2px solid rgba(255,255,255,0.3);
       background: rgba(255,255,255,0.15);
       cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 18px;
+      gap: 6px;
+      font-size: 12px;
+      font-family: var(--font-body);
+      font-weight: 500;
+      color: white;
       transition: all 0.3s;
       position: relative;
+      white-space: nowrap;
     }
+    .theme-toggle .theme-label { font-size: 11px; opacity: 0.8; }
+    .theme-toggle .theme-name { font-weight: 600; }
     .theme-toggle:hover { background: rgba(255,255,255,0.3); }
-    [data-theme="clean"] .theme-toggle, [data-theme="ocean"] .theme-toggle, [data-theme="forest"] .theme-toggle, [data-theme="sunset"] .theme-toggle { border: 1px solid var(--border2); background: var(--bg2); }
-    [data-theme="dark"] .theme-toggle { border: 1px solid #30475e; background: #16213e; }
+    [data-theme="clean"] .theme-toggle, [data-theme="ocean"] .theme-toggle, [data-theme="forest"] .theme-toggle, [data-theme="sunset"] .theme-toggle { border: 1px solid var(--border2); background: var(--bg2); color: var(--text); }
+    [data-theme="dark"] .theme-toggle { border: 1px solid #30475e; background: #16213e; color: #e0e0e0; }
 
     .theme-picker {
       display: none;
@@ -541,6 +565,59 @@
       border: 2px solid rgba(0,0,0,0.1);
       flex-shrink: 0;
     }
+
+    .version-badge {
+      height: 36px;
+      padding: 0 14px;
+      border-radius: 24px;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.15);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 12px;
+      font-family: var(--font-body);
+      font-weight: 600;
+      color: white;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .version-badge:hover { background: rgba(255,255,255,0.3); }
+    .version-badge.has-update { border-color: var(--green); animation: update-pulse 2s infinite; }
+    .version-badge.has-update::after {
+      content: '';
+      position: absolute;
+      top: 4px; right: 4px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    @keyframes update-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(102,187,106,0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(102,187,106,0); }
+    }
+    .version-badge .ver-label { opacity: 0.7; }
+    [data-theme="clean"] .version-badge, [data-theme="ocean"] .version-badge, [data-theme="forest"] .version-badge, [data-theme="sunset"] .version-badge {
+      border: 1px solid var(--border2); background: var(--bg2); color: var(--text);
+    }
+    [data-theme="dark"] .version-badge { border: 1px solid #30475e; background: #16213e; color: #e0e0e0; }
+
+    .update-panel {
+      display: none;
+      position: absolute;
+      top: 44px;
+      right: 0;
+      background: var(--surface);
+      border: 2px solid var(--border2);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      z-index: 300;
+      min-width: 320px;
+      max-width: 420px;
+    }
+    .update-panel.open { display: block; }
 
     body {
       font-family: var(--font-body);
@@ -668,7 +745,7 @@
       font-size: 12px;
       color: white;
       padding: 6px 14px;
-      border-radius: 20px;
+      border-radius: 24px;
       background: rgba(255,255,255,0.2);
       border: 2px solid rgba(255,255,255,0.3);
       font-family: var(--font-body);
@@ -735,7 +812,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 14px;
-      border-radius: 12px;
+      border-radius: 24px;
       cursor: pointer;
       transition: all 0.2s;
       margin-bottom: 4px;
@@ -751,9 +828,9 @@
     }
 
     .nav-item.active {
-      background: var(--red);
-      color: white;
-      border-color: #C62828;
+      background: var(--theme-active);
+      color: var(--theme-active-text);
+      border-color: var(--theme-active);
       box-shadow: var(--crayon-shadow);
     }
 
@@ -763,7 +840,7 @@
       color: var(--text2);
       background: var(--bg);
       padding: 2px 10px;
-      border-radius: 12px;
+      border-radius: 24px;
       border: 2px solid var(--border2);
     }
 
@@ -928,7 +1005,7 @@
       font-size: 11px;
       font-weight: 500;
       padding: 3px 10px;
-      border-radius: 12px;
+      border-radius: 24px;
       border: 2px solid var(--border2);
       background: var(--bg2);
       color: var(--text2);
@@ -1435,7 +1512,7 @@
       align-items: center;
       gap: 4px;
       padding: 7px 14px;
-      border-radius: 10px;
+      border-radius: 24px;
       border: none;
       cursor: pointer;
       font-family: var(--font-body);
@@ -1490,17 +1567,23 @@
     }
 
     .action-btn {
-      background: var(--bg2, #f5f5f5);
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       color: var(--text, #333);
-      border: 1.5px solid var(--border2, #e0e0e0);
-      padding: 8px 16px;
-      border-radius: 10px;
+      border: 1.5px solid rgba(255,255,255,0.35);
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .action-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.8);
     }
-    .action-btn .action-icon { font-size: 14px; }
+    .action-btn .action-icon { font-size: 15px; }
 
     .action-btn.action-export:hover {
       background: var(--blue-light, #e3f2fd);
@@ -1543,7 +1626,7 @@
 
     .filter-btn {
       padding: 6px 14px;
-      border-radius: 20px;
+      border-radius: 24px;
       border: 2px solid var(--border2);
       background: var(--surface);
       color: var(--text2);
@@ -1553,8 +1636,8 @@
       transition: all 0.2s;
     }
 
-    .filter-btn:hover { border-color: var(--yellow); background: var(--yellow-light); }
-    .filter-btn.active { border-color: var(--red); background: var(--red-light); color: var(--red); }
+    .filter-btn:hover { border-color: var(--theme-active); background: var(--theme-active-light); }
+    .filter-btn.active { border-color: var(--theme-active); background: var(--theme-active); color: var(--theme-active-text); }
 
     .plaza-loading {
       text-align: center;
@@ -1741,115 +1824,296 @@
       display: flex;
       gap: 0;
       height: calc(100vh - 140px);
-      border: 2px solid var(--border2);
-      border-radius: var(--radius);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
       overflow: hidden;
-      background: var(--surface);
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.02);
     }
     .myrepo-left {
-      width: 38%;
-      min-width: 280px;
-      max-width: 420px;
-      border-right: 2px solid var(--border2);
+      width: 42%;
+      min-width: 340px;
+      max-width: 520px;
+      border-right: 1px solid rgba(255,255,255,0.15);
       display: flex;
       flex-direction: column;
-      background: var(--bg2);
+      background: rgba(245,247,250,0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
     .myrepo-left-header {
-      padding: 14px 16px 10px;
-      border-bottom: 1px solid var(--border2);
-      background: var(--surface);
+      flex-shrink: 0;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
     .myrepo-search {
       width: 100%;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 2px solid var(--border2);
-      background: var(--bg2);
-      font-size: 13px;
+      padding: 12px 20px;
+      border-radius: 24px;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      font-size: 14px;
       font-family: var(--font-body);
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04), inset 0 1px 2px rgba(255,255,255,0.4);
+      color: var(--text);
     }
-    .myrepo-search:focus { border-color: var(--blue); }
+    .myrepo-search:focus {
+      border-color: rgba(99,102,241,0.5);
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.08), 0 4px 16px rgba(99,102,241,0.1);
+      background: rgba(255,255,255,0.8);
+    }
     .myrepo-filter-bar {
+      flex-shrink: 0;
       display: flex;
-      gap: 4px;
-      padding: 8px 16px;
-      border-bottom: 1px solid var(--border2);
+      gap: 6px;
+      padding: 10px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
       flex-wrap: wrap;
       align-items: center;
-      background: var(--surface);
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
     .myrepo-filter-btn {
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 8px;
-      border: 1.5px solid var(--border2);
-      background: var(--bg2);
+      font-size: 12px;
+      padding: 6px 16px;
+      border-radius: 24px;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(6px);
       color: var(--text2);
       cursor: pointer;
-      transition: all 0.15s;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       font-family: var(--font-body);
+      font-weight: 500;
     }
-    .myrepo-filter-btn:hover { border-color: var(--blue); color: var(--blue); }
-    .myrepo-filter-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .myrepo-filter-btn:hover {
+      border-color: rgba(99,102,241,0.4);
+      color: #6366f1;
+      background: rgba(99,102,241,0.06);
+      transform: translateY(-1px);
+    }
+    .myrepo-filter-btn.active {
+      background: var(--theme-active);
+      color: var(--theme-active-text);
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+      transform: translateY(-1px);
+    }
     .myrepo-stats {
+      flex-shrink: 0;
       display: flex;
       gap: 0;
-      border-bottom: 1px solid var(--border2);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.3);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
     .myrepo-stat {
       flex: 1;
       text-align: center;
-      padding: 8px 4px;
-      border-right: 1px solid var(--border2);
+      padding: 14px 6px;
+      border-right: 1px solid rgba(255,255,255,0.12);
+      transition: background 0.2s;
     }
     .myrepo-stat:last-child { border-right: none; }
-    .myrepo-stat .val { font-size: 18px; font-weight: 700; }
-    .myrepo-stat .lbl { font-size: 10px; color: var(--text2); margin-top: 1px; }
+    .myrepo-stat:hover { background: rgba(255,255,255,0.2); }
+    .myrepo-stat .val { font-size: 24px; font-weight: 700; font-family: var(--font-display); letter-spacing: -0.5px; }
+    .myrepo-stat .lbl { font-size: 11px; color: var(--text2); margin-top: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
     .myrepo-list {
-      flex: 1;
+      flex: 1 1 0;
+      min-height: 0;
       overflow-y: auto;
-      padding: 6px 0;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .myrepo-list .empty-msg {
+      padding: 30px;
+      text-align: center;
+      color: var(--text2);
+      font-size: 13px;
     }
     .myrepo-item {
       display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.45);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .myrepo-item::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 3px;
+      background: var(--theme-active);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .myrepo-item:hover {
+      background: rgba(255,255,255,0.7);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.5);
+    }
+    .myrepo-item:hover::before { opacity: 1; }
+    .myrepo-item.selected {
+      background: rgba(255,255,255,0.75);
+      border-color: var(--theme-active);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1), 0 0 0 1px var(--theme-active);
+    }
+    .myrepo-item.selected::before { opacity: 1; }
+    .myrepo-item .item-header {
+      display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 16px;
-      cursor: pointer;
-      transition: background 0.15s;
-      border-bottom: 1px solid transparent;
+      margin-bottom: 6px;
     }
-    .myrepo-item:hover { background: var(--surface); }
-    .myrepo-item.selected {
-      background: var(--blue-light, #bbdefb);
-      border-left: 3px solid var(--blue);
+    .myrepo-item .scope-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.5);
+      border-radius: 10px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
     .myrepo-item .item-name {
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 700;
       color: var(--text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      letter-spacing: -0.2px;
+      flex: 1;
+      min-width: 0;
+    }
+    .myrepo-item .item-desc {
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 8px;
     }
     .myrepo-item .item-tags {
       display: flex;
-      gap: 3px;
-      margin-top: 2px;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: auto;
     }
     .myrepo-item .item-badge {
-      font-size: 9px;
-      padding: 1px 6px;
-      border-radius: 6px;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 24px;
       font-weight: 500;
+      letter-spacing: 0.2px;
+      backdrop-filter: blur(4px);
+    }
+    .myrepo-item.scope-project .scope-icon {
+      background: rgba(139,92,246,0.12);
+    }
+    .scope-filter-bar {
+      flex-shrink: 0;
+      display: flex;
+      gap: 6px;
+      padding: 6px 20px 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .scope-filter-btn {
+      font-size: 11px;
+      padding: 5px 13px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.4);
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 500;
+      backdrop-filter: blur(4px);
+    }
+    .scope-filter-btn:hover { border-color: var(--theme-active); color: var(--theme-active); }
+    .scope-filter-btn.active {
+      background: var(--theme-active);
+      color: var(--theme-active-text);
+      border-color: transparent;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    }
+    .scope-info-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .scope-info-box.global {
+      background: rgba(99,102,241,0.06);
+      border: 1.5px solid rgba(99,102,241,0.15);
+      color: #6366f1;
+    }
+    .scope-info-box.project {
+      background: rgba(139,92,246,0.06);
+      border: 1.5px solid rgba(139,92,246,0.15);
+      color: #8b5cf6;
+    }
+    .migrate-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(8px);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .migrate-btn:hover {
+      border-color: rgba(139,92,246,0.4);
+      color: #8b5cf6;
+      background: rgba(139,92,246,0.06);
+      box-shadow: 0 4px 16px rgba(139,92,246,0.12);
+      transform: translateY(-2px);
     }
     .myrepo-right {
       flex: 1;
       overflow-y: auto;
-      padding: 20px 24px;
+      padding: 28px 32px;
+      background: rgba(255,255,255,0.15);
     }
     .myrepo-right-empty {
       display: flex;
@@ -1858,26 +2122,36 @@
       justify-content: center;
       height: 100%;
       color: var(--text2);
-      font-size: 15px;
-      gap: 12px;
+      font-size: 16px;
+      gap: 16px;
     }
-    .myrepo-right-empty .icon { font-size: 48px; opacity: 0.4; }
+    .myrepo-right-empty .icon { font-size: 60px; opacity: 0.3; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08)); }
     .myrepo-section {
-      background: var(--bg2);
-      border: 2px solid var(--border2);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(255,255,255,0.35);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .myrepo-section:hover {
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.03);
+      transform: translateY(-1px);
     }
     .myrepo-section-title {
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: 15px;
+      font-weight: 700;
       color: var(--text);
-      margin-bottom: 10px;
+      margin-bottom: 14px;
+      letter-spacing: -0.3px;
     }
     .myrepo-actions {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
     }
     .myrepo-cat-select {
@@ -1925,7 +2199,10 @@
       <button class="btn" onclick="rescan()">🔄 重新扫描</button>
       <button class="btn btn-blue" onclick="showView('log')">📋 使用日志</button>
       <div style="position:relative">
-        <button class="theme-toggle" onclick="toggleThemePicker()" id="themeToggle" title="切换主题">🎨</button>
+        <button class="theme-toggle" onclick="toggleThemePicker()" id="themeToggle" title="切换主题">
+          <span class="theme-label">主题</span>
+          <span class="theme-name" id="themeNameDisplay">蜡笔小新</span>
+        </button>
         <div class="theme-picker" id="themePicker">
           <div class="theme-option" data-theme-val="" onclick="setTheme('')">
             <span class="theme-swatch" style="background: linear-gradient(135deg, #E53935, #FFD600)"></span> 蜡笔小新
@@ -1947,27 +2224,43 @@
           </div>
         </div>
       </div>
+      <div style="position:relative">
+        <button class="version-badge" id="versionBadge" onclick="toggleUpdatePanel()" title="版本信息">
+          <span class="ver-label">v</span><span class="ver-num" id="verNum">...</span>
+        </button>
+        <div class="update-panel" id="updatePanel">
+          <div id="updatePanelContent">
+            <div style="text-align:center; padding:20px; color:var(--text2)">加载中...</div>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
   <div class="main">
     <aside class="sidebar" id="sidebar">
       <h3>导航</h3>
-      <div class="nav-item active" onclick="showView('myrepo')">
+      <div class="nav-item active" onclick="showView('community')">
+        <span>🌍 社区广场</span>
+      </div>
+      <div class="nav-item" onclick="showView('myrepo')">
         <span>📦 我的本地仓库</span>
         <span class="count" id="totalCount">0</span>
       </div>
-      <div class="nav-item" onclick="showView('community')">
-        <span>🌍 社区</span>
+      <div class="nav-item" onclick="showView('ghcommunity')">
+        <span>🔗 我的 GitHub 社区</span>
       </div>
-      <div class="nav-item" onclick="showView('catmgr')">
-        <span>🏷️ 分类管理</span>
+      <div class="nav-item" onclick="showView('sources')">
+        <span>📡 订阅外部GitHub仓库</span>
       </div>
       <div class="nav-item" onclick="showView('mcp')">
         <span>⚙️ MCP 管理</span>
       </div>
       <div class="nav-item" onclick="showView('log')">
         <span>📋 使用日志</span>
+      </div>
+      <div class="nav-item" onclick="showView('help')">
+        <span>❓ 帮助</span>
       </div>
     </aside>
 
@@ -1992,6 +2285,7 @@
     })();
 
     const THEME_ICONS = { '': '🖍️', 'clean': '✨', 'dark': '🌙', 'ocean': '🌊', 'forest': '🌿', 'sunset': '🌅' };
+    const THEME_NAMES = { '': '蜡笔小新', 'clean': '简洁', 'dark': '暗黑', 'ocean': '海洋', 'forest': '森林', 'sunset': '日落' };
 
     function toggleThemePicker() {
       const picker = document.getElementById('themePicker');
@@ -2016,7 +2310,8 @@
         document.documentElement.removeAttribute('data-theme');
       }
       localStorage.setItem('skiller-theme', theme);
-      document.getElementById('themeToggle').textContent = THEME_ICONS[theme] || '🎨';
+      var nameEl = document.getElementById('themeNameDisplay');
+      if (nameEl) nameEl.textContent = THEME_NAMES[theme] || '蜡笔小新';
       document.getElementById('themePicker').classList.remove('open');
       updateThemePickerActive();
     }
@@ -2031,8 +2326,8 @@
     (function() {
       const saved = localStorage.getItem('skiller-theme');
       const theme = saved !== null ? saved : 'clean';
-      const btn = document.getElementById('themeToggle');
-      if (btn) btn.textContent = THEME_ICONS[theme] || '🎨';
+      var nameEl = document.getElementById('themeNameDisplay');
+      if (nameEl) nameEl.textContent = THEME_NAMES[theme] || '蜡笔小新';
     })();
 
     let allSkills = [];
@@ -2152,8 +2447,146 @@
       }
 
       document.getElementById('totalCount').textContent = stats.total;
-      showView('myrepo');
+      showView('community');
       connectSSE();
+      loadVersionInfo();
+    }
+
+    let versionInfo = null;
+    let updateInfo = null;
+
+    async function loadVersionInfo() {
+      try {
+        versionInfo = await api('/api/version');
+        var verEl = document.getElementById('verNum');
+        if (verEl) verEl.textContent = versionInfo.version + (versionInfo.commit ? ' (' + versionInfo.commit + ')' : '');
+      } catch(e) {}
+      checkForUpdates();
+    }
+
+    async function checkForUpdates() {
+      try {
+        updateInfo = await api('/api/check-update');
+        var badge = document.getElementById('versionBadge');
+        if (badge && updateInfo.hasUpdate) {
+          badge.classList.add('has-update');
+        }
+      } catch(e) {}
+    }
+
+    function toggleUpdatePanel() {
+      var panel = document.getElementById('updatePanel');
+      if (!panel) return;
+      if (panel.classList.contains('open')) {
+        panel.classList.remove('open');
+        return;
+      }
+      panel.classList.add('open');
+      renderUpdatePanel();
+    }
+
+    function renderUpdatePanel() {
+      var el = document.getElementById('updatePanelContent');
+      if (!el) return;
+      var html = '<div style="font-family:var(--font-display); font-size:16px; margin-bottom:12px">📦 版本信息</div>';
+
+      if (versionInfo) {
+        html += '<div style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px; font-size:12px">'
+          + '<div style="display:flex; justify-content:space-between"><span style="color:var(--text2)">当前版本</span><span style="font-weight:600">' + escapeHtml(versionInfo.version) + '</span></div>'
+          + '<div style="display:flex; justify-content:space-between"><span style="color:var(--text2)">Commit</span><span style="font-family:monospace">' + escapeHtml(versionInfo.commit || 'N/A') + '</span></div>'
+          + '<div style="display:flex; justify-content:space-between"><span style="color:var(--text2)">日期</span><span>' + escapeHtml(versionInfo.commitDate ? versionInfo.commitDate.split(' ')[0] : 'N/A') + '</span></div>'
+          + '</div>';
+      }
+
+      if (updateInfo) {
+        if (updateInfo.networkError) {
+          html += '<div style="padding:10px; border-radius:12px; background:#fff3e0; border:1.5px solid var(--orange); font-size:12px; margin-bottom:10px">'
+            + '<div style="font-weight:600; color:var(--orange); margin-bottom:4px">🌐 网络不可用</div>'
+            + '<div style="color:var(--text2)">' + escapeHtml(updateInfo.errorMsg || '无法访问 GitHub') + '</div>'
+            + '</div>';
+        } else if (updateInfo.error) {
+          html += '<div style="padding:10px; border-radius:12px; background:#fff3e0; color:#e65100; font-size:12px; margin-bottom:10px">⚠️ ' + escapeHtml(updateInfo.error) + '</div>';
+        } else if (updateInfo.hasUpdate) {
+          html += '<div style="padding:10px; border-radius:12px; background:#e8f5e9; border:1.5px solid var(--green); margin-bottom:10px">'
+            + '<div style="font-weight:600; color:var(--green); margin-bottom:6px">🆕 发现新版本！落后 ' + updateInfo.behind + ' 个提交</div>'
+            + '<div style="font-size:11px; color:var(--text2)">远程: ' + escapeHtml(updateInfo.remoteCommit || '') + '</div>'
+            + '</div>';
+
+          if (updateInfo.changelog) {
+            html += '<div style="margin-bottom:10px">'
+              + '<div style="font-size:11px; font-weight:600; margin-bottom:4px; color:var(--text2)">更新日志:</div>'
+              + '<div style="font-size:11px; font-family:monospace; background:var(--bg2); padding:8px 10px; border-radius:8px; max-height:120px; overflow-y:auto; white-space:pre-wrap; line-height:1.6">' + escapeHtml(updateInfo.changelog) + '</div>'
+              + '</div>';
+          }
+
+          if (updateInfo.release) {
+            html += '<div style="margin-bottom:10px; padding:8px 10px; border-radius:8px; background:var(--bg2); font-size:11px">'
+              + '<div style="font-weight:600">📋 Release: ' + escapeHtml(updateInfo.release.name || updateInfo.release.tag) + '</div>'
+              + (updateInfo.release.body ? '<div style="color:var(--text2); margin-top:4px">' + escapeHtml(updateInfo.release.body.substring(0, 200)) + '</div>' : '')
+              + '</div>';
+          }
+
+          html += '<button class="btn btn-green" style="width:100%; text-align:center" onclick="doUpdate()" id="doUpdateBtn">🚀 立即更新</button>';
+        } else {
+          html += '<div style="padding:10px; border-radius:12px; background:var(--bg2); font-size:12px; color:var(--text2); text-align:center">✅ 已是最新版本</div>';
+        }
+      } else {
+        html += '<div style="text-align:center; padding:10px; color:var(--text2); font-size:12px">正在检查更新...</div>';
+      }
+
+      html += '<div style="margin-top:10px; display:flex; gap:6px">'
+        + '<button class="btn" style="flex:1; font-size:11px; padding:6px 10px; text-align:center" onclick="recheckUpdate()">🔄 重新检查</button>'
+        + '<button class="btn" style="font-size:11px; padding:6px 10px" onclick="document.getElementById(\'updatePanel\').classList.remove(\'open\')">关闭</button>'
+        + '</div>';
+
+      el.innerHTML = html;
+    }
+
+    async function recheckUpdate() {
+      updateInfo = null;
+      renderUpdatePanel();
+      await checkForUpdates();
+      renderUpdatePanel();
+    }
+
+    async function doUpdate() {
+      var btn = document.getElementById('doUpdateBtn');
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ 更新中...'; }
+      try {
+        var result = await api('/api/do-update');
+        if (result.success) {
+          showToast({ tool: 'update', resultSummary: '更新成功! 新版本: ' + result.newVersion + ' (' + result.newCommit + ')', timestamp: new Date().toISOString() });
+          versionInfo = { version: result.newVersion, commit: result.newCommit, commitDate: '' };
+          updateInfo = { hasUpdate: false };
+          var badge = document.getElementById('versionBadge');
+          if (badge) badge.classList.remove('has-update');
+          var verEl = document.getElementById('verNum');
+          if (verEl) verEl.textContent = result.newVersion + ' (' + result.newCommit + ')';
+          renderUpdatePanel();
+          if (result.needRestart) {
+            var el = document.getElementById('updatePanelContent');
+            if (el) {
+              el.innerHTML += '<div style="margin-top:10px; padding:10px; border-radius:12px; background:#fff3e0; border:1.5px solid var(--orange); font-size:12px">'
+                + '<strong>⚠️ 需要重启</strong><br>'
+                + '<span style="color:var(--text2)">请重启 MCP 服务器以使更新生效。</span><br>'
+                + '<button class="btn btn-blue" style="margin-top:8px; font-size:11px" onclick="restartDashboard()">🔄 重启服务</button>'
+                + '</div>';
+            }
+          }
+        } else {
+          showToast({ tool: 'update', resultSummary: '更新失败: ' + (result.message || '未知错误'), timestamp: new Date().toISOString() });
+          if (btn) { btn.disabled = false; btn.textContent = '🚀 立即更新'; }
+        }
+      } catch(e) {
+        showToast({ tool: 'update', resultSummary: '更新请求失败', timestamp: new Date().toISOString() });
+        if (btn) { btn.disabled = false; btn.textContent = '🚀 立即更新'; }
+      }
+    }
+
+    async function restartDashboard() {
+      showToast({ tool: 'restart', resultSummary: '正在重启服务...', timestamp: new Date().toISOString() });
+      try { await api('/api/mcp/restart?name=skiller-dashboard'); } catch(e) {}
+      setTimeout(function() { window.location.reload(); }, 3000);
     }
 
     function showView(view) {
@@ -2161,7 +2594,7 @@
       currentCategory = null;
 
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      const viewMap = { myrepo: 0, community: 1, catmgr: 2, mcp: 3, log: 4 };
+      const viewMap = { community: 0, myrepo: 1, ghcommunity: 2, sources: 3, mcp: 4, log: 5, help: 6 };
       const idx = viewMap[view];
       if (idx !== undefined) {
         const items = document.querySelectorAll('#sidebar .nav-item');
@@ -2170,14 +2603,22 @@
 
       if (view === 'myrepo') {
         renderMyRepo();
+      } else if (view === 'ghcommunity') {
+        renderGhCommunity();
       } else if (view === 'log') {
         renderLog();
       } else if (view === 'community') {
         renderCommunity();
+      } else if (view === 'sources') {
+        renderSourcesPage();
+      } else if (view === 'help') {
+        renderHelpPage();
       } else if (view === 'mcp') {
         renderMcpPanel();
       } else if (view === 'catmgr') {
-        renderCategoryManager();
+        showView('myrepo');
+        setTimeout(showCatManagerInMyRepo, 100);
+        return;
       }
     }
 
@@ -2195,13 +2636,18 @@
     let myrepoFilter = 'all';
     let myrepoCatFilter = '';
     let myrepoSearchQuery = '';
+    let myrepoScopeFilter = '';
+    let recentProjectsCache = [];
 
     async function renderMyRepo() {
       const content = document.getElementById('content');
       await fetchOwnSkills(false);
+      try { recentProjectsCache = await api('/api/recent-projects'); } catch(e) { recentProjectsCache = []; }
       const ownSet = new Set(ownSkillsList.map(n => n.toLowerCase()));
       const uploadedCount = allSkills.filter(s => ownSet.has(s.name.toLowerCase())).length;
       const pendingCount = allSkills.length - uploadedCount;
+      const projectCount = allSkills.filter(s => s.source === 'project-rules').length;
+      const globalCount = allSkills.length - projectCount;
 
       content.innerHTML = '<div class="myrepo-layout">'
         + '<div class="myrepo-left">'
@@ -2217,11 +2663,19 @@
         +       '<option value="__uncategorized__">未分类</option>'
         +       userCategories.map(function(uc) { return '<option value="' + escapeAttr(uc.id) + '">' + escapeHtml((uc.icon || '') + ' ' + uc.label) + '</option>'; }).join('')
         +     '</select>'
+        +     '<button class="myrepo-filter-btn" onclick="showCatManagerInMyRepo()" style="margin-left:auto">🏷️ 分类管理</button>'
+        +   '</div>'
+        +   '<div class="scope-filter-bar">'
+        +     '<span style="font-size:10px; color:var(--text2)">作用域:</span>'
+        +     '<button class="scope-filter-btn' + (myrepoScopeFilter === '' ? ' active' : '') + '" onclick="myrepoScopeFilter=\'\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.scope-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">全部</button>'
+        +     '<button class="scope-filter-btn' + (myrepoScopeFilter === 'global' ? ' active' : '') + '" onclick="myrepoScopeFilter=\'global\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.scope-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">🌐 全局 (' + globalCount + ')</button>'
+        +     '<button class="scope-filter-btn' + (myrepoScopeFilter === 'project' ? ' active' : '') + '" onclick="myrepoScopeFilter=\'project\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.scope-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">📁 项目 (' + projectCount + ')</button>'
         +   '</div>'
         +   '<div class="myrepo-stats">'
         +     '<div class="myrepo-stat"><div class="val" style="color:var(--blue)">' + allSkills.length + '</div><div class="lbl">本地总数</div></div>'
         +     '<div class="myrepo-stat"><div class="val" style="color:var(--green)">' + uploadedCount + '</div><div class="lbl">已上架</div></div>'
         +     '<div class="myrepo-stat"><div class="val" style="color:var(--orange)">' + pendingCount + '</div><div class="lbl">待上传</div></div>'
+        +     '<div class="myrepo-stat"><div class="val" style="color:var(--purple, #7c4dff)">' + projectCount + '</div><div class="lbl">项目级</div></div>'
         +   '</div>'
         +   '<div class="myrepo-list" id="myrepoList"></div>'
         + '</div>'
@@ -2234,12 +2688,77 @@
       if (myrepoSelectedSkill) selectMyRepoSkill(myrepoSelectedSkill);
     }
 
+    async function showCatManagerInMyRepo() {
+      myrepoSelectedSkill = null;
+      var rightPanel = document.getElementById('myrepoRight');
+      if (!rightPanel) return;
+      userCategories = await api('/api/categories/list');
+      var roots = userCategories.filter(function(c) { return !c.parentId; });
+
+      function renderCatRowInline(cat, indent) {
+        indent = indent || 0;
+        var children = userCategories.filter(function(c) { return c.parentId === cat.id; });
+        var skillCount = allSkills.filter(function(s) { return s.categories.indexOf(cat.id) >= 0; }).length;
+        var html = '<div style="display:flex; align-items:center; gap:6px; padding:8px 12px; padding-left:' + (12 + indent * 20) + 'px; border-radius:12px; border:1.5px solid var(--border2); background:var(--bg2); margin-bottom:4px">'
+          + '<span style="font-size:16px">' + (cat.icon || '📦') + '</span>'
+          + '<span style="flex:1; font-family:var(--font-display); font-size:13px">' + escapeHtml(cat.label) + '</span>'
+          + '<span class="count" style="font-size:10px">' + skillCount + '</span>'
+          + '<button class="btn" style="padding:3px 8px; font-size:10px" onclick="addSubCategory(\'' + escapeAttr(cat.id) + '\')">➕</button>'
+          + '<button class="btn" style="padding:3px 8px; font-size:10px" onclick="renameCategoryPrompt(\'' + escapeAttr(cat.id) + '\', \'' + escapeAttr(cat.label) + '\', \'' + escapeAttr(cat.icon || '') + '\')">✏️</button>'
+          + '<button class="btn btn-red" style="padding:3px 8px; font-size:10px" onclick="deleteCategoryConfirm(\'' + escapeAttr(cat.id) + '\')">🗑️</button>'
+          + '</div>';
+        for (var i = 0; i < children.length; i++) {
+          html += renderCatRowInline(children[i], indent + 1);
+        }
+        return html;
+      }
+
+      var html = '<div style="padding:24px; overflow-y:auto; height:100%">'
+        + '<div style="font-family:var(--font-display); font-size:18px; margin-bottom:12px">🏷️ 分类管理</div>'
+        + '<p style="color:var(--text2); margin-bottom:12px; font-size:12px">创建分类后可在技能详情中为技能添加分类标签。</p>'
+        + '<div style="display:flex; gap:6px; margin-bottom:16px; align-items:stretch">'
+        + '<input type="text" id="newCatLabel" placeholder="分类名称" style="flex:1; padding:10px 16px; border-radius:24px; border:2px solid var(--border); background:var(--surface); font-size:13px; font-family:var(--font-body); outline:none" onkeydown="if(event.key===\'Enter\') addRootCategoryInMyRepo()">'
+        + '<input type="text" id="newCatIcon" placeholder="图标" value="" maxlength="2" style="width:50px; padding:10px; border-radius:24px; border:2px solid var(--border); background:var(--surface); font-size:16px; text-align:center; outline:none">'
+        + '<button class="btn btn-green" onclick="addRootCategoryInMyRepo()" style="white-space:nowrap; font-size:12px; padding:8px 14px">➕ 添加</button>'
+        + '</div>'
+        + '<div id="catListInMyRepo">'
+        + (roots.length > 0 ? roots.map(function(c) { return renderCatRowInline(c); }).join('') : '<div class="empty-state" style="padding:20px"><div class="icon">📭</div><p>暂无分类</p></div>')
+        + '</div>';
+
+      var uncategorized = allSkills.filter(function(s) { return s.categories.length === 0; });
+      if (uncategorized.length > 0) {
+        html += '<div style="margin-top:16px; padding-top:12px; border-top:2px dashed var(--border2)">'
+          + '<div style="font-family:var(--font-display); font-size:14px; color:var(--orange); margin-bottom:8px">📭 未分类 (' + uncategorized.length + ')</div>'
+          + '<div style="display:flex; flex-wrap:wrap; gap:4px">'
+          + uncategorized.map(function(s) { return '<span class="tag" style="font-size:11px; padding:3px 10px">' + escapeHtml(s.name) + '</span>'; }).join('')
+          + '</div></div>';
+      }
+
+      html += '</div>';
+      rightPanel.innerHTML = html;
+    }
+
+    async function addRootCategoryInMyRepo() {
+      var label = document.getElementById('newCatLabel').value.trim();
+      var icon = document.getElementById('newCatIcon').value.trim();
+      if (!label) return;
+      await api('/api/categories/add?label=' + encodeURIComponent(label) + '&icon=' + encodeURIComponent(icon));
+      document.getElementById('newCatLabel').value = '';
+      document.getElementById('newCatIcon').value = '';
+      allSkills = await api('/api/skills');
+      categories = await api('/api/categories');
+      userCategories = await api('/api/categories/list');
+      showCatManagerInMyRepo();
+    }
+
     function renderMyRepoList() {
       var ownSet = new Set(ownSkillsList.map(function(n) { return n.toLowerCase(); }));
       var q = (myrepoSearchQuery || '').toLowerCase().trim();
       var filtered = allSkills.filter(function(s) {
         if (myrepoFilter === 'uploaded' && !ownSet.has(s.name.toLowerCase())) return false;
         if (myrepoFilter === 'pending' && ownSet.has(s.name.toLowerCase())) return false;
+        if (myrepoScopeFilter === 'global' && s.source === 'project-rules') return false;
+        if (myrepoScopeFilter === 'project' && s.source !== 'project-rules') return false;
         if (myrepoCatFilter === '__uncategorized__' && s.categories.length > 0) return false;
         if (myrepoCatFilter && myrepoCatFilter !== '__uncategorized__') {
           var allIds = getCategoryAndDescendants(myrepoCatFilter);
@@ -2248,7 +2767,8 @@
         if (q) {
           var match = s.name.toLowerCase().indexOf(q) >= 0
             || s.description.toLowerCase().indexOf(q) >= 0
-            || s.tags.some(function(t) { return t.toLowerCase().indexOf(q) >= 0; });
+            || s.tags.some(function(t) { return t.toLowerCase().indexOf(q) >= 0; })
+            || (s.projectName && s.projectName.toLowerCase().indexOf(q) >= 0);
           if (!match) return false;
         }
         return true;
@@ -2258,27 +2778,37 @@
       if (!listEl) return;
 
       if (filtered.length === 0) {
-        listEl.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text2); font-size:13px">没有匹配的技能</div>';
+        listEl.innerHTML = '<div class="empty-msg">没有匹配的技能</div>';
         return;
       }
 
       listEl.innerHTML = filtered.map(function(s) {
         var isUploaded = ownSet.has(s.name.toLowerCase());
         var selected = myrepoSelectedSkill === s.name;
+        var isProject = s.source === 'project-rules';
+        var scopeIcon = isProject ? '📁' : '🌐';
+        var scopeClass = isProject ? ' scope-project' : '';
+        var projectLabel = s.projectName ? s.projectName : '';
+        var desc = s.description || '';
+        if (desc.length > 80) desc = desc.substring(0, 80) + '...';
         var catLabels = s.categories.slice(0, 2).map(function(c) {
           var cat = userCategories.find(function(uc) { return uc.id === c; });
           return cat ? (cat.icon || '') + cat.label : c;
         });
-        return '<div class="myrepo-item' + (selected ? ' selected' : '') + '" onclick="selectMyRepoSkill(\'' + escapeAttr(s.name).replace(/'/g, "\\'") + '\')">'
-          + '<div style="flex:1; min-width:0">'
+        return '<div class="myrepo-item' + (selected ? ' selected' : '') + scopeClass + '" onclick="selectMyRepoSkill(\'' + escapeAttr(s.name).replace(/'/g, "\\'") + '\')">'
+          + '<div class="item-header">'
+          +   '<div class="scope-icon">' + scopeIcon + '</div>'
           +   '<div class="item-name">' + escapeHtml(s.name) + '</div>'
-          +   '<div class="item-tags">'
-          +     (isUploaded
-              ? '<span class="item-badge" style="background:#e8f5e9; color:#2e7d32">已上传</span>'
-              : '<span class="item-badge" style="background:#fff3e0; color:#e65100">未上传</span>')
-          +     '<span class="item-badge" style="background:var(--bg2); color:var(--text2)">' + escapeHtml(s.source) + '</span>'
-          +     catLabels.map(function(l) { return '<span class="item-badge" style="background:var(--red-light); color:var(--red)">' + escapeHtml(l) + '</span>'; }).join('')
-          +   '</div>'
+          + '</div>'
+          + '<div class="item-desc">' + escapeHtml(desc || '暂无描述') + '</div>'
+          + '<div class="item-tags">'
+          +   (isUploaded
+            ? '<span class="item-badge" style="background:#e8f5e9; color:#2e7d32">已上传</span>'
+            : '<span class="item-badge" style="background:#fff3e0; color:#e65100">未上传</span>')
+          +   (isProject
+            ? '<span class="item-badge" style="background:rgba(124,77,255,0.1); color:#7c4dff">' + escapeHtml(projectLabel || 'project') + '</span>'
+            : '')
+          +   catLabels.map(function(l) { return '<span class="item-badge" style="background:var(--theme-active-light); color:var(--theme-active)">' + escapeHtml(l) + '</span>'; }).join('')
           + '</div>'
           + '</div>';
       }).join('');
@@ -2315,6 +2845,8 @@
 
       var skillCats = data.categories || [];
 
+      var isProject = data.source === 'project-rules';
+      var projectName = data.projectName || '';
       var html = '';
 
       // Info header
@@ -2328,6 +2860,20 @@
         + '<p style="color:var(--text2); font-size:13px; line-height:1.6; margin-bottom:4px">' + escapeHtml(data.description) + '</p>'
         + '<div style="font-size:11px; color:var(--text2)">📂 ' + escapeHtml(data.path || '') + '</div>'
         + '</div>';
+
+      // Scope info
+      if (isProject) {
+        var projPath = (data.path || '').replace(/\/\.cursor\/rules\/.*$/, '');
+        html += '<div class="scope-info-box project">'
+          + '<span style="font-size:18px">📁</span>'
+          + '<div><strong>项目级技能</strong> — 仅作用于 <code style="font-size:11px">' + escapeHtml(projPath) + '</code></div>'
+          + '</div>';
+      } else {
+        html += '<div class="scope-info-box global">'
+          + '<span style="font-size:18px">🌐</span>'
+          + '<div><strong>全局技能</strong> — 所有项目共享</div>'
+          + '</div>';
+      }
 
       // Category management
       html += '<div class="myrepo-section">'
@@ -2385,6 +2931,25 @@
         + '</button>';
       html += '</div></div>';
 
+      // Scope migration section
+      html += '<div class="myrepo-section">'
+        + '<div class="myrepo-section-title">🔄 作用域迁移</div>';
+      if (isProject) {
+        html += '<div style="display:flex; gap:8px; flex-wrap:wrap">'
+          + '<button class="migrate-btn" onclick="promoteToGlobal(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\', false)">'
+          + '🌐 复制为全局技能</button>'
+          + '<button class="migrate-btn" style="color:var(--orange); border-color:var(--orange)" onclick="promoteToGlobal(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\', true)">'
+          + '🌐 移动为全局（删除原文件）</button>'
+          + '</div>';
+      } else {
+        html += '<div style="margin-bottom:8px">'
+          + '<button class="migrate-btn" onclick="showCopyToProject(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\')">'
+          + '📁 复制到项目</button>'
+          + '</div>'
+          + '<div id="copyToProjectPanel" style="display:none"></div>';
+      }
+      html += '</div>';
+
       // Content tabs: sub-skill tree + raw
       html += '<div class="tab-bar" style="margin-top:0">'
         + '<div class="tab-btn active" onclick="myrepoSwitchTab(\'tree\', this)">🌳 子技能树' + (subCount > 0 ? ' (' + subCount + ')' : '') + '</div>'
@@ -2409,6 +2974,61 @@
       el.classList.add('active');
       document.getElementById('myrepoTabTree').style.display = tab === 'tree' ? 'block' : 'none';
       document.getElementById('myrepoTabRaw').style.display = tab === 'raw' ? 'block' : 'none';
+    }
+
+    async function promoteToGlobal(name, deleteOriginal) {
+      var confirmMsg = deleteOriginal
+        ? '确定要将「' + name + '」移动为全局技能？原项目文件将被删除。'
+        : '确定要将「' + name + '」复制为全局技能？';
+      if (!confirm(confirmMsg)) return;
+      var url = '/api/skill/promote-to-global?name=' + encodeURIComponent(name)
+        + '&deleteOriginal=' + (deleteOriginal ? '1' : '0');
+      var result = await api(url);
+      if (result.success) {
+        showToast({ tool: 'promote', resultSummary: result.message, timestamp: new Date().toISOString() });
+        allSkills = await api('/api/skills');
+        document.getElementById('totalCount').textContent = allSkills.length;
+        myrepoSelectedSkill = null;
+        renderMyRepo();
+      } else {
+        alert('操作失败: ' + (result.message || '未知错误'));
+      }
+    }
+
+    function showCopyToProject(name) {
+      var panel = document.getElementById('copyToProjectPanel');
+      if (!panel) return;
+      if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+      var projectOptions = '';
+      if (recentProjectsCache && recentProjectsCache.length > 0) {
+        projectOptions = recentProjectsCache.map(function(p) {
+          return '<button class="migrate-btn" style="font-size:11px; padding:5px 10px" onclick="doCopyToProject(\'' + escapeAttr(name).replace(/'/g, "\\'") + '\', \'' + escapeAttr(p).replace(/'/g, "\\'") + '\')">'
+            + '📁 ' + escapeHtml(p) + '</button>';
+        }).join('');
+      }
+      panel.innerHTML = '<div style="margin-top:8px">'
+        + '<div style="font-size:11px; color:var(--text2); margin-bottom:6px">选择目标项目:</div>'
+        + '<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px">' + projectOptions + '</div>'
+        + '<div style="display:flex; gap:6px; align-items:center">'
+        + '<input type="text" id="copyProjectPathInput" placeholder="或输入项目路径..." style="flex:1; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--bg2); font-size:11px; font-family:monospace; outline:none">'
+        + '<button class="migrate-btn" style="font-size:11px" onclick="doCopyToProject(\'' + escapeAttr(name).replace(/'/g, "\\'") + '\', document.getElementById(\'copyProjectPathInput\').value)">确认复制</button>'
+        + '</div></div>';
+      panel.style.display = 'block';
+    }
+
+    async function doCopyToProject(name, projectPath) {
+      if (!projectPath || !projectPath.trim()) { alert('请输入项目路径'); return; }
+      var url = '/api/skill/copy-to-project?name=' + encodeURIComponent(name)
+        + '&projectPath=' + encodeURIComponent(projectPath.trim());
+      var result = await api(url);
+      if (result.success) {
+        showToast({ tool: 'copy', resultSummary: result.message, timestamp: new Date().toISOString() });
+        allSkills = await api('/api/skills');
+        document.getElementById('totalCount').textContent = allSkills.length;
+        renderMyRepo();
+      } else {
+        alert('复制失败: ' + (result.message || '未知错误'));
+      }
     }
 
     async function myrepoSaveCategories(skillName) {
@@ -2693,6 +3313,17 @@
       renderCategoryManager();
     }
 
+    async function refreshCatView() {
+      allSkills = await api('/api/skills');
+      categories = await api('/api/categories');
+      userCategories = await api('/api/categories/list');
+      if (currentView === 'myrepo' && document.getElementById('catListInMyRepo')) {
+        showCatManagerInMyRepo();
+      } else {
+        renderCategoryManager();
+      }
+    }
+
     async function addSubCategory(parentId) {
       const label = prompt('输入子分类名称:');
       if (!label) return;
@@ -2700,11 +3331,7 @@
 
       await api(`/api/categories/add?label=${encodeURIComponent(label)}&parentId=${encodeURIComponent(parentId)}&icon=${encodeURIComponent(icon)}`);
       showToast({ tool: 'category', resultSummary: `已添加子分类: ${label}`, timestamp: new Date().toISOString() });
-
-      allSkills = await api('/api/skills');
-      categories = await api('/api/categories');
-      userCategories = await api('/api/categories/list');
-      renderCategoryManager();
+      await refreshCatView();
     }
 
     async function renameCategoryPrompt(id, oldLabel, oldIcon) {
@@ -2714,11 +3341,7 @@
 
       await api(`/api/categories/rename?id=${encodeURIComponent(id)}&label=${encodeURIComponent(newLabel)}&icon=${encodeURIComponent(newIcon)}`);
       showToast({ tool: 'category', resultSummary: `已重命名为: ${newLabel}`, timestamp: new Date().toISOString() });
-
-      allSkills = await api('/api/skills');
-      categories = await api('/api/categories');
-      userCategories = await api('/api/categories/list');
-      renderCategoryManager();
+      await refreshCatView();
     }
 
     async function deleteCategoryConfirm(id) {
@@ -2726,11 +3349,597 @@
 
       await api(`/api/categories/remove?id=${encodeURIComponent(id)}`);
       showToast({ tool: 'category', resultSummary: `已删除分类: ${id}`, timestamp: new Date().toISOString() });
+      await refreshCatView();
+    }
 
-      allSkills = await api('/api/skills');
-      categories = await api('/api/categories');
-      userCategories = await api('/api/categories/list');
-      renderCategoryManager();
+    // ========== 我的 GitHub 社区 ==========
+
+    let ghcSelectedSkill = null;
+    let ghcSelectedSourceId = '';
+    let ghcSkills = [];
+    let ghcSearchQuery = '';
+    let ghcRepoCategories = [];
+    let ghcSkillCategories = {};
+    let ghcCategoriesSha = null;
+    let ghcCatFilter = '';
+
+    async function renderGhCommunity() {
+      var content = document.getElementById('content');
+      if (!communityConfig || !communityConfig.sources) {
+        try { communityConfig = await api('/api/community/config'); } catch(e) { communityConfig = { sources: [] }; }
+      }
+      var allSources = (communityConfig.sources || []).filter(function(s) { return s.writable; });
+
+      if (allSources.length === 0) {
+        content.innerHTML = '<div class="myrepo-layout">'
+          + '<div style="display:flex; align-items:center; justify-content:center; height:100%; width:100%">'
+          + '<div class="empty-state" style="max-width:400px; text-align:center">'
+          + '<div class="icon" style="font-size:48px">🔗</div>'
+          + '<h3 style="margin:12px 0 8px">尚未配置 GitHub 社区仓库</h3>'
+          + '<p style="color:var(--text2); font-size:13px; margin-bottom:16px">请先点击下方按钮配置您的 GitHub 仓库。</p>'
+          + '<button class="btn btn-blue" onclick="showGhcSettingsFullPage()">⚙️ 去配置</button>'
+          + '</div></div></div>';
+        return;
+      }
+
+      if (!ghcSelectedSourceId && allSources.length > 0) {
+        ghcSelectedSourceId = allSources[0].id;
+      }
+
+      content.innerHTML = '<div class="myrepo-layout">'
+        + '<div class="myrepo-left">'
+        +   '<div class="myrepo-left-header">'
+        +     '<select class="myrepo-cat-select" id="ghcSourceSelect" onchange="ghcSelectedSourceId=this.value; ghcSkills=[]; ghcSelectedSkill=null; loadGhcSkills()" style="width:100%; margin-bottom:6px; font-size:12px">'
+        +       allSources.map(function(s) {
+                  var label = s.label || s.repo;
+                  return '<option value="' + escapeAttr(s.id) + '"' + (ghcSelectedSourceId === s.id ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
+                }).join('')
+        +     '</select>'
+        +     '<input class="myrepo-search" id="ghcSearch" placeholder="搜索技能..." oninput="ghcSearchQuery=this.value; renderGhcList()">'
+        +   '</div>'
+        +   '<div class="myrepo-filter-bar">'
+        +     '<button class="btn btn-blue" style="font-size:11px; padding:4px 10px" onclick="showGhcImportPanel()">📥 从 GitHub 导入</button>'
+        +     '<button class="btn" style="font-size:11px; padding:4px 10px" onclick="ghcSkills=[]; loadGhcSkills()">🔄 刷新</button>'
+        +     '<button class="btn btn-green" style="font-size:11px; padding:4px 10px" onclick="showGhcAddRepoPanel()">➕ 添加我的仓库</button>'
+        +     '<button class="btn" style="font-size:11px; padding:4px 10px" onclick="showGhcCatManager()">🏷️ 分类</button>'
+        +     '<button class="btn" style="font-size:11px; padding:4px 10px" onclick="showGhcSettings()">⚙️ 配置</button>'
+        +   '</div>'
+        +   '<div style="padding:4px 16px">'
+        +     '<select class="myrepo-cat-select" id="ghcCatSelect" onchange="ghcCatFilter=this.value; renderGhcList()" style="width:100%; font-size:11px">'
+        +       '<option value="">全部分类</option>'
+        +       '<option value="__uncategorized__">未分类</option>'
+        +     '</select>'
+        +   '</div>'
+        +   '<div class="myrepo-stats" id="ghcStats">'
+        +     '<div class="myrepo-stat"><div class="val" style="color:var(--blue)">-</div><div class="lbl">仓库技能</div></div>'
+        +     '<div class="myrepo-stat"><div class="val" style="color:var(--green)">-</div><div class="lbl">我的仓库</div></div>'
+        +   '</div>'
+        +   '<div id="ghcImportPanel" style="display:none; padding:12px 16px; border-bottom:1px solid var(--border2); background:var(--bg2)"></div>'
+        +   '<div id="ghcAddRepoPanel" style="display:none; padding:12px 16px; border-bottom:1px solid var(--border2); background:var(--bg2)"></div>'
+        +   '<div class="myrepo-list" id="ghcList"></div>'
+        + '</div>'
+        + '<div class="myrepo-right" id="ghcRight">'
+        +   '<div class="myrepo-right-empty"><div class="icon">🔗</div><div>选择左侧技能查看详情</div></div>'
+        + '</div>'
+        + '</div>';
+
+      loadGhcSkills();
+    }
+
+    async function loadGhcSkills() {
+      var listEl = document.getElementById('ghcList');
+      if (listEl) listEl.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text2)"><span style="animation:spin 1s linear infinite; display:inline-block">⏳</span> 加载中...</div>';
+
+      try {
+        ghcSkills = await api('/api/community/source-skills?sourceId=' + encodeURIComponent(ghcSelectedSourceId));
+      } catch(e) {
+        ghcSkills = [];
+      }
+
+      try {
+        var catData = await api('/api/community/repo-categories?sourceId=' + encodeURIComponent(ghcSelectedSourceId));
+        ghcRepoCategories = catData.categories || [];
+        ghcSkillCategories = catData.skillCategories || {};
+        ghcCategoriesSha = catData.sha || null;
+      } catch(e) {
+        ghcRepoCategories = [];
+        ghcSkillCategories = {};
+        ghcCategoriesSha = null;
+      }
+
+      updateGhcCatSelect();
+
+      var writableSources = (communityConfig.sources || []).filter(function(s) { return s.writable; });
+      var statsEl = document.getElementById('ghcStats');
+      if (statsEl) {
+        statsEl.innerHTML = '<div class="myrepo-stat"><div class="val" style="color:var(--blue)">' + ghcSkills.length + '</div><div class="lbl">仓库技能</div></div>'
+          + '<div class="myrepo-stat"><div class="val" style="color:var(--green)">' + writableSources.length + '</div><div class="lbl">我的仓库</div></div>';
+      }
+      renderGhcList();
+    }
+
+    function updateGhcCatSelect() {
+      var sel = document.getElementById('ghcCatSelect');
+      if (!sel) return;
+      var html = '<option value="">全部分类</option><option value="__uncategorized__">未分类</option>';
+      for (var i = 0; i < ghcRepoCategories.length; i++) {
+        var c = ghcRepoCategories[i];
+        html += '<option value="' + escapeAttr(c.id) + '"' + (ghcCatFilter === c.id ? ' selected' : '') + '>' + escapeHtml((c.icon || '') + ' ' + c.label) + '</option>';
+      }
+      sel.innerHTML = html;
+    }
+
+    function getGhcSkillCats(name) {
+      return ghcSkillCategories[name] || [];
+    }
+
+    function renderGhcList() {
+      var listEl = document.getElementById('ghcList');
+      if (!listEl) return;
+      var q = (ghcSearchQuery || '').toLowerCase().trim();
+      var filtered = ghcSkills.filter(function(s) {
+        if (ghcCatFilter === '__uncategorized__' && getGhcSkillCats(s.name).length > 0) return false;
+        if (ghcCatFilter && ghcCatFilter !== '__uncategorized__' && getGhcSkillCats(s.name).indexOf(ghcCatFilter) < 0) return false;
+        if (!q) return true;
+        return s.name.toLowerCase().indexOf(q) >= 0
+          || (s.description || '').toLowerCase().indexOf(q) >= 0
+          || (s.author || '').toLowerCase().indexOf(q) >= 0;
+      });
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div class="empty-msg">' + (ghcSkills.length === 0 ? '此仓库暂无技能' : '没有匹配的技能') + '</div>';
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(function(s) {
+        var selected = ghcSelectedSkill === s.name;
+        var installed = s.installed;
+        var desc = s.description || '';
+        if (desc.length > 80) desc = desc.substring(0, 80) + '...';
+        var cats = getGhcSkillCats(s.name);
+        var catLabels = cats.slice(0, 2).map(function(cid) {
+          var cat = ghcRepoCategories.find(function(c) { return c.id === cid; });
+          return cat ? (cat.icon || '') + cat.label : cid;
+        });
+        return '<div class="myrepo-item' + (selected ? ' selected' : '') + '" onclick="selectGhcSkill(\'' + escapeAttr(s.name).replace(/'/g, "\\'") + '\')">'
+          + '<div class="item-header">'
+          +   '<div class="scope-icon">📄</div>'
+          +   '<div class="item-name">' + escapeHtml(s.name) + '</div>'
+          + '</div>'
+          + '<div class="item-desc">' + escapeHtml(desc || '暂无描述') + '</div>'
+          + '<div class="item-tags">'
+          +   (installed
+            ? '<span class="item-badge" style="background:#e8f5e9; color:#2e7d32">已安装</span>'
+            : '<span class="item-badge" style="background:#fff3e0; color:#e65100">未安装</span>')
+          +   (s.author ? '<span class="item-badge" style="background:var(--bg2); color:var(--text2)">by ' + escapeHtml(s.author) + '</span>' : '')
+          +   catLabels.map(function(l) { return '<span class="item-badge" style="background:var(--theme-active-light); color:var(--theme-active)">' + escapeHtml(l) + '</span>'; }).join('')
+          + '</div>'
+          + '</div>';
+      }).join('');
+    }
+
+    async function selectGhcSkill(name) {
+      ghcSelectedSkill = name;
+      var items = document.querySelectorAll('#ghcList .myrepo-item');
+      items.forEach(function(el) { el.classList.remove('selected'); });
+      items.forEach(function(el) {
+        if (el.querySelector('.item-name') && el.querySelector('.item-name').textContent === name) el.classList.add('selected');
+      });
+
+      var right = document.getElementById('ghcRight');
+      if (!right) return;
+      right.innerHTML = '<div class="myrepo-right-empty"><div class="icon" style="animation:spin 1s linear infinite">⏳</div><div>加载中...</div></div>';
+
+      var skill = ghcSkills.find(function(s) { return s.name === name; });
+      if (!skill) { right.innerHTML = '<div class="myrepo-right-empty"><div class="icon">❌</div><div>未找到</div></div>'; return; }
+
+      var rawContent = '';
+      try {
+        var resp = await fetch(skill.rawUrl, { signal: AbortSignal.timeout(10000) });
+        if (resp.ok) rawContent = await resp.text();
+      } catch(e) {}
+
+      var currentSource = (communityConfig.sources || []).find(function(s) { return s.id === ghcSelectedSourceId; });
+      var isWritable = currentSource && currentSource.writable;
+      var shareUrl = skill.htmlUrl || '';
+
+      var html = '';
+      html += '<div style="margin-bottom:16px">';
+      html += '<h2 style="font-family:var(--font-display); font-size:22px; margin-bottom:8px">' + escapeHtml(skill.name) + '</h2>';
+      html += '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px">';
+      html += (skill.installed ? '<span class="tag" style="background:#e8f5e9; color:#2e7d32; font-weight:600">已安装本地</span>' : '<span class="tag" style="background:#fff3e0; color:#e65100; font-weight:600">未安装</span>');
+      if (skill.author) html += '<span class="tag source">作者: ' + escapeHtml(skill.author) + '</span>';
+      html += '<span class="tag tokens">' + (skill.size ? Math.round(skill.size/1024) + ' KB' : '') + '</span>';
+      html += '<span class="tag" style="background:var(--bg2)">' + escapeHtml(skill.sourceLabel || '') + '</span>';
+      html += '</div>';
+      html += '<p style="color:var(--text2); font-size:13px; line-height:1.6; margin-bottom:4px">' + escapeHtml(skill.description || '无描述') + '</p>';
+      html += '</div>';
+
+      // Category management for this skill
+      var skillCatIds = getGhcSkillCats(skill.name);
+      html += '<div class="myrepo-section">';
+      html += '<div class="myrepo-section-title">🏷️ 分类</div>';
+      if (ghcRepoCategories.length > 0) {
+        html += '<div id="ghcSkillCatCheckboxes" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px">';
+        for (var ci = 0; ci < ghcRepoCategories.length; ci++) {
+          var gc = ghcRepoCategories[ci];
+          var gcChecked = skillCatIds.indexOf(gc.id) >= 0 ? ' checked' : '';
+          html += '<label style="display:flex; align-items:center; gap:4px; padding:3px 8px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface); cursor:pointer; font-size:11px; transition:all 0.2s">'
+            + '<input type="checkbox" value="' + escapeAttr(gc.id) + '"' + gcChecked + ' style="accent-color:var(--red)">'
+            + (gc.icon || '') + ' ' + escapeHtml(gc.label) + '</label>';
+        }
+        html += '</div>';
+        if (isWritable) {
+          html += '<button class="btn btn-green" style="padding:4px 12px; font-size:11px" onclick="saveGhcSkillCategories(\'' + escapeAttr(skill.name).replace(/'/g, "\\'") + '\')">💾 保存分类</button>';
+        }
+      } else {
+        html += '<div style="font-size:12px; color:var(--text2)">此仓库暂无分类。' + (isWritable ? '点击左侧「🏷️ 分类」按钮创建。' : '') + '</div>';
+      }
+      html += '</div>';
+
+      html += '<div class="myrepo-section">';
+      html += '<div class="myrepo-section-title">⚡ 操作</div>';
+      html += '<div class="myrepo-actions">';
+      html += '<button class="action-btn action-export" onclick="ghcInstallSkill(\'' + escapeAttr(skill.name).replace(/'/g, "\\'") + '\', \'' + escapeAttr(skill.rawUrl).replace(/'/g, "\\'") + '\', this)"><span class="action-icon">📥</span> 安装到本地</button>';
+      if (isWritable) {
+        html += '<button class="action-btn action-delete" onclick="ghcDeleteSkill(\'' + escapeAttr(skill.name).replace(/'/g, "\\'") + '\', this)"><span class="action-icon">🗑️</span> 从仓库删除</button>';
+      }
+      html += '<button class="action-btn action-export" onclick="ghcCopyContent(\'' + escapeAttr(skill.name).replace(/'/g, "\\'") + '\')"><span class="action-icon">📋</span> 复制内容</button>';
+      html += '</div></div>';
+
+      if (shareUrl) {
+        html += '<div class="myrepo-section">';
+        html += '<div class="myrepo-section-title">🔗 分享</div>';
+        html += '<div style="display:flex; gap:6px; align-items:center">';
+        html += '<input type="text" readonly value="' + escapeAttr(shareUrl) + '" style="flex:1; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--bg2); font-size:11px; font-family:monospace" onclick="this.select()">';
+        html += '<button class="btn" style="font-size:11px; padding:5px 10px" onclick="navigator.clipboard.writeText(\'' + escapeAttr(shareUrl).replace(/'/g, "\\'") + '\'); showToast({tool:\'copy\', resultSummary:\'已复制分享链接\', timestamp:new Date().toISOString()})">📋 复制</button>';
+        html += '</div>';
+        html += '<div style="font-size:10px; color:var(--text2); margin-top:6px">其他用户可通过「📡 订阅外部GitHub仓库」添加仓库 <code>' + escapeHtml(currentSource ? currentSource.repo : '') + '</code> 来订阅所有技能</div>';
+        html += '</div>';
+      }
+
+      html += '<div class="tab-bar" style="margin-top:0">';
+      html += '<div class="tab-btn active" onclick="ghcSwitchTab(\'content\', this)">📄 内容预览</div>';
+      html += '</div>';
+      html += '<div id="ghcTabContent" class="tab-content"><pre style="font-size:12px; line-height:1.6; white-space:pre-wrap; word-break:break-word">' + escapeHtml(rawContent || '无法加载内容') + '</pre></div>';
+
+      right.innerHTML = html;
+    }
+
+    function ghcSwitchTab(tab, el) {
+      el.parentNode.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      el.classList.add('active');
+    }
+
+    async function ghcInstallSkill(name, rawUrl, btn) {
+      var origText = btn.innerHTML;
+      btn.innerHTML = '<span class="action-icon" style="animation:spin 1s linear infinite">⏳</span> 安装中...';
+      btn.disabled = true;
+      try {
+        var result = await api('/api/community/install?name=' + encodeURIComponent(name) + '&url=' + encodeURIComponent(rawUrl) + '&scope=global');
+        if (result.success) {
+          btn.innerHTML = '<span class="action-icon">✅</span> 已安装';
+          allSkills = await api('/api/skills');
+          document.getElementById('totalCount').textContent = allSkills.length;
+          ghcSkills = ghcSkills.map(function(s) { return s.name === name ? Object.assign({}, s, {installed: true}) : s; });
+          renderGhcList();
+        } else {
+          btn.innerHTML = '<span class="action-icon">❌</span> ' + (result.error || '失败').slice(0, 20);
+        }
+      } catch(e) {
+        btn.innerHTML = '<span class="action-icon">❌</span> 失败';
+      }
+      btn.disabled = false;
+      setTimeout(function() { btn.innerHTML = origText; }, 3000);
+    }
+
+    async function ghcDeleteSkill(name, btn) {
+      if (!confirm('确定要从仓库中删除「' + name + '」？')) return;
+      var origText = btn.innerHTML;
+      btn.innerHTML = '<span class="action-icon" style="animation:spin 1s linear infinite">⏳</span> 删除中...';
+      btn.disabled = true;
+      try {
+        var result = await api('/api/community/delete?name=' + encodeURIComponent(name) + '&sourceId=' + encodeURIComponent(ghcSelectedSourceId));
+        if (result.success) {
+          showToast({ tool: 'delete', resultSummary: '已从仓库删除 ' + name, timestamp: new Date().toISOString() });
+          ghcSkills = ghcSkills.filter(function(s) { return s.name !== name; });
+          ghcSelectedSkill = null;
+          renderGhcList();
+          document.getElementById('ghcRight').innerHTML = '<div class="myrepo-right-empty"><div class="icon">📦</div><div>选择左侧技能查看详情</div></div>';
+        } else {
+          btn.innerHTML = '<span class="action-icon">❌</span> ' + (result.message || '失败').slice(0, 20);
+        }
+      } catch(e) {
+        btn.innerHTML = '<span class="action-icon">❌</span> 失败';
+      }
+      btn.disabled = false;
+      setTimeout(function() { btn.innerHTML = origText; }, 3000);
+    }
+
+    function ghcCopyContent(name) {
+      var skill = ghcSkills.find(function(s) { return s.name === name; });
+      if (!skill) return;
+      fetch(skill.rawUrl, { signal: AbortSignal.timeout(10000) })
+        .then(function(r) { return r.text(); })
+        .then(function(text) {
+          navigator.clipboard.writeText(text);
+          showToast({ tool: 'copy', resultSummary: '已复制 ' + name + ' 的内容', timestamp: new Date().toISOString() });
+        }).catch(function() { alert('复制失败'); });
+    }
+
+    function showGhcImportPanel() {
+      var panel = document.getElementById('ghcImportPanel');
+      if (!panel) return;
+      if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+
+      var writableSources = (communityConfig.sources || []).filter(function(s) { return s.writable; });
+      if (writableSources.length === 0) {
+        panel.innerHTML = '<div style="color:var(--orange); font-size:12px">⚠️ 没有可写仓库。请先点击右上方「⚙️ 配置」按钮设置 GitHub Token 和仓库。</div>';
+        panel.style.display = 'block';
+        return;
+      }
+
+      var targetOptions = writableSources.map(function(s) {
+        return '<option value="' + escapeAttr(s.id) + '">' + escapeHtml(s.label || s.repo) + '</option>';
+      }).join('');
+
+      panel.innerHTML = '<div style="font-size:12px; font-weight:600; margin-bottom:8px">📥 从 GitHub 链接导入技能</div>'
+        + '<div style="font-size:11px; color:var(--text2); margin-bottom:8px">导入后会自动标注原作者</div>'
+        + '<input type="text" id="ghcImportUrl" placeholder="GitHub 链接 (如 github.com/user/repo/blob/main/skills/xxx)" style="width:100%; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface); font-size:11px; font-family:monospace; outline:none; margin-bottom:6px">'
+        + '<input type="text" id="ghcImportName" placeholder="（可选）自定义技能名称" style="width:100%; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface); font-size:11px; outline:none; margin-bottom:6px">'
+        + '<div style="display:flex; gap:6px; align-items:center">'
+        + '<span style="font-size:11px; color:var(--text2)">目标仓库:</span>'
+        + '<select id="ghcImportTarget" style="flex:1; padding:4px 8px; border-radius:6px; border:1px solid var(--border2); font-size:11px; background:var(--surface)">' + targetOptions + '</select>'
+        + '<button class="btn btn-green" style="font-size:11px; padding:5px 12px" onclick="doGhcImport()">导入</button>'
+        + '</div>'
+        + '<div id="ghcImportResult" style="margin-top:6px; font-size:11px"></div>';
+      panel.style.display = 'block';
+    }
+
+    async function doGhcImport() {
+      var url = document.getElementById('ghcImportUrl').value.trim();
+      var name = document.getElementById('ghcImportName').value.trim();
+      var sourceId = document.getElementById('ghcImportTarget').value;
+      var resultEl = document.getElementById('ghcImportResult');
+      if (!url) { if (resultEl) resultEl.innerHTML = '<span style="color:var(--red)">请输入 GitHub 链接</span>'; return; }
+
+      if (resultEl) resultEl.innerHTML = '<span style="animation:spin 1s linear infinite; display:inline-block">⏳</span> 导入中...';
+
+      try {
+        var apiUrl = '/api/community/import-url?url=' + encodeURIComponent(url) + '&sourceId=' + encodeURIComponent(sourceId);
+        if (name) apiUrl += '&name=' + encodeURIComponent(name);
+        var result = await api(apiUrl);
+        if (result.success) {
+          if (resultEl) resultEl.innerHTML = '<span style="color:var(--green)">✅ ' + escapeHtml(result.message) + '</span>';
+          showToast({ tool: 'import', resultSummary: result.message, timestamp: new Date().toISOString() });
+          ghcSkills = [];
+          loadGhcSkills();
+        } else {
+          if (resultEl) resultEl.innerHTML = '<span style="color:var(--red)">❌ ' + escapeHtml(result.message) + '</span>';
+        }
+      } catch(e) {
+        if (resultEl) resultEl.innerHTML = '<span style="color:var(--red)">❌ 请求失败</span>';
+      }
+    }
+
+    function showGhcAddRepoPanel() {
+      var panel = document.getElementById('ghcAddRepoPanel');
+      if (!panel) return;
+      if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+
+      panel.innerHTML = '<div style="font-size:12px; font-weight:600; margin-bottom:8px">➕ 添加我的 GitHub 仓库</div>'
+        + '<input type="text" id="ghcNewRepo" placeholder="owner/repo (如 myname/my-skills)" style="width:100%; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface); font-size:11px; font-family:monospace; outline:none; margin-bottom:6px">'
+        + '<input type="text" id="ghcNewLabel" placeholder="显示名称" style="width:100%; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface); font-size:11px; outline:none; margin-bottom:6px">'
+        + '<div style="display:flex; gap:6px; align-items:center; margin-bottom:6px">'
+        + '<input type="text" id="ghcNewBranch" placeholder="分支 (默认 main)" value="main" style="flex:1; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface); font-size:11px; outline:none">'
+        + '<input type="text" id="ghcNewPath" placeholder="技能目录 (默认 skills)" value="skills" style="flex:1; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface); font-size:11px; outline:none">'
+        + '</div>'
+        + '<div style="margin-bottom:6px">'
+        + '<input type="text" id="ghcNewToken" placeholder="GitHub Token（必填，用于读写仓库）" style="width:100%; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface); font-size:11px; font-family:monospace; outline:none">'
+        + '</div>'
+        + '<div style="display:flex; gap:6px">'
+        + '<button class="btn btn-green" style="font-size:11px; padding:5px 12px" onclick="doGhcAddRepo()">添加</button>'
+        + '<button class="btn" style="font-size:11px; padding:5px 12px" onclick="document.getElementById(\'ghcAddRepoPanel\').style.display=\'none\'">取消</button>'
+        + '</div>'
+        + '<div id="ghcAddRepoResult" style="margin-top:6px; font-size:11px"></div>';
+      panel.style.display = 'block';
+    }
+
+    async function doGhcAddRepo() {
+      var repo = document.getElementById('ghcNewRepo').value.trim();
+      var label = document.getElementById('ghcNewLabel').value.trim() || repo;
+      var branch = document.getElementById('ghcNewBranch').value.trim() || 'main';
+      var skillsPath = document.getElementById('ghcNewPath').value.trim() || 'skills';
+      var token = document.getElementById('ghcNewToken').value.trim();
+      var writable = true;
+      var resultEl = document.getElementById('ghcAddRepoResult');
+
+      if (!repo) { if (resultEl) resultEl.innerHTML = '<span style="color:var(--red)">请输入仓库地址</span>'; return; }
+
+      if (resultEl) resultEl.innerHTML = '<span style="animation:spin 1s linear infinite; display:inline-block">⏳</span> 添加中...';
+
+      try {
+        var url = '/api/community/add-source?repo=' + encodeURIComponent(repo)
+          + '&label=' + encodeURIComponent(label)
+          + '&branch=' + encodeURIComponent(branch)
+          + '&skillsPath=' + encodeURIComponent(skillsPath)
+          + '&writable=' + (writable ? 'true' : 'false');
+        if (token) url += '&token=' + encodeURIComponent(token);
+        var result = await api(url);
+        if (result.success) {
+          showToast({ tool: 'source', resultSummary: '已添加仓库 ' + repo, timestamp: new Date().toISOString() });
+          communityConfig = await api('/api/community/config');
+          communityLoaded = false;
+          ghcSelectedSourceId = repo.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+          renderGhCommunity();
+        } else {
+          if (resultEl) resultEl.innerHTML = '<span style="color:var(--red)">❌ ' + escapeHtml(result.error || '失败') + '</span>';
+        }
+      } catch(e) {
+        if (resultEl) resultEl.innerHTML = '<span style="color:var(--red)">❌ 请求失败</span>';
+      }
+    }
+
+    async function saveGhcSkillCategories(skillName) {
+      var checkboxes = document.querySelectorAll('#ghcSkillCatCheckboxes input[type=checkbox]');
+      var selected = [];
+      checkboxes.forEach(function(cb) { if (cb.checked) selected.push(cb.value); });
+      ghcSkillCategories[skillName] = selected;
+      await saveGhcCategoriesData();
+      showToast({ tool: 'tag', resultSummary: '已更新 ' + skillName + ' 的分类', timestamp: new Date().toISOString() });
+      renderGhcList();
+    }
+
+    async function saveGhcCategoriesData() {
+      var data = JSON.stringify({ categories: ghcRepoCategories, skillCategories: ghcSkillCategories }, null, 2);
+      var result = await api('/api/community/save-repo-categories?sourceId=' + encodeURIComponent(ghcSelectedSourceId)
+        + '&data=' + encodeURIComponent(data)
+        + (ghcCategoriesSha ? '&sha=' + encodeURIComponent(ghcCategoriesSha) : ''));
+      if (result.success) {
+        ghcCategoriesSha = result.sha;
+      } else {
+        alert('保存分类失败: ' + (result.message || '未知错误'));
+      }
+      return result;
+    }
+
+    function showGhcCatManager() {
+      var right = document.getElementById('ghcRight');
+      if (!right) return;
+      var currentSource = (communityConfig.sources || []).find(function(s) { return s.id === ghcSelectedSourceId; });
+      var isWritable = currentSource && currentSource.writable;
+
+      var html = '<div style="padding:4px 0">';
+      html += '<h2 style="font-family:var(--font-display); font-size:20px; margin-bottom:16px">🏷️ 仓库分类管理</h2>';
+      html += '<div style="font-size:12px; color:var(--text2); margin-bottom:16px">管理此仓库的分类体系，分类数据存储在仓库的 categories.json 中。</div>';
+
+      html += '<div class="myrepo-section">';
+      html += '<div class="myrepo-section-title">现有分类 (' + ghcRepoCategories.length + ')</div>';
+      if (ghcRepoCategories.length === 0) {
+        html += '<div style="font-size:12px; color:var(--text2); padding:10px 0">暂无分类</div>';
+      } else {
+        html += '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px">';
+        for (var ci = 0; ci < ghcRepoCategories.length; ci++) {
+          var c = ghcRepoCategories[ci];
+          var count = 0;
+          for (var sk in ghcSkillCategories) { if (ghcSkillCategories[sk] && ghcSkillCategories[sk].indexOf(c.id) >= 0) count++; }
+          html += '<div style="display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface); font-size:12px">'
+            + '<span>' + (c.icon || '📁') + ' ' + escapeHtml(c.label) + '</span>'
+            + '<span style="color:var(--text2); font-size:10px">(' + count + ')</span>';
+          if (isWritable) {
+            html += '<button style="background:none; border:none; cursor:pointer; font-size:12px; color:var(--red); padding:0 2px" onclick="ghcRemoveCategory(\'' + escapeAttr(c.id) + '\')">✕</button>';
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+
+      if (isWritable) {
+        html += '<div class="myrepo-section">';
+        html += '<div class="myrepo-section-title">➕ 添加分类</div>';
+        html += '<div style="display:flex; gap:6px; align-items:center">';
+        html += '<input type="text" id="ghcNewCatIcon" placeholder="图标" style="width:50px; padding:6px; border-radius:8px; border:1.5px solid var(--border2); background:var(--bg2); font-size:14px; text-align:center; outline:none" value="📁">';
+        html += '<input type="text" id="ghcNewCatLabel" placeholder="分类名称" style="flex:1; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--bg2); font-size:12px; outline:none">';
+        html += '<button class="btn btn-green" style="font-size:11px; padding:5px 12px" onclick="ghcAddCategory()">添加</button>';
+        html += '</div></div>';
+      }
+      html += '</div>';
+
+      right.innerHTML = html;
+    }
+
+    async function ghcAddCategory() {
+      var icon = document.getElementById('ghcNewCatIcon').value.trim() || '📁';
+      var label = document.getElementById('ghcNewCatLabel').value.trim();
+      if (!label) { alert('请输入分类名称'); return; }
+      var id = label.replace(/[^a-zA-Z0-9\u4e00-\u9fff_-]/g, '-').toLowerCase();
+      if (ghcRepoCategories.find(function(c) { return c.id === id; })) { alert('分类已存在'); return; }
+      ghcRepoCategories.push({ id: id, label: label, icon: icon });
+      var result = await saveGhcCategoriesData();
+      if (result.success) {
+        showToast({ tool: 'category', resultSummary: '已添加分类: ' + label, timestamp: new Date().toISOString() });
+        updateGhcCatSelect();
+        showGhcCatManager();
+      }
+    }
+
+    async function ghcRemoveCategory(catId) {
+      if (!confirm('确定删除此分类？')) return;
+      ghcRepoCategories = ghcRepoCategories.filter(function(c) { return c.id !== catId; });
+      for (var sk in ghcSkillCategories) {
+        if (ghcSkillCategories[sk]) {
+          ghcSkillCategories[sk] = ghcSkillCategories[sk].filter(function(c) { return c !== catId; });
+        }
+      }
+      var result = await saveGhcCategoriesData();
+      if (result.success) {
+        showToast({ tool: 'category', resultSummary: '已删除分类', timestamp: new Date().toISOString() });
+        updateGhcCatSelect();
+        showGhcCatManager();
+      }
+    }
+
+    function showGhcSettingsFullPage() {
+      var content = document.getElementById('content');
+      var cfg = communityConfig || {};
+      content.innerHTML = '<div style="max-width:560px; margin:40px auto; padding:24px">'
+        + '<div class="page-title" style="font-size:20px; margin-bottom:20px">⚙️ 配置我的私人 GitHub 在线社区</div>'
+        + '<div class="community-config">'
+        + '<h3 style="font-size:14px; margin-bottom:8px">🔗 我的社区仓库</h3>'
+        + '<p style="font-size:12px; color:var(--text2); margin-bottom:12px">这是你自己的社区仓库，你有写权限可以直接上传技能。</p>'
+        + '<div class="config-field"><label>社区仓库 (owner/repo)</label>'
+        + '<input type="text" id="cfgRepo" value="' + escapeAttr(cfg.repo || '') + '" placeholder="例如: your-team/skill-community"></div>'
+        + '<div class="config-field"><label>分支</label>'
+        + '<input type="text" id="cfgBranch" value="' + escapeAttr(cfg.branch || 'main') + '" placeholder="main"></div>'
+        + '<div class="config-field"><label>技能目录</label>'
+        + '<input type="text" id="cfgPath" value="' + escapeAttr(cfg.skillsPath || 'skills') + '" placeholder="skills"></div>'
+        + '<div class="config-field"><label>GitHub Token</label>'
+        + '<input type="password" id="cfgToken" value="' + escapeAttr(cfg.githubToken || '') + '" placeholder="ghp_xxxx...">'
+        + '<div class="hint">Personal Access Token，需要 repo 权限。<a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--blue)">去创建</a></div></div>'
+        + '<div class="config-field"><label>作者名称</label>'
+        + '<input type="text" id="cfgAuthor" value="' + escapeAttr(cfg.authorName || '') + '" placeholder="你的名字或团队名"></div>'
+        + '<div style="display:flex; gap:8px; margin-top:20px">'
+        + '<button class="btn btn-green" onclick="saveCommunityConfigAndReturn()">💾 保存配置</button>'
+        + '</div></div></div>';
+    }
+
+    function showGhcSettings() {
+      var right = document.getElementById('ghcRight');
+      if (!right) return;
+      var cfg = communityConfig || {};
+      right.innerHTML = '<div style="padding:4px 0">'
+        + '<div class="page-title" style="font-size:18px; margin-bottom:16px">⚙️ 配置我的私人 GitHub 在线社区</div>'
+        + '<div class="community-config">'
+        + '<h3 style="font-size:14px; margin-bottom:8px">🔗 我的社区仓库</h3>'
+        + '<p style="font-size:12px; color:var(--text2); margin-bottom:12px">这是你自己的社区仓库，你有写权限可以直接上传技能。</p>'
+        + '<div class="config-field"><label>社区仓库 (owner/repo)</label>'
+        + '<input type="text" id="cfgRepo" value="' + escapeAttr(cfg.repo || '') + '" placeholder="例如: your-team/skill-community"></div>'
+        + '<div class="config-field"><label>分支</label>'
+        + '<input type="text" id="cfgBranch" value="' + escapeAttr(cfg.branch || 'main') + '" placeholder="main"></div>'
+        + '<div class="config-field"><label>技能目录</label>'
+        + '<input type="text" id="cfgPath" value="' + escapeAttr(cfg.skillsPath || 'skills') + '" placeholder="skills"></div>'
+        + '<div class="config-field"><label>GitHub Token</label>'
+        + '<input type="password" id="cfgToken" value="' + escapeAttr(cfg.githubToken || '') + '" placeholder="ghp_xxxx...">'
+        + '<div class="hint">Personal Access Token，需要 repo 权限。<a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--blue)">去创建</a></div></div>'
+        + '<div class="config-field"><label>作者名称</label>'
+        + '<input type="text" id="cfgAuthor" value="' + escapeAttr(cfg.authorName || '') + '" placeholder="你的名字或团队名"></div>'
+        + '<div style="display:flex; gap:8px; margin-top:20px">'
+        + '<button class="btn btn-green" onclick="saveCommunityConfigAndReturn()">💾 保存配置</button>'
+        + '</div></div></div>';
+    }
+
+    async function saveCommunityConfigAndReturn() {
+      var repo = document.getElementById('cfgRepo').value.trim();
+      var branch = document.getElementById('cfgBranch').value.trim() || 'main';
+      var skillsPath = document.getElementById('cfgPath').value.trim() || 'skills';
+      var token = document.getElementById('cfgToken').value.trim();
+      var author = document.getElementById('cfgAuthor').value.trim();
+      var params = new URLSearchParams({ repo: repo, branch: branch, skillsPath: skillsPath, token: token, author: author });
+      communityConfig = await api('/api/community/save-config?' + params.toString());
+      communityLoaded = false;
+      showToast({ tool: 'config', resultSummary: '社区配置已保存', timestamp: new Date().toISOString() });
+      renderGhCommunity();
     }
 
     // ========== 社区 ==========
@@ -2756,11 +3965,8 @@
 
         <div class="tab-bar" style="margin-bottom:20px">
           <div class="tab-btn ${communityTab==='browse'?'active':''}" onclick="communityTab='browse'; renderCommunity()">🌐 浏览技能</div>
-          <div class="tab-btn ${communityTab==='sources'?'active':''}" onclick="communityTab='sources'; renderCommunity()">📡 订阅源管理</div>
           ${hasRepo ? `<div class="tab-btn ${communityTab==='submissions'?'active':''}" onclick="communityTab='submissions'; renderCommunity()">📝 投稿列表</div>` : ''}
           <div class="tab-btn ${communityTab==='linkinstall'?'active':''}" onclick="communityTab='linkinstall'; renderCommunity()">🔗 链接安装</div>
-          <div class="tab-btn ${communityTab==='help'?'active':''}" onclick="communityTab='help'; renderCommunity()">❓ 帮助</div>
-          <div class="tab-btn ${communityTab==='settings'?'active':''}" onclick="communityTab='settings'; renderCommunity()">⚙️ 配置我的私人社区</div>
         </div>
 
         <div id="communityBody"></div>
@@ -2769,15 +3975,15 @@
       const body = document.getElementById('communityBody');
 
       if (!hasRepo && communityTab === 'submissions') {
-        communityTab = 'sources';
+        communityTab = 'browse';
       }
+      if (communityTab === 'sources') communityTab = 'browse';
+      if (communityTab === 'help') communityTab = 'browse';
 
       switch (communityTab) {
         case 'browse': renderCommunityBrowse(body); break;
-        case 'sources': renderCommunitySources(body); break;
         case 'submissions': renderCommunitySubmissions(body); break;
         case 'linkinstall': renderLinkInstall(body); break;
-        case 'help': renderCommunityHelp(body); break;
         case 'settings': renderCommunitySettings(body); break;
       }
     }
@@ -2793,9 +3999,9 @@
             <div class="icon">🌐</div>
             <p>还没有订阅任何技能源</p>
             <p style="font-family:var(--font-body); font-size:13px; margin-top:8px; color:var(--text2)">
-              点击上方「📡 订阅源管理」添加社区仓库地址，即可浏览和安装别人分享的技能！
+              在左侧导航「📡 订阅外部GitHub仓库」中添加仓库地址，即可浏览和安装技能！
             </p>
-            <button class="btn btn-blue" style="margin-top:16px" onclick="communityTab='sources'; renderCommunity()">📡 去订阅</button>
+            <button class="btn btn-blue" style="margin-top:16px" onclick="showView('sources')">📡 去订阅</button>
           </div>
         `;
         return;
@@ -3180,6 +4386,16 @@
     const RECOMMENDED_SOURCES = [
       { repo: 'zhangziyana007-sudo/skiller-community', label: 'Skiller 官方社区', desc: 'Skiller 官方技能共享社区' },
     ];
+
+    async function renderSourcesPage() {
+      const content = document.getElementById('content');
+      if (!communityLoaded) {
+        communityConfig = await api('/api/community/config');
+        communityLoaded = true;
+      }
+      content.innerHTML = '<div class="page-title">📡 订阅外部GitHub仓库</div><div id="sourcesBody"></div>';
+      renderCommunitySources(document.getElementById('sourcesBody'));
+    }
 
     function renderCommunitySources(container) {
       const sources = communityConfig.sources || [];
@@ -3605,123 +4821,153 @@
       `).join('');
     }
 
+    async function renderHelpPage() {
+      const content = document.getElementById('content');
+      if (!communityLoaded) {
+        communityConfig = await api('/api/community/config');
+        communityLoaded = true;
+      }
+      content.innerHTML = '<div class="page-title">❓ 帮助指南</div><div id="helpBody"></div>';
+      renderCommunityHelp(document.getElementById('helpBody'));
+    }
+
     function renderCommunityHelp(container) {
       container.innerHTML = `
         <div style="display:grid; gap:20px">
 
           <div class="community-config" style="border-color:var(--blue)">
-            <h3 style="color:var(--blue); font-size:18px">🌐 如何浏览和安装别人的技能</h3>
-            <div style="font-size:14px; color:var(--text); line-height:2.4; margin-top:12px">
-              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
-                <span style="background:var(--blue); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">1</span>
-                <span>点击上方 <strong>📡 订阅源管理</strong> 标签</span>
+            <h3 style="color:var(--blue); font-size:18px">🌐 浏览与安装技能</h3>
+            <div style="font-size:14px; color:var(--text); line-height:2.2; margin-top:12px">
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:8px 0; border-bottom:1px solid var(--border2)">
+                <span style="background:var(--blue); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px">1</span>
+                <span>在左侧导航点击 <strong>📡 订阅外部GitHub仓库</strong>，添加仓库地址</span>
               </div>
-              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
-                <span style="background:var(--blue); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">2</span>
-                <span>在输入框<strong>粘贴仓库地址</strong>（例如 <code style="background:var(--bg); padding:2px 8px; border-radius:6px">zhangziyana007-sudo/skiller-community</code>）</span>
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:8px 0; border-bottom:1px solid var(--border2)">
+                <span style="background:var(--blue); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px">2</span>
+                <span>进入 <strong>🌍 社区广场</strong>，浏览所有订阅源的技能</span>
               </div>
-              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
-                <span style="background:var(--blue); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">3</span>
-                <span>点击 <strong>➕ 订阅</strong>（或按回车）</span>
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:8px 0">
+                <span style="background:var(--green); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px">✓</span>
+                <span>点击技能卡片上的「安装」按钮即可一键安装到本地</span>
               </div>
-              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0">
-                <span style="background:var(--green); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">✓</span>
-                <span>回到 <strong>🌐 浏览技能</strong> 标签，就能看到所有技能并安装了！</span>
-              </div>
-              <div style="background:var(--green-light); border:2px solid var(--green); border-radius:12px; padding:12px 16px; margin-top:12px; font-size:13px; color:#2E7D32">
-                💡 <strong>不需要 Token</strong>：浏览和安装公开仓库的技能完全免费，不需要任何配置！
+              <div style="background:var(--green-light); border:1.5px solid var(--green); border-radius:10px; padding:10px 14px; margin-top:10px; font-size:12px; color:#2E7D32">
+                💡 浏览和安装公开仓库的技能不需要 Token，完全免费！
               </div>
             </div>
           </div>
 
           <div class="community-config" style="border-color:var(--pink)">
-            <h3 style="color:var(--pink); font-size:18px">🏗️ 如何创建自己的技能社区</h3>
-            <div style="font-size:14px; color:var(--text); line-height:2.4; margin-top:12px">
-              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
-                <span style="background:var(--pink); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">1</span>
+            <h3 style="color:var(--pink); font-size:18px">🏗️ 创建自己的技能社区</h3>
+            <div style="font-size:14px; color:var(--text); line-height:2.2; margin-top:12px">
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:8px 0; border-bottom:1px solid var(--border2)">
+                <span style="background:var(--pink); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px">1</span>
                 <div>
                   <strong>创建 GitHub 仓库</strong><br>
-                  <span style="font-size:13px; color:var(--text2)">打开 <a href="https://github.com/new" target="_blank" style="color:var(--blue)">github.com/new</a> → 仓库名填 skill-community → 选 Public → ✅ Add README → Create</span>
+                  <span style="font-size:12px; color:var(--text2)"><a href="https://github.com/new" target="_blank" style="color:var(--blue)">github.com/new</a> → 仓库名 skill-community → Public → ✅ Add README → Create</span>
                 </div>
               </div>
-              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
-                <span style="background:var(--pink); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">2</span>
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:8px 0; border-bottom:1px solid var(--border2)">
+                <span style="background:var(--pink); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px">2</span>
                 <div>
-                  <strong>创建 skills 目录</strong><br>
-                  <span style="font-size:13px; color:var(--text2)">在仓库页面 Add file → Create new file → 输入 <code>skills/.gitkeep</code> → Commit</span>
+                  <strong>创建 skills 目录 + GitHub Token</strong><br>
+                  <span style="font-size:12px; color:var(--text2)">仓库中创建 <code>skills/.gitkeep</code>，再到 <a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--blue)">Token 页面</a> 创建带 repo 权限的 Token</span>
                 </div>
               </div>
-              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
-                <span style="background:var(--pink); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">3</span>
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:8px 0; border-bottom:1px solid var(--border2)">
+                <span style="background:var(--pink); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px">3</span>
                 <div>
-                  <strong>创建 GitHub Token</strong><br>
-                  <span style="font-size:13px; color:var(--text2)">打开 <a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--blue)">Token 创建页</a> → Note 填 skiller → ✅ repo → Generate → 复制</span>
+                  <strong>在 Dashboard 中配置</strong><br>
+                  <span style="font-size:12px; color:var(--text2)">导航到 <strong>🔗 我的 GitHub 社区 → ⚙️ 配置</strong> → 填写仓库和 Token → 保存</span>
                 </div>
               </div>
-              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2)">
-                <span style="background:var(--pink); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">4</span>
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:8px 0">
+                <span style="background:var(--green); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px">✓</span>
                 <div>
-                  <strong>在 Dashboard 配置</strong><br>
-                  <span style="font-size:13px; color:var(--text2)">点击上方 ⚙️设置 → 填写仓库地址和 Token → 💾保存</span>
-                </div>
-              </div>
-              <div style="display:flex; align-items:flex-start; gap:12px; padding:10px 0">
-                <span style="background:var(--green); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-size:14px">✓</span>
-                <div>
-                  <strong>开始上传！</strong><br>
-                  <span style="font-size:13px; color:var(--text2)">📤上传/投稿 → 点击技能旁的「上传」→ 技能自动推送到 GitHub</span>
+                  <strong>开始使用！</strong><br>
+                  <span style="font-size:12px; color:var(--text2)">在「我的本地仓库」上传技能到社区，或在「我的 GitHub 社区」中从链接导入</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="community-config" style="border-color:var(--purple)">
-            <h3 style="color:var(--purple); font-size:18px">📢 如何让别人用你的社区</h3>
-            <div style="font-size:14px; color:var(--text); line-height:2; margin-top:12px">
-              <p>把你的仓库地址告诉别人就行！例如：</p>
-              <div style="background:var(--bg); border:2px solid var(--border2); border-radius:12px; padding:16px; margin:12px 0; font-size:15px; font-family:var(--font-display); text-align:center">
+            <h3 style="color:var(--purple); font-size:18px">📢 分享你的技能库</h3>
+            <div style="font-size:13px; color:var(--text); line-height:1.8; margin-top:12px">
+              <p>把仓库地址分享给其他人即可：</p>
+              <div style="background:var(--bg); border:1.5px solid var(--border2); border-radius:10px; padding:14px; margin:10px 0; font-size:14px; text-align:center">
                 💬 "订阅我的技能库：<strong>你的用户名/skill-community</strong>"
               </div>
-              <p>别人只需在订阅源管理中粘贴这个地址，就能看到你分享的所有技能了！</p>
+              <p>他们在 <strong>📡 订阅外部GitHub仓库</strong> 中粘贴地址就能看到所有技能。</p>
             </div>
           </div>
 
           <div class="community-config" style="border-color:var(--orange)">
-            <h3 style="color:var(--orange); font-size:18px">❓ 常见问题</h3>
+            <h3 style="color:var(--orange); font-size:18px">💡 功能导航</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px; font-size:12px">
+              <div style="padding:10px; border-radius:8px; background:var(--bg2)">
+                <strong>📦 我的本地仓库</strong>
+                <div style="color:var(--text2); margin-top:4px">管理本地技能，上传到社区，迁移全局/项目</div>
+              </div>
+              <div style="padding:10px; border-radius:8px; background:var(--bg2)">
+                <strong>🔗 我的 GitHub 社区</strong>
+                <div style="color:var(--text2); margin-top:4px">管理 GitHub 仓库中的技能，从链接导入</div>
+              </div>
+              <div style="padding:10px; border-radius:8px; background:var(--bg2)">
+                <strong>🌍 社区广场</strong>
+                <div style="color:var(--text2); margin-top:4px">浏览所有订阅源的技能并安装</div>
+              </div>
+              <div style="padding:10px; border-radius:8px; background:var(--bg2)">
+                <strong>📡 订阅外部GitHub仓库</strong>
+                <div style="color:var(--text2); margin-top:4px">添加/移除外部 GitHub 仓库订阅</div>
+              </div>
+              <div style="padding:10px; border-radius:8px; background:var(--bg2)">
+                <strong>🏷️ 分类管理</strong>
+                <div style="color:var(--text2); margin-top:4px">创建分类并给技能打标签</div>
+              </div>
+              <div style="padding:10px; border-radius:8px; background:var(--bg2)">
+                <strong>⚙️ MCP 管理</strong>
+                <div style="color:var(--text2); margin-top:4px">查看和管理 MCP 服务器状态</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="community-config" style="border-color:var(--text2)">
+            <h3 style="color:var(--text2); font-size:18px">❓ 常见问题</h3>
             <div style="font-size:13px; color:var(--text); margin-top:12px">
-              <details style="margin-bottom:8px; padding:10px; border-radius:10px; background:var(--bg2)">
+              <details style="margin-bottom:6px; padding:8px 10px; border-radius:8px; background:var(--bg2)">
                 <summary style="cursor:pointer; font-weight:600">只想看别人技能，需要创建仓库吗？</summary>
-                <p style="margin-top:8px; color:var(--text2)">不需要！直接在订阅源管理中添加别人的仓库地址就行，无需任何配置。</p>
+                <p style="margin-top:6px; color:var(--text2)">不需要。在「📡 订阅外部GitHub仓库」添加仓库地址即可浏览，无需 Token。</p>
               </details>
-              <details style="margin-bottom:8px; padding:10px; border-radius:10px; background:var(--bg2)">
-                <summary style="cursor:pointer; font-weight:600">安装的技能在哪里？</summary>
-                <p style="margin-top:8px; color:var(--text2)">在 ~/.cursor/skills/技能名/SKILL.md。Cursor 会自动识别。</p>
+              <details style="margin-bottom:6px; padding:8px 10px; border-radius:8px; background:var(--bg2)">
+                <summary style="cursor:pointer; font-weight:600">安装的技能存在哪里？</summary>
+                <p style="margin-top:6px; color:var(--text2)">全局技能在 <code>~/.cursor/skills/技能名/SKILL.md</code>，项目技能在 <code>项目/.cursor/rules/技能名.mdc</code>。</p>
               </details>
-              <details style="margin-bottom:8px; padding:10px; border-radius:10px; background:var(--bg2)">
+              <details style="margin-bottom:6px; padding:8px 10px; border-radius:8px; background:var(--bg2)">
                 <summary style="cursor:pointer; font-weight:600">Token 安全吗？</summary>
-                <p style="margin-top:8px; color:var(--text2)">Token 只保存在你本地，不会上传到任何地方。源代码中也不包含 Token。</p>
+                <p style="margin-top:6px; color:var(--text2)">Token 只保存在本地 <code>~/.cursor/skiller/data/</code>，不会上传到任何地方。</p>
               </details>
-              <details style="margin-bottom:8px; padding:10px; border-radius:10px; background:var(--bg2)">
-                <summary style="cursor:pointer; font-weight:600">技能广场和社区有什么区别？</summary>
-                <p style="margin-top:8px; color:var(--text2)">🏪技能广场 = 官方/知名仓库（类似应用商店）<br>🌍社区 = 个人/团队仓库（类似朋友圈）</p>
+              <details style="margin-bottom:6px; padding:8px 10px; border-radius:8px; background:var(--bg2)">
+                <summary style="cursor:pointer; font-weight:600">从链接导入的技能如何标注作者？</summary>
+                <p style="margin-top:6px; color:var(--text2)">系统会自动在 frontmatter 中添加 <code>original_author</code> 和 <code>source_repo</code> 字段。</p>
               </details>
-              <details style="margin-bottom:8px; padding:10px; border-radius:10px; background:var(--bg2)">
-                <summary style="cursor:pointer; font-weight:600">没有写权限怎么投稿？</summary>
-                <p style="margin-top:8px; color:var(--text2)">在📤上传/投稿 → 底部的「Issue 投稿」区域，通过 GitHub Issue 提交技能，等待管理员审核。</p>
+              <details style="margin-bottom:6px; padding:8px 10px; border-radius:8px; background:var(--bg2)">
+                <summary style="cursor:pointer; font-weight:600">全局技能和项目技能有什么区别？</summary>
+                <p style="margin-top:6px; color:var(--text2)">全局技能对所有项目生效，项目技能只在特定项目的 <code>.cursor/rules/</code> 中有效。</p>
               </details>
             </div>
           </div>
 
           <div style="text-align:center; padding:12px">
-            <a href="https://github.com/zhangziyana007-sudo/skiller-mcp/blob/main/docs/community-guide.md" target="_blank" class="btn btn-blue" style="text-decoration:none; display:inline-block">📖 查看完整文档</a>
-            <a href="https://github.com/zhangziyana007-sudo/skiller-mcp/blob/main/docs/create-your-community.md" target="_blank" class="btn" style="text-decoration:none; display:inline-block; margin-left:8px">🏗️ 搭建社区详细教程</a>
+            <a href="https://github.com/zhangziyana007-sudo/skiller-mcp/blob/main/docs/community-guide.md" target="_blank" class="btn btn-blue" style="text-decoration:none; display:inline-block">📖 完整文档</a>
+            <a href="https://github.com/zhangziyana007-sudo/skiller-mcp/blob/main/docs/create-your-community.md" target="_blank" class="btn" style="text-decoration:none; display:inline-block; margin-left:8px">🏗️ 搭建教程</a>
           </div>
         </div>
       `;
     }
 
     function renderCommunitySettings(container) {
-      renderCommunitySetup();
+      showView('ghcommunity');
+      setTimeout(showGhcSettingsFullPage, 100);
     }
 
     function showInstallDialog(name, rawUrl, btn) {
@@ -3831,12 +5077,11 @@
       });
 
       communityConfig = await api(`/api/community/save-config?${params}`);
-      communityLoaded = true;
+      communityLoaded = false;
       showToast({ tool: 'config', resultSummary: '社区配置已保存', timestamp: new Date().toISOString() });
 
       if (repo) {
-        communityTab = 'browse';
-        renderCommunity();
+        showView('ghcommunity');
       }
     }
 

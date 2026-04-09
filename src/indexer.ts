@@ -127,6 +127,7 @@ function scanProjectRules(): SkillEntry[] {
               path: filePath,
               source: "project-rules",
               tokenEstimate: estimateTokens(content),
+              projectName,
             });
           } catch {}
         }
@@ -146,8 +147,11 @@ export function buildIndex(): SkillIndex {
 
   const seen = new Set<string>();
   const dedupedSkills = allSkills.filter((s) => {
-    if (seen.has(s.name)) return false;
-    seen.add(s.name);
+    const key = s.source === "project-rules"
+      ? `${s.name}::project::${s.projectName || ""}`
+      : `${s.name}::global`;
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
 

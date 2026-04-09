@@ -1,5 +1,5 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import { readFileSync, existsSync, watch, statSync, rmSync, renameSync, readdirSync } from "fs";
+import { readFileSync, existsSync, watch, statSync, rmSync, renameSync, readdirSync, unlinkSync, mkdirSync, writeFileSync } from "fs";
 import { join, extname, resolve, dirname, basename } from "path";
 import { execSync } from "child_process";
 import { getOrBuildIndex, buildIndex } from "./indexer.js";
@@ -240,9 +240,13 @@ function handleApi(path: string, params: URLSearchParams): unknown {
         (s) => s.name === delName || s.name.toLowerCase() === delName.toLowerCase()
       );
       if (!delSkill) return { success: false, message: `技能 "${delName}" 不存在` };
-      const skillDir = dirname(delSkill.path);
       try {
-        rmSync(skillDir, { recursive: true, force: true });
+        if (delSkill.source === "project-rules") {
+          unlinkSync(delSkill.path);
+        } else {
+          const skillDir = dirname(delSkill.path);
+          rmSync(skillDir, { recursive: true, force: true });
+        }
         index = buildIndex();
         return { success: true, message: `"${delName}" 已删除`, totalSkills: index.totalSkills };
       } catch (e) {
@@ -278,6 +282,55 @@ function handleApi(path: string, params: URLSearchParams): unknown {
         }
       }
       return { success: true, message: "无需变更", enabled: !togDirName.startsWith(".") };
+    }
+
+    case "/api/skill/copy-to-project": {
+      const cpName = params.get("name") || "";
+      const cpProject = params.get("projectPath") || "";
+      if (!cpName || !cpProject) return { success: false, message: "Missing name or projectPath" };
+      const cpSkill = index.skills.find(
+        (s) => s.name === cpName || s.name.toLowerCase() === cpName.toLowerCase()
+      );
+      if (!cpSkill) return { success: false, message: `技能 "${cpName}" 不存在` };
+      try {
+        const content = readFileSync(cpSkill.path, "utf-8");
+        const projDir = resolve(cpProject);
+        if (!existsSync(projDir)) return { success: false, message: "项目路径不存在: " + cpProject };
+        const rulesDir = join(projDir, ".cursor", "rules");
+        mkdirSync(rulesDir, { recursive: true });
+        const safeName = cpName.replace(/[^a-zA-Z0-9_-]/g, "-");
+        const targetPath = join(rulesDir, safeName + ".mdc");
+        writeFileSync(targetPath, content, "utf-8");
+        index = buildIndex();
+        return { success: true, message: `已复制到项目 ${cpProject}`, path: targetPath, totalSkills: index.totalSkills };
+      } catch (e) {
+        return { success: false, message: `复制失败: ${String(e).slice(0, 200)}` };
+      }
+    }
+
+    case "/api/skill/promote-to-global": {
+      const prName = params.get("name") || "";
+      const prDelete = params.get("deleteOriginal") === "1";
+      if (!prName) return { success: false, message: "Missing name" };
+      const prSkill = index.skills.find(
+        (s) => s.name === prName && s.source === "project-rules"
+      );
+      if (!prSkill) return { success: false, message: `项目级技能 "${prName}" 不存在` };
+      try {
+        const content = readFileSync(prSkill.path, "utf-8");
+        const safeName = prName.replace(/[^a-zA-Z0-9_-]/g, "-");
+        const globalDir = join(process.env.HOME || "~", ".cursor", "skills", safeName);
+        mkdirSync(globalDir, { recursive: true });
+        const targetPath = join(globalDir, "SKILL.md");
+        writeFileSync(targetPath, content, "utf-8");
+        if (prDelete) {
+          try { unlinkSync(prSkill.path); } catch {}
+        }
+        index = buildIndex();
+        return { success: true, message: `已提升为全局技能`, path: targetPath, totalSkills: index.totalSkills };
+      } catch (e) {
+        return { success: false, message: `提升失败: ${String(e).slice(0, 200)}` };
+      }
     }
 
     case "/api/skill/export": {
@@ -349,6 +402,66 @@ function handleApi(path: string, params: URLSearchParams): unknown {
         return { path: mcpPath3, content };
       } catch {
         return { error: "无法读取 mcp.json" };
+      }
+    }
+
+    case "/api/version": {
+      const skillerRoot = join(import.meta.dirname, "..");
+      try {
+        const pkgJson = JSON.parse(readFileSync(join(skillerRoot, "package.json"), "utf-8"));
+        let commitHash = "";
+        let commitDate = "";
+        try {
+          commitHash = execSync("git rev-parse --short HEAD", { cwd: skillerRoot, encoding: "utf-8" }).trim();
+          commitDate = execSync("git log -1 --format=%ci", { cwd: skillerRoot, encoding: "utf-8" }).trim();
+        } catch {}
+        return { version: pkgJson.version, commit: commitHash, commitDate, name: pkgJson.name };
+      } catch {
+        return { version: "unknown", commit: "", commitDate: "" };
+      }
+    }
+
+    case "/api/check-update": {
+      const skillerRoot2 = join(import.meta.dirname, "..");
+      try {
+        const localCommit = execSync("git rev-parse HEAD", { cwd: skillerRoot2, encoding: "utf-8" }).trim();
+        let fetchOk = false;
+        try {
+          execSync("git fetch origin --quiet 2>&1", { cwd: skillerRoot2, encoding: "utf-8", timeout: 15000 });
+          fetchOk = true;
+        } catch (fetchErr: any) {
+          const msg = fetchErr.message || "";
+          if (msg.includes("TLS") || msg.includes("gnutls") || msg.includes("SSL") || msg.includes("无法访问") || msg.includes("Could not resolve")) {
+            return { hasUpdate: false, networkError: true, errorMsg: "无法连接 GitHub（网络/代理问题），请检查网络配置或设置代理后重试。", localCommit: localCommit.substring(0, 7) };
+          }
+          throw fetchErr;
+        }
+        const remoteCommit = execSync("git rev-parse origin/main", { cwd: skillerRoot2, encoding: "utf-8" }).trim();
+        const behind = parseInt(execSync(`git rev-list --count HEAD..origin/main`, { cwd: skillerRoot2, encoding: "utf-8" }).trim()) || 0;
+        let remoteLog = "";
+        if (behind > 0) {
+          remoteLog = execSync(`git log --oneline HEAD..origin/main`, { cwd: skillerRoot2, encoding: "utf-8" }).trim();
+        }
+        let releaseInfo = null;
+        try {
+          const pkgJson2 = JSON.parse(readFileSync(join(skillerRoot2, "package.json"), "utf-8"));
+          const repoUrl = pkgJson2.repository?.url || "";
+          const match = repoUrl.match(/github\.com[/:]([^/]+\/[^/.]+)/);
+          if (match) {
+            const repoSlug = match[1];
+            const releaseData = execSync(
+              `curl -sf --max-time 8 -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/${repoSlug}/releases/latest"`,
+              { cwd: skillerRoot2, encoding: "utf-8", timeout: 10000 }
+            );
+            const rel = JSON.parse(releaseData);
+            if (rel.tag_name) {
+              releaseInfo = { tag: rel.tag_name, name: rel.name || rel.tag_name, body: (rel.body || "").substring(0, 500), publishedAt: rel.published_at };
+            }
+          }
+        } catch {}
+        return { hasUpdate: behind > 0, behind, localCommit: localCommit.substring(0, 7), remoteCommit: remoteCommit.substring(0, 7), changelog: remoteLog, release: releaseInfo };
+      } catch (e: any) {
+        return { error: "检查更新失败: " + (e.message || "unknown").substring(0, 200), hasUpdate: false };
       }
     }
 
@@ -626,6 +739,188 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       const targetRepo = params.get("repo") || undefined;
       const config = loadConfig();
       return listSubmissions(config, targetRepo);
+    }
+
+    case "/api/community/repo-categories": {
+      const rcSourceId = params.get("sourceId") || "";
+      if (!rcSourceId) return { error: "Missing sourceId" };
+      const rcConfig = loadConfig();
+      const rcSource = rcConfig.sources.find(s => s.id === rcSourceId);
+      if (!rcSource) return { error: "Source not found" };
+      const rcToken = rcSource.token || rcConfig.githubToken || "";
+      const rcUrl = `https://api.github.com/repos/${rcSource.repo}/contents/${rcSource.skillsPath}/categories.json?ref=${rcSource.branch}`;
+      const rcHeaders: Record<string, string> = {
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "Skiller-Community/1.0",
+      };
+      if (rcToken) rcHeaders.Authorization = `Bearer ${rcToken}`;
+      try {
+        const rcResp = await fetch(rcUrl, { headers: rcHeaders, signal: AbortSignal.timeout(10000) });
+        if (!rcResp.ok) return { categories: [], skillCategories: {}, sha: null };
+        const rcData = await rcResp.json() as { content: string; sha: string };
+        const decoded = Buffer.from(rcData.content, "base64").toString("utf-8");
+        const parsed = JSON.parse(decoded);
+        return { ...parsed, sha: rcData.sha };
+      } catch {
+        return { categories: [], skillCategories: {}, sha: null };
+      }
+    }
+
+    case "/api/community/save-repo-categories": {
+      const scSourceId = params.get("sourceId") || "";
+      if (!scSourceId) return { success: false, message: "Missing sourceId" };
+      const scConfig = loadConfig();
+      const scSource = scConfig.sources.find(s => s.id === scSourceId);
+      if (!scSource) return { success: false, message: "Source not found" };
+      if (!scSource.writable) return { success: false, message: "仓库不可写" };
+      const scToken = scSource.token || scConfig.githubToken;
+      if (!scToken) return { success: false, message: "没有 Token" };
+
+      const categoriesJson = params.get("data") || "{}";
+      const scSha = params.get("sha") || undefined;
+
+      const scUrl = `https://api.github.com/repos/${scSource.repo}/contents/${scSource.skillsPath}/categories.json`;
+      const scHeaders: Record<string, string> = {
+        Authorization: `Bearer ${scToken}`,
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "Skiller-Community/1.0",
+        "Content-Type": "application/json",
+      };
+
+      const scBody: Record<string, string> = {
+        message: "Update categories",
+        content: Buffer.from(categoriesJson).toString("base64"),
+        branch: scSource.branch,
+      };
+      if (scSha) scBody.sha = scSha;
+
+      try {
+        const scResp = await fetch(scUrl, {
+          method: "PUT",
+          headers: scHeaders,
+          body: JSON.stringify(scBody),
+          signal: AbortSignal.timeout(15000),
+        });
+        if (!scResp.ok) {
+          const errText = await scResp.text();
+          return { success: false, message: `GitHub API 错误 (${scResp.status}): ${errText.slice(0, 200)}` };
+        }
+        const result = await scResp.json() as { content: { sha: string } };
+        return { success: true, sha: result.content.sha };
+      } catch (e) {
+        return { success: false, message: `请求失败: ${e instanceof Error ? e.message : String(e)}` };
+      }
+    }
+
+    case "/api/community/import-url": {
+      const ghUrl = params.get("url") || "";
+      const targetSourceId = params.get("sourceId") || "";
+      if (!ghUrl) return { success: false, message: "Missing url" };
+      if (!targetSourceId) return { success: false, message: "Missing target sourceId" };
+
+      const config = loadConfig();
+      const targetSource = config.sources.find(s => s.id === targetSourceId);
+      if (!targetSource) return { success: false, message: `仓库 "${targetSourceId}" 不存在` };
+      if (!targetSource.writable) return { success: false, message: "目标仓库不可写" };
+      const token = targetSource.token || config.githubToken;
+      if (!token) return { success: false, message: "目标仓库没有配置 token" };
+
+      const m2 = ghUrl.match(/github\.com\/([^/]+\/[^/]+)\/(?:blob|tree)\/([^/]+)\/(.+)/);
+      if (!m2) return { success: false, message: "无法解析 GitHub 链接" };
+      const [, srcRepo, srcBranch, srcPath] = m2;
+
+      let rawContent = "";
+      const tryPaths = srcPath.endsWith(".md") || srcPath.endsWith(".MD")
+        ? [srcPath]
+        : [`${srcPath}/SKILL.md`, `${srcPath}/skill.md`, srcPath];
+      for (const tp of tryPaths) {
+        try {
+          const r = await fetch(`https://raw.githubusercontent.com/${srcRepo}/${srcBranch}/${tp}`, { signal: AbortSignal.timeout(10000) });
+          if (r.ok) { rawContent = await r.text(); break; }
+        } catch {}
+      }
+      if (!rawContent.trim()) return { success: false, message: "下载失败或内容为空" };
+
+      const customName = params.get("name") || "";
+      const skillName = customName || srcPath.split("/").filter(Boolean).slice(-1)[0]?.replace(/\.md$/i, "") || "unknown";
+      const safeName = skillName.replace(/[^a-zA-Z0-9_-]/g, "-");
+
+      const originalAuthor = srcRepo.split("/")[0] || "unknown";
+      const authorLine = `original_author: ${originalAuthor}`;
+      const sourceRefLine = `source_repo: ${srcRepo}`;
+      if (rawContent.startsWith("---")) {
+        const endIdx = rawContent.indexOf("---", 3);
+        if (endIdx > 0) {
+          const front = rawContent.slice(0, endIdx);
+          if (!front.includes("original_author")) {
+            rawContent = front + authorLine + "\n" + sourceRefLine + "\n" + rawContent.slice(endIdx);
+          }
+        }
+      } else {
+        rawContent = "---\n" + authorLine + "\n" + sourceRefLine + "\n---\n\n" + rawContent;
+      }
+
+      const uploadPath = `${targetSource.skillsPath}/${safeName}/SKILL.md`;
+      const apiUrl = `https://api.github.com/repos/${targetSource.repo}/contents/${uploadPath}`;
+      const headers: Record<string, string> = {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "Skiller-Community/1.0",
+      };
+
+      let sha: string | undefined;
+      try {
+        const check = await fetch(`${apiUrl}?ref=${targetSource.branch}`, { headers, signal: AbortSignal.timeout(8000) });
+        if (check.ok) {
+          const existing = await check.json() as { sha: string };
+          sha = existing.sha;
+        }
+      } catch {}
+
+      const body: Record<string, string> = {
+        message: `Import ${safeName} from ${srcRepo} (original author: ${originalAuthor})`,
+        content: Buffer.from(rawContent).toString("base64"),
+        branch: targetSource.branch,
+      };
+      if (sha) body.sha = sha;
+
+      try {
+        const resp = await fetch(apiUrl, {
+          method: "PUT",
+          headers: { ...headers, "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(15000),
+        });
+        if (!resp.ok) {
+          const errText = await resp.text();
+          return { success: false, message: `GitHub API 错误 (${resp.status}): ${errText.slice(0, 200)}` };
+        }
+        return { success: true, message: `已导入 ${safeName} (原作者: ${originalAuthor})`, name: safeName, originalAuthor };
+      } catch (e) {
+        return { success: false, message: `请求失败: ${e instanceof Error ? e.message : String(e)}` };
+      }
+    }
+
+    case "/api/do-update": {
+      const skillerRoot3 = join(import.meta.dirname, "..");
+      try {
+        const pullResult = execSync("git pull origin main 2>&1", { cwd: skillerRoot3, encoding: "utf-8", timeout: 30000 });
+        let installResult = "";
+        try {
+          installResult = execSync("npm install 2>&1", { cwd: skillerRoot3, encoding: "utf-8", timeout: 60000 });
+        } catch {}
+        let buildResult = "";
+        try {
+          buildResult = execSync("npx tsc 2>&1", { cwd: skillerRoot3, encoding: "utf-8", timeout: 30000 });
+        } catch (e: any) {
+          buildResult = e.stdout || e.message || "编译失败";
+        }
+        const newCommit = execSync("git rev-parse --short HEAD", { cwd: skillerRoot3, encoding: "utf-8" }).trim();
+        const pkgJson3 = JSON.parse(readFileSync(join(skillerRoot3, "package.json"), "utf-8"));
+        return { success: true, pullResult: pullResult.substring(0, 500), buildResult: buildResult.substring(0, 500), newVersion: pkgJson3.version, newCommit, needRestart: true };
+      } catch (e: any) {
+        return { success: false, message: "更新失败: " + (e.message || "unknown").substring(0, 300) };
+      }
     }
 
     default:

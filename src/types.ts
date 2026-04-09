@@ -6,6 +6,7 @@ export interface SkillEntry {
   path: string;
   source: "custom" | "superpowers" | "skills-cursor" | "project-rules";
   tokenEstimate: number;
+  projectName?: string;
 }
 
 export interface UserCategory {

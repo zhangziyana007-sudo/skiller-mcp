@@ -102,7 +102,7 @@ npm run dashboard
 
 ### 作为使用者
 
-1. 打开 Dashboard → 社区 → 订阅源管理
+1. 打开 Dashboard → 📡 订阅外部GitHub仓库
 2. 添加别人的仓库地址（如 `someone/their-skills`）
 3. 浏览并安装感兴趣的技能
 4. 首次加载自动缓存，后续秒开
