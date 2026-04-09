@@ -2760,7 +2760,7 @@
           ${hasRepo ? `<div class="tab-btn ${communityTab==='submissions'?'active':''}" onclick="communityTab='submissions'; renderCommunity()">📝 投稿列表</div>` : ''}
           <div class="tab-btn ${communityTab==='linkinstall'?'active':''}" onclick="communityTab='linkinstall'; renderCommunity()">🔗 链接安装</div>
           <div class="tab-btn ${communityTab==='help'?'active':''}" onclick="communityTab='help'; renderCommunity()">❓ 帮助</div>
-          <div class="tab-btn ${communityTab==='settings'?'active':''}" onclick="communityTab='settings'; renderCommunity()">⚙️ 设置</div>
+          <div class="tab-btn ${communityTab==='settings'?'active':''}" onclick="communityTab='settings'; renderCommunity()">⚙️ 配置我的私人社区</div>
         </div>
 
         <div id="communityBody"></div>
@@ -3784,7 +3784,7 @@
       const cfg = communityConfig || {};
 
       content.innerHTML = `
-        <div class="page-title">⚙️ 社区配置</div>
+        <div class="page-title">⚙️ 配置我的私人 GitHub 在线社区</div>
 
         <div class="community-config">
           <h3>🔗 我的社区仓库</h3>
