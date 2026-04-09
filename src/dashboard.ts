@@ -30,6 +30,7 @@ import {
 
 const PORT = parseInt(process.env.SKILLER_PORT || "3737");
 const STATIC_DIR = join(import.meta.dirname, "..", "dashboard");
+const CORS_ORIGIN = `http://localhost:${PORT}`;
 const LOG_PATH = join(process.env.HOME || "~", ".cursor", "skiller", "data", "usage_log.json");
 
 const sseClients = new Set<ServerResponse>();
@@ -699,14 +700,44 @@ function handleApi(path: string, params: URLSearchParams): unknown {
 
 const localSkillNames = () => index.skills.map((s) => s.name);
 
+function maskToken(token?: string): string | undefined {
+  if (!token) return undefined;
+  return "••••" + token.slice(-4);
+}
+
+function maskConfig<T extends { githubToken?: string; sources: Array<{ token?: string }> }>(cfg: T) {
+  return {
+    ...cfg,
+    githubToken: maskToken(cfg.githubToken),
+    sources: cfg.sources.map(s => ({ ...s, token: maskToken(s.token) })),
+  };
+}
+
+const ALLOWED_HOSTS = [
+  "raw.githubusercontent.com",
+  "github.com",
+  "gist.githubusercontent.com",
+  "gitee.com",
+  "raw.gitee.com",
+];
+
+function isAllowedUrl(urlStr: string): boolean {
+  try {
+    const u = new URL(urlStr);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return false;
+    if (ALLOWED_HOSTS.some((h) => u.hostname === h || u.hostname.endsWith("." + h))) return true;
+    const ip = u.hostname;
+    if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|0\.|localhost|::1|\[::1\])/.test(ip)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function handleAsyncApi(path: string, params: URLSearchParams): Promise<unknown> {
   switch (path) {
     case "/api/community/config": {
-      const cfg = loadConfig();
-      return {
-        ...cfg,
-        sources: cfg.sources.map(s => ({ ...s, token: s.token ? "••••" + s.token.slice(-4) : undefined })),
-      };
+      return maskConfig(loadConfig());
     }
 
     case "/api/community/save-config": {
@@ -715,7 +746,7 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       const skillsPath = params.get("skillsPath") || undefined;
       const githubToken = params.get("token") || undefined;
       const authorName = params.get("author") || undefined;
-      return saveConfig({ repo, branch, skillsPath, githubToken, authorName });
+      return maskConfig(saveConfig({ repo, branch, skillsPath, githubToken, authorName }));
     }
 
     case "/api/community/skills": {
@@ -784,6 +815,7 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       const name = params.get("name") || "";
       const rawUrl = params.get("url") || "";
       if (!name || !rawUrl) return { error: "Missing name or url" };
+      if (!isAllowedUrl(rawUrl)) return { error: "URL 不在允许的域名列表中（仅支持 GitHub / Gitee）" };
 
       const installMode = params.get("mode") || params.get("scope") || "global-skill";
       const projectPath = params.get("projectPath") || "";
@@ -997,7 +1029,8 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       if (!repo) return { error: "Missing repo" };
       const config = addSource({ repo, branch, skillsPath, label, writable, token: srcToken });
       clearAllCache();
-      return { success: true, sources: config.sources.map(s => ({ ...s, token: s.token ? "••••" + s.token.slice(-4) : undefined })) };
+      const masked = maskConfig(config);
+      return { success: true, sources: masked.sources, githubToken: masked.githubToken };
     }
 
     case "/api/community/remove-source": {
@@ -1005,7 +1038,8 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       if (!sourceId) return { error: "Missing id" };
       const config = removeSource(sourceId);
       clearAllCache();
-      return { success: true, sources: config.sources.map(s => ({ ...s, token: s.token ? "••••" + s.token.slice(-4) : undefined })) };
+      const masked = maskConfig(config);
+      return { success: true, sources: masked.sources, githubToken: masked.githubToken };
     }
 
     case "/api/community/source-skills": {
@@ -1424,13 +1458,15 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
 
 const server = createServer((req, res) => {
   const url = new URL(req.url || "/", `http://localhost:${PORT}`);
+  const origin = req.headers.origin || "";
+  const allowedOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ? origin : `http://localhost:${PORT}`;
 
   if (url.pathname === "/api/sse") {
     res.writeHead(200, {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": allowedOrigin,
     });
     res.write(`data: ${JSON.stringify({ type: "connected", clients: sseClients.size + 1 })}\n\n`);
     sseClients.add(res);
@@ -1438,28 +1474,60 @@ const server = createServer((req, res) => {
     return;
   }
 
+  if (req.method === "OPTIONS") {
+    res.writeHead(200, {
+      "Access-Control-Allow-Origin": allowedOrigin,
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    });
+    res.end();
+    return;
+  }
+
   if (url.pathname.startsWith("/api/community")) {
     res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    handleAsyncApi(url.pathname, url.searchParams)
-      .then((result) => {
-        if (result === null) {
-          res.statusCode = 404;
-          res.end(JSON.stringify({ error: "Not found" }));
-        } else {
-          res.end(JSON.stringify(result));
+    res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+
+    if (req.method === "POST") {
+      let body = "";
+      req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+      req.on("end", () => {
+        try {
+          const bodyParams = JSON.parse(body || "{}");
+          const merged = new URLSearchParams(url.searchParams);
+          for (const [k, v] of Object.entries(bodyParams)) {
+            if (typeof v === "string") merged.set(k, v);
+            else if (v !== undefined && v !== null) merged.set(k, String(v));
+          }
+          handleAsyncApi(url.pathname, merged)
+            .then((result) => res.end(JSON.stringify(result ?? { error: "Not found" })))
+            .catch((err) => { res.statusCode = 500; res.end(JSON.stringify({ error: String(err) })); });
+        } catch {
+          res.statusCode = 400;
+          res.end(JSON.stringify({ error: "Invalid JSON body" }));
         }
-      })
-      .catch((err) => {
-        res.statusCode = 500;
-        res.end(JSON.stringify({ error: String(err) }));
       });
+    } else {
+      handleAsyncApi(url.pathname, url.searchParams)
+        .then((result) => {
+          if (result === null) {
+            res.statusCode = 404;
+            res.end(JSON.stringify({ error: "Not found" }));
+          } else {
+            res.end(JSON.stringify(result));
+          }
+        })
+        .catch((err) => {
+          res.statusCode = 500;
+          res.end(JSON.stringify({ error: String(err) }));
+        });
+    }
     return;
   }
 
   if (url.pathname === "/api/skill/create-in-project") {
     res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
     let body = "";
     req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
     req.on("end", () => {
@@ -1495,7 +1563,7 @@ const server = createServer((req, res) => {
 
   if (url.pathname.startsWith("/api/")) {
     res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
     try {
       const result = handleApi(url.pathname, url.searchParams);
       res.end(JSON.stringify(result));

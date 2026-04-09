@@ -3273,6 +3273,14 @@
       return p;
     }
 
+    async function apiPost(path, body) {
+      return fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }).then(function(res) { return res.json(); });
+    }
+
     function connectSSE() {
       if (sseSource) sseSource.close();
 
@@ -6259,13 +6267,7 @@
       if (resultEl) resultEl.innerHTML = '<span style="animation:spin 1s linear infinite; display:inline-block">⏳</span> 添加中...';
 
       try {
-        var url = '/api/community/add-source?repo=' + encodeURIComponent(repo)
-          + '&label=' + encodeURIComponent(label)
-          + '&branch=' + encodeURIComponent(branch)
-          + '&skillsPath=' + encodeURIComponent(skillsPath)
-          + '&writable=' + (writable ? 'true' : 'false');
-        if (token) url += '&token=' + encodeURIComponent(token);
-        var result = await api(url);
+        var result = await apiPost('/api/community/add-source', { repo: repo, label: label, branch: branch, skillsPath: skillsPath, writable: writable ? 'true' : 'false', token: token || undefined });
         if (result.success) {
           showToast({ tool: 'source', resultSummary: '已添加仓库 ' + repo, timestamp: new Date().toISOString() });
           communityConfig = await api('/api/community/config');
@@ -6441,8 +6443,7 @@
       var skillsPath = document.getElementById('cfgPath').value.trim() || 'skills';
       var token = document.getElementById('cfgToken').value.trim();
       var author = document.getElementById('cfgAuthor').value.trim();
-      var params = new URLSearchParams({ repo: repo, branch: branch, skillsPath: skillsPath, token: token, author: author });
-      communityConfig = await api('/api/community/save-config?' + params.toString());
+      communityConfig = await apiPost('/api/community/save-config', { repo: repo, branch: branch, skillsPath: skillsPath, token: token, author: author });
       communityLoaded = false;
       showToast({ tool: 'config', resultSummary: '社区配置已保存', timestamp: new Date().toISOString() });
       renderGhCommunity();
@@ -7089,9 +7090,7 @@
 
     async function doSubscribe(repo, label, resultEl, token) {
       try {
-        let url = `/api/community/add-source?repo=${encodeURIComponent(repo)}&label=${encodeURIComponent(label)}&branch=main&skillsPath=skills`;
-        if (token) url += `&token=${encodeURIComponent(token)}`;
-        const result = await api(url);
+        const result = await apiPost('/api/community/add-source', { repo, label, branch: 'main', skillsPath: 'skills', token: token || undefined });
         if (result.success) {
           communityConfig.sources = result.sources;
           communityLoaded = false;
@@ -7139,8 +7138,7 @@
       const token = newToken === 'clear' ? '' : newToken === '••••••••' ? currentToken : newToken;
 
       try {
-        const url = `/api/community/add-source?repo=${encodeURIComponent(repo)}&label=${encodeURIComponent(label)}&branch=${encodeURIComponent(source?.branch || 'main')}&skillsPath=${encodeURIComponent(source?.skillsPath || 'skills')}&token=${encodeURIComponent(token)}`;
-        const result = await api(url);
+        const result = await apiPost('/api/community/add-source', { repo, label, branch: source?.branch || 'main', skillsPath: source?.skillsPath || 'skills', token });
         if (result.sources) {
           communityConfig.sources = result.sources;
           communityLoaded = false;
@@ -7646,11 +7644,7 @@
       const token = document.getElementById('cfgToken').value.trim();
       const author = document.getElementById('cfgAuthor').value.trim();
 
-      const params = new URLSearchParams({
-        repo, branch, skillsPath, token, author
-      });
-
-      communityConfig = await api(`/api/community/save-config?${params}`);
+      communityConfig = await apiPost('/api/community/save-config', { repo, branch, skillsPath, token, author });
       communityLoaded = false;
       showToast({ tool: 'config', resultSummary: '社区配置已保存', timestamp: new Date().toISOString() });
 
