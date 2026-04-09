@@ -219,8 +219,8 @@ function handleApi(path: string, params: URLSearchParams): unknown {
       if (existsSync(cursorProjectsDir)) {
         try {
           for (const d of readdirSync(cursorProjectsDir)) {
-            const decoded = d.replace(/-/g, "/");
-            if (existsSync(decoded) && statSync(decoded).isDirectory()) {
+          const decoded = "/" + d.replace(/-/g, "/");
+          if (existsSync(decoded) && statSync(decoded).isDirectory()) {
               projects.push(decoded);
             }
           }

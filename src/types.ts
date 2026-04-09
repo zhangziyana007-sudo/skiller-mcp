@@ -4,7 +4,7 @@ export interface SkillEntry {
   categories: string[];
   tags: string[];
   path: string;
-  source: "custom" | "superpowers" | "skills-cursor";
+  source: "custom" | "superpowers" | "skills-cursor" | "project-rules";
   tokenEstimate: number;
 }
 

@@ -95,12 +95,54 @@ function scanDirectory(
   return skills;
 }
 
+function scanProjectRules(): SkillEntry[] {
+  const skills: SkillEntry[] = [];
+  const cursorProjectsDir = join(process.env.HOME || "~", ".cursor", "projects");
+  if (!existsSync(cursorProjectsDir)) return skills;
+
+  try {
+    for (const d of readdirSync(cursorProjectsDir)) {
+      const projectPath = "/" + d.replace(/-/g, "/");
+      const rulesDir = join(projectPath, ".cursor", "rules");
+      if (!existsSync(rulesDir)) continue;
+
+      try {
+        for (const file of readdirSync(rulesDir, { withFileTypes: true })) {
+          if (!file.isFile()) continue;
+          if (!file.name.endsWith(".mdc") && !file.name.endsWith(".md")) continue;
+
+          const filePath = join(rulesDir, file.name);
+          try {
+            const content = readFileSync(filePath, "utf-8");
+            const { data: frontmatter } = matter(content);
+            const name = (frontmatter.name as string) || file.name.replace(/\.(mdc|md)$/, "");
+            const description = (frontmatter.description as string) || "";
+            const projectName = projectPath.split("/").slice(-2).join("/");
+
+            skills.push({
+              name,
+              description: description || `[项目: ${projectName}]`,
+              categories: getSkillCategories(name) || [],
+              tags: [...extractTags(name), "project-rule"],
+              path: filePath,
+              source: "project-rules",
+              tokenEstimate: estimateTokens(content),
+            });
+          } catch {}
+        }
+      } catch {}
+    }
+  } catch {}
+  return skills;
+}
+
 export function buildIndex(): SkillIndex {
   const allSkills: SkillEntry[] = [];
 
   allSkills.push(...scanDirectory(SKILLS_DIR, "custom"));
   allSkills.push(...scanDirectory(SUPERPOWERS_DIR, "superpowers"));
   allSkills.push(...scanDirectory(SKILLS_CURSOR_DIR, "skills-cursor"));
+  allSkills.push(...scanProjectRules());
 
   const seen = new Set<string>();
   const dedupedSkills = allSkills.filter((s) => {
