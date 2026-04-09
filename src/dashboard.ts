@@ -12,11 +12,13 @@ import {
   listCommunitySkills, listSourceSkills, uploadSkill, uploadDescriptionFile, deleteSkill, listOwnSkills,
   submitSkillViaIssue, listSubmissions,
   downloadCommunitySkill, clearAllCache,
-  fetchSkillsFromRepoLight, enrichSkillMetadata,
+  fetchSkillsFromRepoLight, enrichSkillMetadata, extractMetadata,
+  loadCachedSkills, isCacheStale,
 } from "./community.js";
 import {
   loadUserCategories, addCategory, removeCategory, renameCategory,
   tagSkill, buildCategoryTree, getUncategorizedCount,
+  getSkillOverride, setSkillOverride, loadOverrides,
 } from "./categories.js";
 
 const PORT = parseInt(process.env.SKILLER_PORT || "3737");
@@ -25,6 +27,7 @@ const LOG_PATH = join(process.env.HOME || "~", ".cursor", "skiller", "data", "us
 
 const sseClients = new Set<ServerResponse>();
 let lastLogMtime = 0;
+const repoCatCache: Record<string, { data: any; ts: number }> = {};
 
 try {
   if (existsSync(LOG_PATH)) {
@@ -101,8 +104,13 @@ function handleApi(path: string, params: URLSearchParams): unknown {
     case "/api/stats":
       return { ...getSkillStats(index), generatedAt: index.generatedAt };
 
-    case "/api/skills":
-      return index.skills;
+    case "/api/skills": {
+      const allOverrides = loadOverrides();
+      return index.skills.map(s => {
+        const ov = allOverrides[s.name];
+        return ov ? { ...s, displayName: ov.displayName, customDescription: ov.description } : s;
+      });
+    }
 
     case "/api/categories":
       return buildCategoryTree(index);
@@ -163,13 +171,24 @@ function handleApi(path: string, params: URLSearchParams): unknown {
         (s) => s.name === name || s.name.toLowerCase() === name.toLowerCase()
       );
       if (!skill) return { error: "Not found" };
+      const override = getSkillOverride(skill.name);
       try {
         const content = readFileSync(skill.path, "utf-8");
         const result = parseSkillTree(content);
-        return { ...skill, content, subSkills: result.tree, subSkillSource: result.source };
+        return { ...skill, content, subSkills: result.tree, subSkillSource: result.source, displayName: override.displayName, customDescription: override.description };
       } catch {
-        return { ...skill, content: "Failed to read SKILL.md", subSkills: [], subSkillSource: 'auto' };
+        return { ...skill, content: "Failed to read SKILL.md", subSkills: [], subSkillSource: 'auto', displayName: override.displayName, customDescription: override.description };
       }
+    }
+
+    case "/api/skill/set-override": {
+      const soName = params.get("name") || "";
+      if (!soName) return { success: false, message: "Missing name" };
+      const soDisplayName = params.has("displayName") ? (params.get("displayName") || "") : undefined;
+      const soDescription = params.has("description") ? (params.get("description") || "") : undefined;
+      setSkillOverride(soName, soDisplayName, soDescription);
+      index = buildIndex();
+      return { success: true };
     }
 
     case "/api/skill-tree": {
@@ -703,14 +722,35 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
 
     case "/api/community/source-skills": {
       const sourceId = params.get("sourceId") || "";
+      const forceRefresh = params.get("force") === "1";
       if (!sourceId) return { error: "Missing sourceId" };
+
+      if (!forceRefresh) {
+        const cached = loadCachedSkills(sourceId);
+        if (cached && cached.skills.length > 0) {
+          const localNames = localSkillNames();
+          return {
+            skills: cached.skills.map(s => ({
+              ...s,
+              installed: localNames.some(n => n.toLowerCase() === s.name.toLowerCase()),
+            })),
+            stale: cached.stale,
+            updatedAt: cached.updatedAt,
+          };
+        }
+      }
+
       const config = loadConfig();
       const skills = await listSourceSkills(config, sourceId);
       const localNames = localSkillNames();
-      return skills.map(s => ({
-        ...s,
-        installed: localNames.some(n => n.toLowerCase() === s.name.toLowerCase()),
-      }));
+      return {
+        skills: skills.map(s => ({
+          ...s,
+          installed: localNames.some(n => n.toLowerCase() === s.name.toLowerCase()),
+        })),
+        stale: false,
+        updatedAt: new Date().toISOString(),
+      };
     }
 
     case "/api/community/submit": {
@@ -743,7 +783,13 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
 
     case "/api/community/repo-categories": {
       const rcSourceId = params.get("sourceId") || "";
+      const rcForce = params.get("force") === "1";
       if (!rcSourceId) return { error: "Missing sourceId" };
+
+      if (!rcForce && repoCatCache[rcSourceId] && Date.now() - repoCatCache[rcSourceId].ts < 3600000) {
+        return repoCatCache[rcSourceId].data;
+      }
+
       const rcConfig = loadConfig();
       const rcSource = rcConfig.sources.find(s => s.id === rcSourceId);
       if (!rcSource) return { error: "Source not found" };
@@ -760,9 +806,148 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
         const rcData = await rcResp.json() as { content: string; sha: string };
         const decoded = Buffer.from(rcData.content, "base64").toString("utf-8");
         const parsed = JSON.parse(decoded);
-        return { ...parsed, sha: rcData.sha };
+        const result = { ...parsed, sha: rcData.sha };
+        repoCatCache[rcSourceId] = { data: result, ts: Date.now() };
+        return result;
       } catch {
+        if (repoCatCache[rcSourceId]) return repoCatCache[rcSourceId].data;
         return { categories: [], skillCategories: {}, sha: null };
+      }
+    }
+
+    case "/api/community/rename-skill": {
+      const rnSourceId = params.get("sourceId") || "";
+      const rnOldName = params.get("oldName") || "";
+      const rnNewName = params.get("newName") || "";
+      if (!rnSourceId || !rnOldName || !rnNewName) return { success: false, message: "Missing parameters" };
+      if (rnOldName === rnNewName) return { success: false, message: "名称相同" };
+      const rnConfig = loadConfig();
+      const rnSource = rnConfig.sources.find(s => s.id === rnSourceId);
+      if (!rnSource) return { success: false, message: "Source not found" };
+      if (!rnSource.writable) return { success: false, message: "仓库不可写" };
+      const rnToken = rnSource.token || rnConfig.githubToken;
+      if (!rnToken) return { success: false, message: "没有 Token" };
+
+      const rnHeaders: Record<string, string> = {
+        Authorization: `Bearer ${rnToken}`,
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "Skiller-Community/1.0",
+      };
+
+      try {
+        const treeUrl = `https://api.github.com/repos/${rnSource.repo}/git/trees/${rnSource.branch}?recursive=1`;
+        const treeResp = await fetch(treeUrl, { headers: rnHeaders, signal: AbortSignal.timeout(15000) });
+        if (!treeResp.ok) return { success: false, message: `获取仓库文件树失败 (${treeResp.status})` };
+        const treeData = await treeResp.json() as { tree: Array<{ path: string; type: string; sha: string }> };
+
+        const oldPrefix = `${rnSource.skillsPath}/${rnOldName}/`;
+        const oldFiles = treeData.tree.filter(t => t.type === "blob" && t.path.startsWith(oldPrefix));
+        if (oldFiles.length === 0) return { success: false, message: `找不到 ${rnOldName} 的文件` };
+
+        for (const file of oldFiles) {
+          const fileResp = await fetch(`https://api.github.com/repos/${rnSource.repo}/contents/${file.path}?ref=${rnSource.branch}`, {
+            headers: rnHeaders, signal: AbortSignal.timeout(8000),
+          });
+          if (!fileResp.ok) return { success: false, message: `读取文件 ${file.path} 失败` };
+          const fileData = await fileResp.json() as { content: string; sha: string };
+
+          const relativePath = file.path.slice(oldPrefix.length);
+          const newPath = `${rnSource.skillsPath}/${rnNewName}/${relativePath}`;
+
+          const createResp = await fetch(`https://api.github.com/repos/${rnSource.repo}/contents/${newPath}`, {
+            method: "PUT",
+            headers: { ...rnHeaders, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: `rename: ${rnOldName} -> ${rnNewName} (${relativePath})`,
+              content: fileData.content,
+              branch: rnSource.branch,
+            }),
+            signal: AbortSignal.timeout(15000),
+          });
+          if (!createResp.ok) {
+            const errText = await createResp.text();
+            return { success: false, message: `创建新文件失败: ${errText.slice(0, 200)}` };
+          }
+        }
+
+        for (const file of oldFiles) {
+          const delResp = await fetch(`https://api.github.com/repos/${rnSource.repo}/contents/${file.path}?ref=${rnSource.branch}`, {
+            headers: rnHeaders, signal: AbortSignal.timeout(8000),
+          });
+          if (delResp.ok) {
+            const delData = await delResp.json() as { sha: string };
+            await fetch(`https://api.github.com/repos/${rnSource.repo}/contents/${file.path}`, {
+              method: "DELETE",
+              headers: { ...rnHeaders, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                message: `rename: delete old ${rnOldName}/${file.path.slice(oldPrefix.length)}`,
+                sha: delData.sha,
+                branch: rnSource.branch,
+              }),
+              signal: AbortSignal.timeout(15000),
+            });
+          }
+        }
+
+        clearAllCache();
+        return { success: true, message: `已将 ${rnOldName} 重命名为 ${rnNewName}` };
+      } catch (e) {
+        return { success: false, message: `操作失败: ${e instanceof Error ? e.message : String(e)}` };
+      }
+    }
+
+    case "/api/community/upload-description": {
+      const udSourceId = params.get("sourceId") || "";
+      const udName = params.get("name") || "";
+      const udDesc = params.get("description") || "";
+      if (!udSourceId || !udName) return { success: false, message: "Missing sourceId or name" };
+      if (!udDesc.trim()) return { success: false, message: "描述不能为空" };
+      const udConfig = loadConfig();
+      const udSource = udConfig.sources.find(s => s.id === udSourceId);
+      if (!udSource) return { success: false, message: "Source not found" };
+      if (!udSource.writable) return { success: false, message: "仓库不可写" };
+      const udToken = udSource.token || udConfig.githubToken;
+      if (!udToken) return { success: false, message: "没有 Token" };
+
+      const udPath = `${udSource.skillsPath}/${udName}/DESCRIPTION.md`;
+      const udUrl = `https://api.github.com/repos/${udSource.repo}/contents/${udPath}`;
+      const udHeaders: Record<string, string> = {
+        Authorization: `Bearer ${udToken}`,
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "Skiller-Community/1.0",
+      };
+
+      let udSha: string | undefined;
+      try {
+        const checkResp = await fetch(`${udUrl}?ref=${udSource.branch}`, { headers: udHeaders, signal: AbortSignal.timeout(8000) });
+        if (checkResp.ok) {
+          const data = await checkResp.json() as { sha: string };
+          udSha = data.sha;
+        }
+      } catch {}
+
+      const udBody: Record<string, string> = {
+        message: `desc: update ${udName} description`,
+        content: Buffer.from(udDesc).toString("base64"),
+        branch: udSource.branch,
+      };
+      if (udSha) udBody.sha = udSha;
+
+      try {
+        const udResp = await fetch(udUrl, {
+          method: "PUT",
+          headers: { ...udHeaders, "Content-Type": "application/json" },
+          body: JSON.stringify(udBody),
+          signal: AbortSignal.timeout(15000),
+        });
+        if (!udResp.ok) {
+          const errText = await udResp.text();
+          return { success: false, message: `GitHub API 错误 (${udResp.status}): ${errText.slice(0, 200)}` };
+        }
+        clearAllCache();
+        return { success: true, message: `已保存 ${udName} 的描述` };
+      } catch (e) {
+        return { success: false, message: `请求失败: ${e instanceof Error ? e.message : String(e)}` };
       }
     }
 
@@ -806,6 +991,10 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
           return { success: false, message: `GitHub API 错误 (${scResp.status}): ${errText.slice(0, 200)}` };
         }
         const result = await scResp.json() as { content: { sha: string } };
+        try {
+          const newCatData = JSON.parse(categoriesJson);
+          repoCatCache[scSourceId] = { data: { ...newCatData, sha: result.content.sha }, ts: Date.now() };
+        } catch {}
         return { success: true, sha: result.content.sha };
       } catch (e) {
         return { success: false, message: `请求失败: ${e instanceof Error ? e.message : String(e)}` };
@@ -895,7 +1084,24 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
           const errText = await resp.text();
           return { success: false, message: `GitHub API 错误 (${resp.status}): ${errText.slice(0, 200)}` };
         }
-        return { success: true, message: `已导入 ${safeName} (原作者: ${originalAuthor})`, name: safeName, originalAuthor };
+        const putResult = await resp.json() as { content?: { sha?: string; html_url?: string } };
+        clearAllCache();
+
+        const importedMeta = extractMetadata(rawContent);
+        const skill = {
+          name: safeName,
+          description: importedMeta.description || `${safeName} skill`,
+          author: originalAuthor,
+          htmlUrl: `https://github.com/${targetSource.repo}/tree/${targetSource.branch}/${targetSource.skillsPath}/${safeName}`,
+          rawUrl: `https://raw.githubusercontent.com/${targetSource.repo}/${targetSource.branch}/${targetSource.skillsPath}/${safeName}/SKILL.md`,
+          sha: putResult.content?.sha || "",
+          size: 0,
+          updatedAt: new Date().toISOString(),
+          sourceId: targetSourceId,
+          sourceLabel: targetSource.label || targetSource.repo,
+        };
+
+        return { success: true, message: `已导入 ${safeName} (原作者: ${originalAuthor})`, name: safeName, originalAuthor, skill };
       } catch (e) {
         return { success: false, message: `请求失败: ${e instanceof Error ? e.message : String(e)}` };
       }

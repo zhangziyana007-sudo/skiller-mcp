@@ -4,7 +4,7 @@ import { join } from "path";
 const CONFIG_DIR = join(process.env.HOME || "~", ".cursor", "skiller", "data");
 const CONFIG_FILE = join(CONFIG_DIR, "community_config.json");
 const COMMUNITY_CACHE_FILE = join(CONFIG_DIR, "community_cache.json");
-const COMMUNITY_CACHE_TTL = 1800 * 1000;
+const COMMUNITY_CACHE_TTL = 14400 * 1000; // 4 hours
 
 export interface CommunitySource {
   id: string;
@@ -147,7 +147,7 @@ async function parallelLimit<T>(
   return results;
 }
 
-function extractMetadata(content: string): { description: string; author: string } {
+export function extractMetadata(content: string): { description: string; author: string } {
   let description = "";
   let author = "";
   const descMatch = content.match(/description:\s*["']?(.+?)["']?\s*$/m);
@@ -370,19 +370,28 @@ function collectSources(config: CommunityConfig): SourceEntry[] {
 
 export async function listCommunitySkills(
   config: CommunityConfig,
-  options?: { light?: boolean; page?: number; pageSize?: number }
+  options?: { light?: boolean; page?: number; pageSize?: number; forceRefresh?: boolean }
 ): Promise<CommunitySkill[]> {
   if (!config.repo && config.sources.length === 0) return [];
 
   const light = options?.light ?? false;
   const page = options?.page;
   const pageSize = options?.pageSize ?? 30;
+  const forceRefresh = options?.forceRefresh ?? false;
 
-  const fullCache = loadCommunityCache("all");
-  if (fullCache) return paginate(fullCache.skills, page, pageSize);
+  if (!forceRefresh) {
+    const fullCache = loadCommunityCache("all");
+    if (fullCache) return paginate(fullCache.skills, page, pageSize);
 
-  const lightCache = loadCommunityCache("all-light");
-  if (light && lightCache) return paginate(lightCache.skills, page, pageSize);
+    const lightCache = loadCommunityCache("all-light");
+    if (light && lightCache) return paginate(lightCache.skills, page, pageSize);
+
+    const staleFullCache = loadCommunityCache("all", true);
+    if (staleFullCache && staleFullCache.skills.length > 0) return paginate(staleFullCache.skills, page, pageSize);
+
+    const staleLightCache = loadCommunityCache("all-light", true);
+    if (light && staleLightCache && staleLightCache.skills.length > 0) return paginate(staleLightCache.skills, page, pageSize);
+  }
 
   const sources = collectSources(config);
   const fetchFn = light ? fetchSkillsFromRepoLight : fetchSkillsFromRepo;
@@ -405,6 +414,8 @@ export async function listSourceSkills(
   const source = config.sources.find((s) => s.id === sourceId);
   if (!source) {
     if (sourceId === "primary" && config.repo) {
+      const primaryCache = loadCommunityCache("primary", true);
+      if (primaryCache && primaryCache.skills.length > 0) return primaryCache.skills;
       return fetchSkillsFromRepo(
         config.repo,
         config.branch,
@@ -419,6 +430,9 @@ export async function listSourceSkills(
 
   const cached = loadCommunityCache(sourceId);
   if (cached) return cached.skills;
+
+  const staleCached = loadCommunityCache(sourceId, true);
+  if (staleCached && staleCached.skills.length > 0) return staleCached.skills;
 
   const skills = await fetchSkillsFromRepo(
     source.repo,
@@ -716,18 +730,38 @@ export async function downloadCommunitySkill(rawUrl: string): Promise<string | n
   return null;
 }
 
-function loadCommunityCache(sourceId: string): CommunityCache | null {
+function loadCommunityCache(sourceId: string, ignoreExpiry = false): CommunityCache | null {
   if (!existsSync(COMMUNITY_CACHE_FILE)) return null;
   try {
     const raw = JSON.parse(readFileSync(COMMUNITY_CACHE_FILE, "utf-8"));
     const multi = raw as MultiCache;
     const data = multi[sourceId];
     if (!data || !data.updatedAt || !Array.isArray(data.skills)) return null;
-    if (Date.now() - new Date(data.updatedAt).getTime() > COMMUNITY_CACHE_TTL) return null;
+    if (!ignoreExpiry && Date.now() - new Date(data.updatedAt).getTime() > COMMUNITY_CACHE_TTL) return null;
     return data;
   } catch {
     return null;
   }
+}
+
+export function isCacheStale(sourceId: string): boolean {
+  if (!existsSync(COMMUNITY_CACHE_FILE)) return true;
+  try {
+    const raw = JSON.parse(readFileSync(COMMUNITY_CACHE_FILE, "utf-8"));
+    const multi = raw as MultiCache;
+    const data = multi[sourceId];
+    if (!data || !data.updatedAt) return true;
+    return Date.now() - new Date(data.updatedAt).getTime() > COMMUNITY_CACHE_TTL;
+  } catch {
+    return true;
+  }
+}
+
+export function loadCachedSkills(sourceId: string): { skills: CommunitySkill[]; updatedAt: string; stale: boolean } | null {
+  const cached = loadCommunityCache(sourceId, true);
+  if (!cached) return null;
+  const stale = Date.now() - new Date(cached.updatedAt).getTime() > COMMUNITY_CACHE_TTL;
+  return { skills: cached.skills, updatedAt: cached.updatedAt, stale };
 }
 
 function saveCommunityCache(sourceId: string, cache: CommunityCache) {

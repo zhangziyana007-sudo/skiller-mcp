@@ -776,6 +776,27 @@
       50% { opacity: 0.5; transform: scale(0.8); }
     }
 
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skeleton-item {
+      background: linear-gradient(90deg, var(--bg2) 25%, var(--bg1) 50%, var(--bg2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s ease-in-out infinite;
+      border-radius: 12px;
+      height: 72px;
+      margin-bottom: 8px;
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .view-content { animation: fadeSlideIn 0.2s ease-out; }
+    .myrepo-item {
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
     .main {
       display: grid;
       grid-template-columns: 240px 1fr;
@@ -2240,14 +2261,14 @@
   <div class="main">
     <aside class="sidebar" id="sidebar">
       <h3>导航</h3>
-      <div class="nav-item active" onclick="showView('community')">
+      <div class="nav-item active" onclick="showView('community')" onmouseenter="prefetchView('community')">
         <span>🌍 社区广场</span>
       </div>
-      <div class="nav-item" onclick="showView('myrepo')">
+      <div class="nav-item" onclick="showView('myrepo')" onmouseenter="prefetchView('myrepo')">
         <span>📦 我的本地仓库</span>
         <span class="count" id="totalCount">0</span>
       </div>
-      <div class="nav-item" onclick="showView('ghcommunity')">
+      <div class="nav-item" onclick="showView('ghcommunity')" onmouseenter="prefetchView('ghcommunity')">
         <span>🔗 我的 GitHub 社区</span>
       </div>
       <div class="nav-item" onclick="showView('sources')">
@@ -2340,9 +2361,12 @@
     let skillSubCounts = {};
     let skillSubSources = {};
 
+    var _apiInflightMap = {};
     async function api(path) {
-      const res = await fetch(path);
-      return res.json();
+      if (_apiInflightMap[path]) return _apiInflightMap[path];
+      var p = fetch(path).then(function(res) { return res.json(); }).finally(function() { delete _apiInflightMap[path]; });
+      _apiInflightMap[path] = p;
+      return p;
     }
 
     function connectSSE() {
@@ -2602,12 +2626,15 @@
       }
 
       if (view === 'myrepo') {
+        if (_dirtyViews.myrepo) { _dirtyViews.myrepo = false; allSkills = []; }
         renderMyRepo();
       } else if (view === 'ghcommunity') {
+        if (_dirtyViews.ghcommunity) { _dirtyViews.ghcommunity = false; ghcSkills = []; }
         renderGhCommunity();
       } else if (view === 'log') {
         renderLog();
       } else if (view === 'community') {
+        if (_dirtyViews.community) { _dirtyViews.community = false; communityLoaded = false; communitySkills = []; }
         renderCommunity();
       } else if (view === 'sources') {
         renderSourcesPage();
@@ -2649,10 +2676,10 @@
       const projectCount = allSkills.filter(s => s.source === 'project-rules').length;
       const globalCount = allSkills.length - projectCount;
 
-      content.innerHTML = '<div class="myrepo-layout">'
+      content.innerHTML = '<div class="myrepo-layout view-content">'
         + '<div class="myrepo-left">'
         +   '<div class="myrepo-left-header">'
-        +     '<input class="myrepo-search" id="myrepoSearch" placeholder="搜索技能名称、标签..." oninput="myrepoSearchQuery=this.value; renderMyRepoList()">'
+        +     '<input class="myrepo-search" id="myrepoSearch" placeholder="搜索技能名称、标签..." oninput="debouncedMyRepoSearch(this.value)">'
         +   '</div>'
         +   '<div class="myrepo-filter-bar">'
         +     '<button class="myrepo-filter-btn' + (myrepoFilter === 'all' ? ' active' : '') + '" onclick="myrepoFilter=\'all\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.myrepo-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">全部</button>'
@@ -2789,22 +2816,24 @@
         var scopeIcon = isProject ? '📁' : '🌐';
         var scopeClass = isProject ? ' scope-project' : '';
         var projectLabel = s.projectName ? s.projectName : '';
-        var desc = s.description || '';
+        var showName = s.displayName || s.name;
+        var desc = s.customDescription || s.description || '';
         if (desc.length > 80) desc = desc.substring(0, 80) + '...';
         var catLabels = s.categories.slice(0, 2).map(function(c) {
           var cat = userCategories.find(function(uc) { return uc.id === c; });
           return cat ? (cat.icon || '') + cat.label : c;
         });
-        return '<div class="myrepo-item' + (selected ? ' selected' : '') + scopeClass + '" onclick="selectMyRepoSkill(\'' + escapeAttr(s.name).replace(/'/g, "\\'") + '\')">'
+        return '<div class="myrepo-item' + (selected ? ' selected' : '') + scopeClass + '" data-skill="' + escapeAttr(s.name) + '" onclick="selectMyRepoSkill(\'' + escapeAttr(s.name).replace(/'/g, "\\'") + '\')">'
           + '<div class="item-header">'
           +   '<div class="scope-icon">' + scopeIcon + '</div>'
-          +   '<div class="item-name">' + escapeHtml(s.name) + '</div>'
+          +   '<div class="item-name">' + escapeHtml(showName) + '</div>'
           + '</div>'
+          + (s.displayName ? '<div style="font-size:10px; color:var(--text2); margin:-2px 0 2px 0; opacity:0.7">' + escapeHtml(s.name) + '</div>' : '')
           + '<div class="item-desc">' + escapeHtml(desc || '暂无描述') + '</div>'
           + '<div class="item-tags">'
           +   (isUploaded
-            ? '<span class="item-badge" style="background:#e8f5e9; color:#2e7d32">已上传</span>'
-            : '<span class="item-badge" style="background:#fff3e0; color:#e65100">未上传</span>')
+            ? '<span class="item-badge upload-badge" style="background:#e8f5e9; color:#2e7d32">已上传</span>'
+            : '<span class="item-badge upload-badge" style="background:#fff3e0; color:#e65100">未上传</span>')
           +   (isProject
             ? '<span class="item-badge" style="background:rgba(124,77,255,0.1); color:#7c4dff">' + escapeHtml(projectLabel || 'project') + '</span>'
             : '')
@@ -2850,14 +2879,16 @@
       var html = '';
 
       // Info header
+      var showTitle = data.displayName || data.name;
       html += '<div style="margin-bottom:16px">'
-        + '<h2 style="font-family:var(--font-display); font-size:22px; margin-bottom:8px">' + escapeHtml(data.name) + '</h2>'
+        + '<h2 style="font-family:var(--font-display); font-size:22px; margin-bottom:4px">' + escapeHtml(showTitle) + '</h2>'
+        + (data.displayName ? '<div style="font-size:11px; color:var(--text2); margin-bottom:6px; opacity:0.7">原名: ' + escapeHtml(data.name) + '</div>' : '')
         + '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px">'
         + (isUploaded ? '<span class="tag" style="background:#e8f5e9; color:#2e7d32; font-weight:600">已上传到社区</span>' : '<span class="tag" style="background:#fff3e0; color:#e65100; font-weight:600">未上传</span>')
         + '<span class="tag source">' + escapeHtml(data.source) + '</span>'
         + '<span class="tag tokens">~' + (data.tokenEstimate || 0) + ' tokens</span>'
         + '</div>'
-        + '<p style="color:var(--text2); font-size:13px; line-height:1.6; margin-bottom:4px">' + escapeHtml(data.description) + '</p>'
+        + '<p style="color:var(--text2); font-size:13px; line-height:1.6; margin-bottom:4px">' + escapeHtml(data.customDescription || data.description) + '</p>'
         + '<div style="font-size:11px; color:var(--text2)">📂 ' + escapeHtml(data.path || '') + '</div>'
         + '</div>';
 
@@ -2895,6 +2926,21 @@
         html += '<button class="btn btn-green" style="padding:5px 14px; font-size:12px" onclick="myrepoSaveCategories(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\')">💾 保存分类</button>';
       }
       html += '</div>';
+
+      // Display name and description editor
+      html += '<div class="myrepo-section">'
+        + '<div class="myrepo-section-title">✏️ 自定义显示</div>'
+        + '<div style="margin-bottom:8px">'
+        + '<label style="font-size:11px; color:var(--text2); display:block; margin-bottom:4px">显示名称（留空使用原名）</label>'
+        + '<input type="text" id="myrepo-displayName" value="' + escapeAttr(data.displayName || '') + '" placeholder="' + escapeAttr(data.name) + '" style="width:100%; padding:8px 12px; border-radius:24px; border:1.5px solid var(--border2); background:var(--bg2); font-size:12px; outline:none; transition:border-color 0.2s" onfocus="this.style.borderColor=\'var(--blue)\'" onblur="this.style.borderColor=\'var(--border2)\'">'
+        + '</div>'
+        + '<div style="margin-bottom:8px">'
+        + '<label style="font-size:11px; color:var(--text2); display:block; margin-bottom:4px">自定义描述（优先显示在卡片上）</label>'
+        + '<textarea id="myrepo-customDesc" style="width:100%; min-height:60px; padding:8px 12px; border-radius:12px; border:1.5px solid var(--border2); background:var(--bg2); font-size:12px; font-family:var(--font-body); line-height:1.5; resize:vertical; outline:none; transition:border-color 0.2s" onfocus="this.style.borderColor=\'var(--blue)\'" onblur="this.style.borderColor=\'var(--border2)\'" placeholder="填写技能描述，将优先显示在卡片上...">' + escapeHtml(data.customDescription || '') + '</textarea>'
+        + '</div>'
+        + '<button class="btn btn-green" style="padding:5px 14px; font-size:12px" onclick="myrepoSaveOverride(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\')">💾 保存显示设置</button>'
+        + '<div style="font-size:10px; color:var(--text2); margin-top:4px">自定义显示名称和描述仅影响 Dashboard 展示，不修改 SKILL.md 文件</div>'
+        + '</div>';
 
       // Description editor for upload
       html += '<div class="myrepo-section">'
@@ -3043,6 +3089,24 @@
       renderMyRepoList();
     }
 
+    async function myrepoSaveOverride(skillName) {
+      var displayNameEl = document.getElementById('myrepo-displayName');
+      var customDescEl = document.getElementById('myrepo-customDesc');
+      var displayName = displayNameEl ? displayNameEl.value.trim() : '';
+      var description = customDescEl ? customDescEl.value.trim() : '';
+      var url = '/api/skill/set-override?name=' + encodeURIComponent(skillName)
+        + '&displayName=' + encodeURIComponent(displayName)
+        + '&description=' + encodeURIComponent(description);
+      var result = await api(url);
+      if (result.success) {
+        showToast({ tool: 'edit', resultSummary: '已保存「' + skillName + '」的显示设置', timestamp: new Date().toISOString() });
+        allSkills = await api('/api/skills');
+        renderMyRepoList();
+      } else {
+        alert('保存失败: ' + (result.message || '未知错误'));
+      }
+    }
+
     async function myrepoUpload(name, btn) {
       btn.innerHTML = '<span class="action-icon">⏳</span> 上传中...';
       btn.disabled = true;
@@ -3053,10 +3117,10 @@
         if (result.success) {
           btn.innerHTML = '<span class="action-icon">✓</span> 已上传';
           showToast({ tool: 'upload', resultSummary: result.message, timestamp: new Date().toISOString() });
-          communityLoaded = false;
+          invalidateAllViews();
           if (ownSkillsList.indexOf(name) < 0) ownSkillsList.push(name);
           ownSkillsCachedAt = 0;
-          renderMyRepoList();
+          updateMyRepoItemBadge(name, true);
         } else {
           btn.innerHTML = '<span class="action-icon">❌</span> ' + (result.message || '失败').slice(0, 20);
           btn.disabled = false;
@@ -3075,9 +3139,10 @@
         var result = await api('/api/community/delete?name=' + encodeURIComponent(name));
         if (result.success) {
           showToast({ tool: 'delete', resultSummary: result.message, timestamp: new Date().toISOString() });
+          invalidateAllViews();
           ownSkillsList = ownSkillsList.filter(function(n) { return n !== name; });
           ownSkillsCachedAt = 0;
-          renderMyRepoList();
+          updateMyRepoItemBadge(name, false);
           selectMyRepoSkill(name);
         } else {
           alert('下架失败: ' + result.message);
@@ -3096,10 +3161,13 @@
       var result = await api('/api/skill/delete?name=' + encodeURIComponent(name));
       if (result.success) {
         showToast({ tool: 'delete', resultSummary: result.message, timestamp: new Date().toISOString() });
-        allSkills = await api('/api/skills');
+        invalidateAllViews();
+        allSkills = allSkills.filter(function(s) { return s.name !== name; });
         document.getElementById('totalCount').textContent = allSkills.length;
         myrepoSelectedSkill = null;
-        renderMyRepo();
+        removeMyRepoListItem(name);
+        var right = document.getElementById('myrepoRight');
+        if (right) right.innerHTML = '<div class="myrepo-right-empty"><div class="icon">📦</div><div>选择左侧技能查看详情</div></div>';
       } else {
         alert('删除失败: ' + (result.message || '未知错误'));
       }
@@ -3386,7 +3454,7 @@
         ghcSelectedSourceId = allSources[0].id;
       }
 
-      content.innerHTML = '<div class="myrepo-layout">'
+      content.innerHTML = '<div class="myrepo-layout view-content">'
         + '<div class="myrepo-left">'
         +   '<div class="myrepo-left-header">'
         +     '<select class="myrepo-cat-select" id="ghcSourceSelect" onchange="ghcSelectedSourceId=this.value; ghcSkills=[]; ghcSelectedSkill=null; loadGhcSkills()" style="width:100%; margin-bottom:6px; font-size:12px">'
@@ -3395,11 +3463,11 @@
                   return '<option value="' + escapeAttr(s.id) + '"' + (ghcSelectedSourceId === s.id ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
                 }).join('')
         +     '</select>'
-        +     '<input class="myrepo-search" id="ghcSearch" placeholder="搜索技能..." oninput="ghcSearchQuery=this.value; renderGhcList()">'
+        +     '<input class="myrepo-search" id="ghcSearch" placeholder="搜索技能..." oninput="debouncedGhcSearch(this.value)">'
         +   '</div>'
         +   '<div class="myrepo-filter-bar">'
         +     '<button class="btn btn-blue" style="font-size:11px; padding:4px 10px" onclick="showGhcImportPanel()">📥 从 GitHub 导入</button>'
-        +     '<button class="btn" style="font-size:11px; padding:4px 10px" onclick="ghcSkills=[]; loadGhcSkills()">🔄 刷新</button>'
+        +     '<button class="btn" style="font-size:11px; padding:4px 10px" onclick="ghcSkills=[]; loadGhcSkills(true)">🔄 刷新</button>'
         +     '<button class="btn btn-green" style="font-size:11px; padding:4px 10px" onclick="showGhcAddRepoPanel()">➕ 添加我的仓库</button>'
         +     '<button class="btn" style="font-size:11px; padding:4px 10px" onclick="showGhcCatManager()">🏷️ 分类</button>'
         +     '<button class="btn" style="font-size:11px; padding:4px 10px" onclick="showGhcSettings()">⚙️ 配置</button>'
@@ -3426,36 +3494,105 @@
       loadGhcSkills();
     }
 
-    async function loadGhcSkills() {
+    async function loadGhcSkills(forceRefresh) {
       var listEl = document.getElementById('ghcList');
-      if (listEl) listEl.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text2)"><span style="animation:spin 1s linear infinite; display:inline-block">⏳</span> 加载中...</div>';
+      var sourceId = ghcSelectedSourceId;
 
-      try {
-        ghcSkills = await api('/api/community/source-skills?sourceId=' + encodeURIComponent(ghcSelectedSourceId));
-      } catch(e) {
-        ghcSkills = [];
+      if (!forceRefresh && ghcSkills.length === 0 && listEl) {
+        listEl.innerHTML = skeletonList(5);
       }
 
-      try {
-        var catData = await api('/api/community/repo-categories?sourceId=' + encodeURIComponent(ghcSelectedSourceId));
-        ghcRepoCategories = catData.categories || [];
-        ghcSkillCategories = catData.skillCategories || {};
-        ghcCategoriesSha = catData.sha || null;
-      } catch(e) {
-        ghcRepoCategories = [];
-        ghcSkillCategories = {};
-        ghcCategoriesSha = null;
-      }
+      var skillsUrl = '/api/community/source-skills?sourceId=' + encodeURIComponent(sourceId);
+      if (forceRefresh) skillsUrl += '&force=1';
+      var catUrl = '/api/community/repo-categories?sourceId=' + encodeURIComponent(sourceId);
+      if (forceRefresh) catUrl += '&force=1';
 
+      var [skillResult, catResult] = await Promise.all([
+        api(skillsUrl).catch(function() { return { skills: [] }; }),
+        api(catUrl).catch(function() { return { categories: [], skillCategories: {}, sha: null }; })
+      ]);
+
+      ghcSkills = skillResult.skills || skillResult;
+      ghcRepoCategories = catResult.categories || [];
+      ghcSkillCategories = catResult.skillCategories || {};
+      ghcCategoriesSha = catResult.sha || null;
+
+      updateGhcStats();
       updateGhcCatSelect();
+      renderGhcList();
 
+      var isStale = skillResult.stale;
+      if (isStale && !forceRefresh) {
+        var staleEl = document.getElementById('ghcStaleHint');
+        if (!staleEl) {
+          var hintDiv = document.createElement('div');
+          hintDiv.id = 'ghcStaleHint';
+          hintDiv.style.cssText = 'position:absolute; top:4px; right:4px; font-size:10px; color:var(--text2); background:var(--bg2); padding:2px 8px; border-radius:12px; z-index:5';
+          hintDiv.innerHTML = '后台刷新中...';
+          var listParent = listEl ? listEl.parentNode : null;
+          if (listParent) { listParent.style.position = 'relative'; listParent.appendChild(hintDiv); }
+        }
+
+        try {
+          var freshUrl = '/api/community/source-skills?sourceId=' + encodeURIComponent(sourceId) + '&force=1';
+          var freshResult = await api(freshUrl);
+          ghcSkills = freshResult.skills || freshResult;
+          updateGhcStats();
+          renderGhcList();
+        } catch(e) {}
+
+        var hintEl = document.getElementById('ghcStaleHint');
+        if (hintEl) hintEl.remove();
+      }
+
+    }
+
+    function removeGhcListItem(name) {
+      var el = document.querySelector('#ghcList .myrepo-item[data-skill="' + CSS.escape(name) + '"]');
+      if (el) {
+        el.style.transition = 'opacity 0.2s, transform 0.2s';
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(-20px)';
+        setTimeout(function() { el.remove(); }, 200);
+      }
+    }
+
+    function removeMyRepoListItem(name) {
+      var el = document.querySelector('#myrepoList .myrepo-item[data-skill="' + CSS.escape(name) + '"]');
+      if (el) {
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(-20px)';
+        setTimeout(function() { el.remove(); }, 200);
+      }
+    }
+
+    function updateMyRepoItemBadge(name, isUploaded) {
+      var el = document.querySelector('#myrepoList .myrepo-item[data-skill="' + CSS.escape(name) + '"]');
+      if (!el) return;
+      var badge = el.querySelector('.upload-badge');
+      if (badge) {
+        if (isUploaded) {
+          badge.style.background = '#e8f5e9';
+          badge.style.color = '#2e7d32';
+          badge.textContent = '已上传';
+        } else {
+          badge.style.background = '#fff3e0';
+          badge.style.color = '#e65100';
+          badge.textContent = '未上传';
+        }
+        badge.style.transition = 'transform 0.2s';
+        badge.style.transform = 'scale(1.2)';
+        setTimeout(function() { badge.style.transform = 'scale(1)'; }, 200);
+      }
+    }
+
+    function updateGhcStats() {
       var writableSources = (communityConfig.sources || []).filter(function(s) { return s.writable; });
       var statsEl = document.getElementById('ghcStats');
       if (statsEl) {
         statsEl.innerHTML = '<div class="myrepo-stat"><div class="val" style="color:var(--blue)">' + ghcSkills.length + '</div><div class="lbl">仓库技能</div></div>'
           + '<div class="myrepo-stat"><div class="val" style="color:var(--green)">' + writableSources.length + '</div><div class="lbl">我的仓库</div></div>';
       }
-      renderGhcList();
     }
 
     function updateGhcCatSelect() {
@@ -3501,7 +3638,7 @@
           var cat = ghcRepoCategories.find(function(c) { return c.id === cid; });
           return cat ? (cat.icon || '') + cat.label : cid;
         });
-        return '<div class="myrepo-item' + (selected ? ' selected' : '') + '" onclick="selectGhcSkill(\'' + escapeAttr(s.name).replace(/'/g, "\\'") + '\')">'
+        return '<div class="myrepo-item' + (selected ? ' selected' : '') + '" data-skill="' + escapeAttr(s.name) + '" onclick="selectGhcSkill(\'' + escapeAttr(s.name).replace(/'/g, "\\'") + '\')">'
           + '<div class="item-header">'
           +   '<div class="scope-icon">📄</div>'
           +   '<div class="item-name">' + escapeHtml(s.name) + '</div>'
@@ -3554,6 +3691,25 @@
       html += '</div>';
       html += '<p style="color:var(--text2); font-size:13px; line-height:1.6; margin-bottom:4px">' + escapeHtml(skill.description || '无描述') + '</p>';
       html += '</div>';
+
+      if (isWritable) {
+        html += '<div class="myrepo-section">';
+        html += '<div class="myrepo-section-title">✏️ 编辑信息</div>';
+        html += '<div style="margin-bottom:8px">'
+          + '<label style="font-size:11px; color:var(--text2); display:block; margin-bottom:4px">技能名称（重命名将在 GitHub 仓库中移动文件夹）</label>'
+          + '<div style="display:flex; gap:6px; align-items:center">'
+          + '<input type="text" id="ghcEditName" value="' + escapeAttr(skill.name) + '" style="flex:1; padding:8px 12px; border-radius:24px; border:1.5px solid var(--border2); background:var(--bg2); font-size:12px; font-family:monospace; outline:none; transition:border-color 0.2s" onfocus="this.style.borderColor=\'var(--blue)\'" onblur="this.style.borderColor=\'var(--border2)\'">'
+          + '<button class="btn btn-blue" style="padding:5px 14px; font-size:12px; white-space:nowrap" onclick="ghcRenameSkill(\'' + escapeAttr(skill.name).replace(/'/g, "\\'") + '\')">重命名</button>'
+          + '</div>'
+          + '</div>';
+        html += '<div style="margin-bottom:8px">'
+          + '<label style="font-size:11px; color:var(--text2); display:block; margin-bottom:4px">技能描述（将保存为 DESCRIPTION.md，优先显示在卡片上）</label>'
+          + '<textarea id="ghcEditDesc" style="width:100%; min-height:80px; padding:8px 12px; border-radius:12px; border:1.5px solid var(--border2); background:var(--bg2); font-size:12px; font-family:var(--font-body); line-height:1.5; resize:vertical; outline:none; transition:border-color 0.2s" onfocus="this.style.borderColor=\'var(--blue)\'" onblur="this.style.borderColor=\'var(--border2)\'" placeholder="为这个技能写一段描述...">' + escapeHtml(skill.description || '') + '</textarea>'
+          + '</div>';
+        html += '<button class="btn btn-green" style="padding:5px 14px; font-size:12px" onclick="ghcSaveDescription(\'' + escapeAttr(skill.name).replace(/'/g, "\\'") + '\')">💾 保存描述</button>';
+        html += '<div style="font-size:10px; color:var(--text2); margin-top:4px">描述保存为 DESCRIPTION.md，独立于 SKILL.md</div>';
+        html += '</div>';
+      }
 
       // Category management for this skill
       var skillCatIds = getGhcSkillCats(skill.name);
@@ -3633,6 +3789,69 @@
       setTimeout(function() { btn.innerHTML = origText; }, 3000);
     }
 
+    async function ghcRenameSkill(oldName) {
+      var nameEl = document.getElementById('ghcEditName');
+      var newName = nameEl ? nameEl.value.trim() : '';
+      if (!newName || newName === oldName) { alert('请输入一个不同的名称'); return; }
+      var safeName = newName.replace(/[^a-zA-Z0-9_-]/g, '-');
+      if (safeName !== newName) {
+        if (!confirm('名称将被规范化为: ' + safeName + '\n是否继续？')) return;
+      }
+      if (!confirm('确定要将「' + oldName + '」重命名为「' + safeName + '」？\n此操作会在 GitHub 仓库中移动文件。')) return;
+
+      showToast({ tool: 'rename', resultSummary: '正在重命名...', timestamp: new Date().toISOString() });
+      try {
+        var result = await api('/api/community/rename-skill?sourceId=' + encodeURIComponent(ghcSelectedSourceId)
+          + '&oldName=' + encodeURIComponent(oldName)
+          + '&newName=' + encodeURIComponent(safeName));
+        if (result.success) {
+          showToast({ tool: 'rename', resultSummary: '已重命名为 ' + safeName, timestamp: new Date().toISOString() });
+          invalidateAllViews();
+          ghcSkills = ghcSkills.map(function(s) {
+            if (s.name === oldName) {
+              s.name = safeName;
+              s.htmlUrl = s.htmlUrl ? s.htmlUrl.replace('/' + oldName, '/' + safeName) : '';
+              s.rawUrl = s.rawUrl ? s.rawUrl.replace('/' + oldName + '/', '/' + safeName + '/') : '';
+            }
+            return s;
+          });
+          if (ghcSkillCategories[oldName]) {
+            ghcSkillCategories[safeName] = ghcSkillCategories[oldName];
+            delete ghcSkillCategories[oldName];
+            await saveGhcCategoriesData();
+          }
+          ghcSelectedSkill = safeName;
+          renderGhcList();
+          selectGhcSkill(safeName);
+        } else {
+          alert('重命名失败: ' + (result.message || '未知错误'));
+        }
+      } catch(e) {
+        alert('请求失败');
+      }
+    }
+
+    async function ghcSaveDescription(skillName) {
+      var descEl = document.getElementById('ghcEditDesc');
+      var description = descEl ? descEl.value.trim() : '';
+      if (!description) { alert('请输入描述内容'); return; }
+      try {
+        var result = await api('/api/community/upload-description?sourceId=' + encodeURIComponent(ghcSelectedSourceId)
+          + '&name=' + encodeURIComponent(skillName)
+          + '&description=' + encodeURIComponent(description));
+        if (result.success) {
+          showToast({ tool: 'edit', resultSummary: '已保存「' + skillName + '」的描述', timestamp: new Date().toISOString() });
+          var skill = ghcSkills.find(function(s) { return s.name === skillName; });
+          if (skill) skill.description = description;
+          renderGhcList();
+        } else {
+          alert('保存失败: ' + (result.message || '未知错误'));
+        }
+      } catch(e) {
+        alert('请求失败');
+      }
+    }
+
     async function ghcDeleteSkill(name, btn) {
       if (!confirm('确定要从仓库中删除「' + name + '」？')) return;
       var origText = btn.innerHTML;
@@ -3642,9 +3861,11 @@
         var result = await api('/api/community/delete?name=' + encodeURIComponent(name) + '&sourceId=' + encodeURIComponent(ghcSelectedSourceId));
         if (result.success) {
           showToast({ tool: 'delete', resultSummary: '已从仓库删除 ' + name, timestamp: new Date().toISOString() });
+          invalidateAllViews();
           ghcSkills = ghcSkills.filter(function(s) { return s.name !== name; });
           ghcSelectedSkill = null;
-          renderGhcList();
+          removeGhcListItem(name);
+          updateGhcStats();
           document.getElementById('ghcRight').innerHTML = '<div class="myrepo-right-empty"><div class="icon">📦</div><div>选择左侧技能查看详情</div></div>';
         } else {
           btn.innerHTML = '<span class="action-icon">❌</span> ' + (result.message || '失败').slice(0, 20);
@@ -3683,13 +3904,28 @@
         return '<option value="' + escapeAttr(s.id) + '">' + escapeHtml(s.label || s.repo) + '</option>';
       }).join('');
 
+      var catCheckboxes = '';
+      if (ghcRepoCategories.length > 0) {
+        catCheckboxes = '<div style="margin-bottom:6px">'
+          + '<div style="font-size:11px; color:var(--text2); margin-bottom:4px">选择分类（可多选）:</div>'
+          + '<div id="ghcImportCatList" style="display:flex; flex-wrap:wrap; gap:4px">';
+        for (var ci = 0; ci < ghcRepoCategories.length; ci++) {
+          var c = ghcRepoCategories[ci];
+          catCheckboxes += '<label style="display:inline-flex; align-items:center; gap:3px; font-size:11px; padding:3px 8px; border-radius:24px; border:1px solid var(--border2); cursor:pointer; background:var(--surface)">'
+            + '<input type="checkbox" value="' + escapeAttr(c.id) + '" style="margin:0">'
+            + '<span>' + escapeHtml((c.icon || '') + ' ' + c.label) + '</span></label>';
+        }
+        catCheckboxes += '</div></div>';
+      }
+
       panel.innerHTML = '<div style="font-size:12px; font-weight:600; margin-bottom:8px">📥 从 GitHub 链接导入技能</div>'
         + '<div style="font-size:11px; color:var(--text2); margin-bottom:8px">导入后会自动标注原作者</div>'
-        + '<input type="text" id="ghcImportUrl" placeholder="GitHub 链接 (如 github.com/user/repo/blob/main/skills/xxx)" style="width:100%; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface); font-size:11px; font-family:monospace; outline:none; margin-bottom:6px">'
-        + '<input type="text" id="ghcImportName" placeholder="（可选）自定义技能名称" style="width:100%; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--surface); font-size:11px; outline:none; margin-bottom:6px">'
+        + '<input type="text" id="ghcImportUrl" placeholder="GitHub 链接 (如 github.com/user/repo/blob/main/skills/xxx)" style="width:100%; padding:6px 10px; border-radius:24px; border:1.5px solid var(--border2); background:var(--surface); font-size:11px; font-family:monospace; outline:none; margin-bottom:6px">'
+        + '<input type="text" id="ghcImportName" placeholder="（可选）自定义技能名称" style="width:100%; padding:6px 10px; border-radius:24px; border:1.5px solid var(--border2); background:var(--surface); font-size:11px; outline:none; margin-bottom:6px">'
+        + catCheckboxes
         + '<div style="display:flex; gap:6px; align-items:center">'
         + '<span style="font-size:11px; color:var(--text2)">目标仓库:</span>'
-        + '<select id="ghcImportTarget" style="flex:1; padding:4px 8px; border-radius:6px; border:1px solid var(--border2); font-size:11px; background:var(--surface)">' + targetOptions + '</select>'
+        + '<select id="ghcImportTarget" style="flex:1; padding:4px 8px; border-radius:24px; border:1px solid var(--border2); font-size:11px; background:var(--surface)">' + targetOptions + '</select>'
         + '<button class="btn btn-green" style="font-size:11px; padding:5px 12px" onclick="doGhcImport()">导入</button>'
         + '</div>'
         + '<div id="ghcImportResult" style="margin-top:6px; font-size:11px"></div>';
@@ -3703,6 +3939,10 @@
       var resultEl = document.getElementById('ghcImportResult');
       if (!url) { if (resultEl) resultEl.innerHTML = '<span style="color:var(--red)">请输入 GitHub 链接</span>'; return; }
 
+      var selectedCats = [];
+      var catCheckboxes = document.querySelectorAll('#ghcImportCatList input[type=checkbox]');
+      catCheckboxes.forEach(function(cb) { if (cb.checked) selectedCats.push(cb.value); });
+
       if (resultEl) resultEl.innerHTML = '<span style="animation:spin 1s linear infinite; display:inline-block">⏳</span> 导入中...';
 
       try {
@@ -3712,8 +3952,29 @@
         if (result.success) {
           if (resultEl) resultEl.innerHTML = '<span style="color:var(--green)">✅ ' + escapeHtml(result.message) + '</span>';
           showToast({ tool: 'import', resultSummary: result.message, timestamp: new Date().toISOString() });
-          ghcSkills = [];
-          loadGhcSkills();
+          invalidateAllViews();
+
+          if (selectedCats.length > 0 && result.name) {
+            ghcSkillCategories[result.name] = selectedCats;
+            await saveGhcCategoriesData();
+          }
+
+          if (result.skill) {
+            var exists = ghcSkills.some(function(s) { return s.name === result.skill.name; });
+            if (!exists) {
+              ghcSkills.push(result.skill);
+            } else {
+              ghcSkills = ghcSkills.map(function(s) { return s.name === result.skill.name ? result.skill : s; });
+            }
+            updateGhcStats();
+            renderGhcList();
+          }
+          api('/api/community/refresh').catch(function() {});
+
+          var urlInput = document.getElementById('ghcImportUrl');
+          var nameInput = document.getElementById('ghcImportName');
+          if (urlInput) urlInput.value = '';
+          if (nameInput) nameInput.value = '';
         } else {
           if (resultEl) resultEl.innerHTML = '<span style="color:var(--red)">❌ ' + escapeHtml(result.message) + '</span>';
         }
@@ -3942,6 +4203,37 @@
       renderGhCommunity();
     }
 
+    var _dirtyViews = { community: false, ghcommunity: false, myrepo: false };
+    var _prefetchInFlight = {};
+
+    function prefetchView(view) {
+      if (currentView === view) return;
+      if (_prefetchInFlight[view]) return;
+      _prefetchInFlight[view] = true;
+
+      if (view === 'community' && _dirtyViews.community) {
+        api('/api/community/skills?light=1').then(function(r) { communitySkills = r; }).catch(function() {});
+      }
+      if (view === 'ghcommunity' && _dirtyViews.ghcommunity && ghcSelectedSourceId) {
+        api('/api/community/source-skills?sourceId=' + encodeURIComponent(ghcSelectedSourceId)).then(function(r) { ghcSkills = r.skills || r; }).catch(function() {});
+      }
+      if (view === 'myrepo' && _dirtyViews.myrepo) {
+        api('/api/skills').then(function(r) { allSkills = r; }).catch(function() {});
+      }
+
+      setTimeout(function() { _prefetchInFlight[view] = false; }, 5000);
+    }
+
+    function invalidateAllViews() {
+      _dirtyViews.community = true;
+      _dirtyViews.ghcommunity = true;
+      _dirtyViews.myrepo = true;
+    }
+
+    function markViewClean(view) {
+      _dirtyViews[view] = false;
+    }
+
     // ========== 社区 ==========
 
     let communitySkills = [];
@@ -3961,6 +4253,7 @@
       const sources = communityConfig.sources || [];
 
       content.innerHTML = `
+        <div class="view-content">
         <div class="page-title">🌍 社区技能广场</div>
 
         <div class="tab-bar" style="margin-bottom:20px">
@@ -3970,6 +4263,7 @@
         </div>
 
         <div id="communityBody"></div>
+        </div>
       `;
 
       const body = document.getElementById('communityBody');
@@ -4017,7 +4311,9 @@
           <button class="btn" onclick="refreshCommunity()">🔄 刷新</button>
         </div>
         <div id="communityList">
-          <div class="plaza-loading"><span class="spinner">🔍</span><p>加载社区技能...</p></div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px">
+            ${Array.from({length:8}, () => '<div class="skeleton-item" style="height:140px"></div>').join('')}
+          </div>
         </div>
       `;
       loadCommunitySkills();
@@ -4137,13 +4433,18 @@
       try {
         await api('/api/community/refresh');
       } catch {}
+      invalidateAllViews();
       loadCommunitySkills();
     }
 
+    var _communitySearchTimer;
     function onCommunitySearch(val) {
-      communitySearchTerm = val.trim();
-      communityPage = 0;
-      renderCommunityList();
+      clearTimeout(_communitySearchTimer);
+      _communitySearchTimer = setTimeout(function() {
+        communitySearchTerm = val.trim();
+        communityPage = 0;
+        renderCommunityList();
+      }, 150);
     }
 
     function loadMoreCommunitySkills() {
@@ -4245,6 +4546,7 @@
         const result = await api('/api/community/delete?name=' + encodeURIComponent(skillName));
         if (result.success) {
           showToast({ tool: 'delete', resultSummary: result.message, timestamp: new Date().toISOString() });
+          invalidateAllViews();
           communitySkills = communitySkills.filter(s => !(s.name === skillName && s.sourceId === 'primary'));
           ownSkillsList = ownSkillsList.filter(n => n !== skillName);
           renderCommunityList();
@@ -5225,6 +5527,31 @@
       if (!text) return '';
       return text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
+
+    function skeletonList(count) {
+      var html = '';
+      for (var i = 0; i < count; i++) html += '<div class="skeleton-item"></div>';
+      return html;
+    }
+
+    function debounce(fn, delay) {
+      var timer;
+      return function() {
+        var args = arguments, ctx = this;
+        clearTimeout(timer);
+        timer = setTimeout(function() { fn.apply(ctx, args); }, delay);
+      };
+    }
+
+    var debouncedMyRepoSearch = debounce(function(val) {
+      myrepoSearchQuery = val;
+      renderMyRepoList();
+    }, 150);
+
+    var debouncedGhcSearch = debounce(function(val) {
+      ghcSearchQuery = val;
+      renderGhcList();
+    }, 150);
 
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') closeDetail();

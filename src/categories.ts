@@ -11,7 +11,7 @@ interface CategoriesStore {
 }
 
 interface OverridesStore {
-  [skillName: string]: { categories?: string[]; tags?: string[]; category?: string };
+  [skillName: string]: { categories?: string[]; tags?: string[]; category?: string; displayName?: string; description?: string };
 }
 
 function ensureDir() {
@@ -111,6 +111,21 @@ export function getSkillCategories(skillName: string): string[] {
   if (entry.categories) return entry.categories;
   if (entry.category) return [entry.category];
   return [];
+}
+
+export function getSkillOverride(skillName: string): { displayName?: string; description?: string } {
+  const overrides = loadOverrides();
+  const entry = overrides[skillName];
+  if (!entry) return {};
+  return { displayName: entry.displayName, description: entry.description };
+}
+
+export function setSkillOverride(skillName: string, displayName?: string, description?: string): void {
+  const overrides = loadOverrides();
+  if (!overrides[skillName]) overrides[skillName] = {};
+  if (displayName !== undefined) overrides[skillName].displayName = displayName || undefined;
+  if (description !== undefined) overrides[skillName].description = description || undefined;
+  saveOverrides(overrides);
 }
 
 export function loadOverrides(): OverridesStore {
