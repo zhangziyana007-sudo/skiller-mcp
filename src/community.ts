@@ -13,6 +13,7 @@ export interface CommunitySource {
   skillsPath: string;
   label: string;
   writable: boolean;
+  token?: string;
 }
 
 export interface CommunityConfig {
@@ -128,6 +129,38 @@ function githubHeaders(token: string): Record<string, string> {
   return headers;
 }
 
+async function parallelLimit<T>(
+  tasks: (() => Promise<T>)[],
+  concurrency: number
+): Promise<T[]> {
+  const results: T[] = new Array(tasks.length);
+  let idx = 0;
+
+  async function worker() {
+    while (idx < tasks.length) {
+      const i = idx++;
+      results[i] = await tasks[i]();
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(concurrency, tasks.length) }, () => worker()));
+  return results;
+}
+
+function extractMetadata(content: string): { description: string; author: string } {
+  let description = "";
+  let author = "";
+  const descMatch = content.match(/description:\s*["']?(.+?)["']?\s*$/m);
+  if (descMatch) description = descMatch[1].trim();
+  const authorMatch = content.match(/author:\s*["']?(.+?)["']?\s*$/m);
+  if (authorMatch) author = authorMatch[1].trim();
+  if (!description) {
+    const firstLine = content.split("\n").find((l) => l.trim() && !l.startsWith("#") && !l.startsWith("---"));
+    if (firstLine) description = firstLine.trim().slice(0, 120);
+  }
+  return { description, author };
+}
+
 async function fetchSkillsFromRepo(
   repo: string,
   branch: string,
@@ -136,104 +169,233 @@ async function fetchSkillsFromRepo(
   sourceId: string,
   sourceLabel: string
 ): Promise<CommunitySkill[]> {
-  const url = `https://api.github.com/repos/${repo}/contents/${skillsPath}?ref=${branch}`;
+  const skillDirs = await listSkillDirs(repo, branch, skillsPath, token);
+  if (skillDirs.length === 0) return [];
 
+  const CONCURRENCY = 10;
+  const tasks = skillDirs.map((dir) => async (): Promise<CommunitySkill> => {
+    const rawUrl = `https://raw.githubusercontent.com/${repo}/${branch}/${skillsPath}/${dir.name}/SKILL.md`;
+    const descUrl = `https://raw.githubusercontent.com/${repo}/${branch}/${skillsPath}/${dir.name}/DESCRIPTION.md`;
+    const rawHeaders: Record<string, string> = {};
+    if (token) rawHeaders["Authorization"] = `token ${token}`;
+    let description = "";
+    let author = "";
+
+    try {
+      const descResp = await fetch(descUrl, { headers: rawHeaders, signal: AbortSignal.timeout(4000) });
+      if (descResp.ok) {
+        description = (await descResp.text()).trim();
+      }
+    } catch {}
+
+    if (!description) {
+      try {
+        const resp = await fetch(rawUrl, { headers: rawHeaders, signal: AbortSignal.timeout(6000) });
+        if (resp.ok) {
+          const text = await resp.text();
+          const meta = extractMetadata(text);
+          description = meta.description;
+          author = meta.author;
+        }
+      } catch {}
+    }
+
+    return {
+      name: dir.name,
+      description: description || `${dir.name} skill`,
+      author: author || "unknown",
+      htmlUrl: `https://github.com/${repo}/tree/${branch}/${skillsPath}/${dir.name}`,
+      rawUrl,
+      sha: dir.sha,
+      size: 0,
+      updatedAt: "",
+      sourceId,
+      sourceLabel,
+    };
+  });
+
+  return parallelLimit(tasks, CONCURRENCY);
+}
+
+async function listSkillDirs(
+  repo: string,
+  branch: string,
+  skillsPath: string,
+  token: string
+): Promise<Array<{ name: string; sha: string }>> {
   try {
-    const resp = await fetch(url, {
+    const treeUrl = `https://api.github.com/repos/${repo}/git/trees/${branch}?recursive=1`;
+    const resp = await fetch(treeUrl, {
       headers: githubHeaders(token),
       signal: AbortSignal.timeout(15000),
     });
 
-    if (!resp.ok) return [];
+    if (resp.ok) {
+      const data = (await resp.json()) as {
+        tree: Array<{ path: string; type: string; sha: string }>;
+        truncated?: boolean;
+      };
 
-    const items = (await resp.json()) as Array<{
-      name: string;
-      type: string;
-      html_url: string;
-      sha: string;
-      size: number;
-    }>;
+      const prefix = skillsPath.replace(/\/$/, "") + "/";
+      const skillMdPaths = data.tree.filter(
+        (t) => t.type === "blob" && t.path.startsWith(prefix) && t.path.endsWith("/SKILL.md")
+      );
 
-    const skills: CommunitySkill[] = [];
-
-    for (const item of items) {
-      if (item.type !== "dir") continue;
-
-      const rawUrl = `https://raw.githubusercontent.com/${repo}/${branch}/${skillsPath}/${item.name}/SKILL.md`;
-
-      let description = "";
-      let author = "";
-
-      try {
-        const mdResp = await fetch(rawUrl, { signal: AbortSignal.timeout(8000) });
-        if (mdResp.ok) {
-          const content = await mdResp.text();
-          const descMatch = content.match(/description:\s*["']?(.+?)["']?\s*$/m);
-          if (descMatch) description = descMatch[1].trim();
-          const authorMatch = content.match(/author:\s*["']?(.+?)["']?\s*$/m);
-          if (authorMatch) author = authorMatch[1].trim();
-          if (!description) {
-            const firstLine = content.split("\n").find((l) => l.trim() && !l.startsWith("#") && !l.startsWith("---"));
-            if (firstLine) description = firstLine.trim().slice(0, 120);
-          }
-        }
-      } catch {}
-
-      skills.push({
-        name: item.name,
-        description: description || `${item.name} community skill`,
-        author: author || "unknown",
-        htmlUrl: item.html_url,
-        rawUrl,
-        sha: item.sha,
-        size: item.size,
-        updatedAt: "",
-        sourceId,
-        sourceLabel,
+      return skillMdPaths.map((t) => {
+        const relative = t.path.slice(prefix.length);
+        const dirName = relative.split("/")[0];
+        return { name: dirName, sha: t.sha };
       });
     }
+  } catch {}
 
-    return skills;
-  } catch {
-    return [];
+  try {
+    const contentsUrl = `https://api.github.com/repos/${repo}/contents/${skillsPath}?ref=${branch}`;
+    const resp = await fetch(contentsUrl, {
+      headers: githubHeaders(token),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (resp.ok) {
+      const items = (await resp.json()) as Array<{ name: string; type: string; sha: string }>;
+      return items.filter((i) => i.type === "dir").map((i) => ({ name: i.name, sha: i.sha }));
+    }
+  } catch {}
+
+  return [];
+}
+
+async function fetchSkillsFromRepoLight(
+  repo: string,
+  branch: string,
+  skillsPath: string,
+  token: string,
+  sourceId: string,
+  sourceLabel: string
+): Promise<CommunitySkill[]> {
+  const dirs = await listSkillDirs(repo, branch, skillsPath, token);
+  return dirs.map((dir) => ({
+    name: dir.name,
+    description: "",
+    author: "unknown",
+    htmlUrl: `https://github.com/${repo}/tree/${branch}/${skillsPath}/${dir.name}`,
+    rawUrl: `https://raw.githubusercontent.com/${repo}/${branch}/${skillsPath}/${dir.name}/SKILL.md`,
+    sha: dir.sha,
+    size: 0,
+    updatedAt: "",
+    sourceId,
+    sourceLabel,
+  }));
+}
+
+async function enrichSkillMetadata(
+  skills: CommunitySkill[],
+  startIdx: number,
+  count: number
+): Promise<CommunitySkill[]> {
+  const batch = skills.slice(startIdx, startIdx + count);
+  const needEnrich = batch.filter((s) => !s.description);
+  if (needEnrich.length === 0) return batch;
+
+  const tasks = needEnrich.map((skill) => async (): Promise<void> => {
+    const descUrl = skill.rawUrl.replace(/SKILL\.md$/, "DESCRIPTION.md");
+    try {
+      const descResp = await fetch(descUrl, { signal: AbortSignal.timeout(4000) });
+      if (descResp.ok) {
+        skill.description = (await descResp.text()).trim();
+        return;
+      }
+    } catch {}
+    try {
+      const resp = await fetch(skill.rawUrl, { signal: AbortSignal.timeout(6000) });
+      if (resp.ok) {
+        const text = await resp.text();
+        const meta = extractMetadata(text);
+        skill.description = meta.description || `${skill.name} skill`;
+        skill.author = meta.author || "unknown";
+      }
+    } catch {}
+  });
+  await parallelLimit(tasks, 10);
+
+  updateCacheDescriptions(skills);
+  return batch;
+}
+
+function updateCacheDescriptions(skills: CommunitySkill[]) {
+  for (const key of ["all-light", "all"]) {
+    const cached = loadCommunityCache(key);
+    if (!cached) continue;
+    let changed = false;
+    for (const s of skills) {
+      if (!s.description) continue;
+      const entry = cached.skills.find((c) => c.name === s.name && c.sourceId === s.sourceId);
+      if (entry && !entry.description) {
+        entry.description = s.description;
+        entry.author = s.author;
+        changed = true;
+      }
+    }
+    if (changed) saveCommunityCache(key, cached);
   }
 }
 
-export async function listCommunitySkills(config: CommunityConfig): Promise<CommunitySkill[]> {
-  if (!config.repo && config.sources.length === 0) return [];
+export { fetchSkillsFromRepoLight, enrichSkillMetadata };
 
-  const cached = loadCommunityCache("all");
-  if (cached) return cached.skills;
+function paginate(skills: CommunitySkill[], page?: number, pageSize?: number): CommunitySkill[] {
+  if (page === undefined) return skills;
+  const size = pageSize ?? 30;
+  return skills.slice(page * size, (page + 1) * size);
+}
 
-  const allSkills: CommunitySkill[] = [];
+interface SourceEntry {
+  repo: string; branch: string; skillsPath: string; id: string; label: string; token: string;
+}
 
+function collectSources(config: CommunityConfig): SourceEntry[] {
+  const list: SourceEntry[] = [];
   if (config.repo) {
-    const skills = await fetchSkillsFromRepo(
-      config.repo,
-      config.branch,
-      config.skillsPath,
-      config.githubToken,
-      "primary",
-      "我的社区"
-    );
-    allSkills.push(...skills);
+    list.push({ repo: config.repo, branch: config.branch, skillsPath: config.skillsPath, id: "primary", label: "我的社区", token: config.githubToken });
   }
-
   for (const source of config.sources) {
     if (source.repo === config.repo) continue;
-    const skills = await fetchSkillsFromRepo(
-      source.repo,
-      source.branch,
-      source.skillsPath,
-      config.githubToken,
-      source.id,
-      source.label
-    );
-    allSkills.push(...skills);
+    list.push({
+      repo: source.repo, branch: source.branch, skillsPath: source.skillsPath,
+      id: source.id, label: source.label,
+      token: source.token || config.githubToken,
+    });
   }
+  return list;
+}
 
-  saveCommunityCache("all", { updatedAt: new Date().toISOString(), skills: allSkills });
-  return allSkills;
+export async function listCommunitySkills(
+  config: CommunityConfig,
+  options?: { light?: boolean; page?: number; pageSize?: number }
+): Promise<CommunitySkill[]> {
+  if (!config.repo && config.sources.length === 0) return [];
+
+  const light = options?.light ?? false;
+  const page = options?.page;
+  const pageSize = options?.pageSize ?? 30;
+
+  const fullCache = loadCommunityCache("all");
+  if (fullCache) return paginate(fullCache.skills, page, pageSize);
+
+  const lightCache = loadCommunityCache("all-light");
+  if (light && lightCache) return paginate(lightCache.skills, page, pageSize);
+
+  const sources = collectSources(config);
+  const fetchFn = light ? fetchSkillsFromRepoLight : fetchSkillsFromRepo;
+
+  const sourceResults = await Promise.all(
+    sources.map((s) => fetchFn(s.repo, s.branch, s.skillsPath, s.token, s.id, s.label))
+  );
+
+  const allSkills = sourceResults.flat();
+  const cacheKey = light ? "all-light" : "all";
+  saveCommunityCache(cacheKey, { updatedAt: new Date().toISOString(), skills: allSkills });
+
+  return paginate(allSkills, page, pageSize);
 }
 
 export async function listSourceSkills(
@@ -262,7 +424,7 @@ export async function listSourceSkills(
     source.repo,
     source.branch,
     source.skillsPath,
-    config.githubToken,
+    source.token || config.githubToken,
     source.id,
     source.label
   );
@@ -331,6 +493,113 @@ export async function uploadSkill(
   } catch (e) {
     return { success: false, message: `网络错误: ${String(e).slice(0, 200)}` };
   }
+}
+
+export async function uploadDescriptionFile(
+  config: CommunityConfig,
+  skillName: string,
+  description: string
+): Promise<void> {
+  if (!config.repo || !config.githubToken) return;
+
+  const path = `${config.skillsPath}/${skillName}/DESCRIPTION.md`;
+  const url = `https://api.github.com/repos/${config.repo}/contents/${path}`;
+
+  let existingSha: string | undefined;
+  try {
+    const checkResp = await fetch(`${url}?ref=${config.branch}`, {
+      headers: githubHeaders(config.githubToken),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (checkResp.ok) {
+      const data = (await checkResp.json()) as { sha: string };
+      existingSha = data.sha;
+    }
+  } catch {}
+
+  const body: Record<string, string> = {
+    message: `desc: ${skillName} description`,
+    content: Buffer.from(description).toString("base64"),
+    branch: config.branch,
+  };
+  if (existingSha) body.sha = existingSha;
+
+  try {
+    await fetch(url, {
+      method: "PUT",
+      headers: { ...githubHeaders(config.githubToken), "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15000),
+    });
+  } catch {}
+}
+
+export async function deleteSkill(
+  config: CommunityConfig,
+  skillName: string,
+  sourceId?: string
+): Promise<{ success: boolean; message: string }> {
+  let repo = config.repo;
+  let branch = config.branch;
+  let skillsPath = config.skillsPath;
+
+  if (sourceId && sourceId !== "primary") {
+    const source = config.sources.find((s) => s.id === sourceId);
+    if (!source || !source.writable) {
+      return { success: false, message: "该源不可写或不存在" };
+    }
+    repo = source.repo;
+    branch = source.branch;
+    skillsPath = source.skillsPath;
+  }
+
+  if (!repo || !config.githubToken) {
+    return { success: false, message: "请先配置社区仓库和 GitHub Token" };
+  }
+
+  const path = `${skillsPath}/${skillName}/SKILL.md`;
+  const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+
+  try {
+    const checkResp = await fetch(`${url}?ref=${branch}`, {
+      headers: githubHeaders(config.githubToken),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!checkResp.ok) {
+      return { success: false, message: `技能 "${skillName}" 在仓库中不存在` };
+    }
+    const fileData = (await checkResp.json()) as { sha: string };
+
+    const resp = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        ...githubHeaders(config.githubToken),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: `remove: ${skillName} skill${config.authorName ? ` by ${config.authorName}` : ""}`,
+        sha: fileData.sha,
+        branch,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (resp.ok) {
+      clearAllCache();
+      return { success: true, message: `"${skillName}" 已从社区下架` };
+    }
+
+    const err = await resp.text();
+    return { success: false, message: `GitHub API 错误 (${resp.status}): ${err.slice(0, 200)}` };
+  } catch (e) {
+    return { success: false, message: `网络错误: ${String(e).slice(0, 200)}` };
+  }
+}
+
+export async function listOwnSkills(config: CommunityConfig): Promise<string[]> {
+  if (!config.repo) return [];
+  const dirs = await listSkillDirs(config.repo, config.branch, config.skillsPath, config.githubToken);
+  return dirs.map((d) => d.name);
 }
 
 export async function submitSkillViaIssue(

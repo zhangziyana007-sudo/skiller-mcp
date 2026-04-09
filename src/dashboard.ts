@@ -1,16 +1,18 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import { readFileSync, existsSync, watch, statSync } from "fs";
-import { join, extname, resolve } from "path";
+import { readFileSync, existsSync, watch, statSync, rmSync, renameSync } from "fs";
+import { join, extname, resolve, dirname, basename } from "path";
+import { execSync } from "child_process";
 import { getOrBuildIndex, buildIndex } from "./indexer.js";
 import { searchSkills, getSkillStats } from "./searcher.js";
 import { loadLog } from "./logger.js";
 import { parseSkillTree } from "./skill-parser.js";
-import { loadPlaza, searchPlaza, refreshPlaza, fetchSkillContent, getRegistries } from "./plaza.js";
+// plaza.ts removed — community-only mode
 import {
   loadConfig, saveConfig, addSource, removeSource,
-  listCommunitySkills, listSourceSkills, uploadSkill,
+  listCommunitySkills, listSourceSkills, uploadSkill, uploadDescriptionFile, deleteSkill, listOwnSkills,
   submitSkillViaIssue, listSubmissions,
   downloadCommunitySkill, clearAllCache,
+  fetchSkillsFromRepoLight, enrichSkillMetadata,
 } from "./community.js";
 import {
   loadUserCategories, addCategory, removeCategory, renameCategory,
@@ -211,6 +213,125 @@ function handleApi(path: string, params: URLSearchParams): unknown {
       index = buildIndex();
       return { message: "Index rebuilt", total: index.totalSkills };
 
+    case "/api/skill/delete": {
+      const delName = params.get("name") || "";
+      if (!delName) return { success: false, message: "Missing skill name" };
+      const delSkill = index.skills.find(
+        (s) => s.name === delName || s.name.toLowerCase() === delName.toLowerCase()
+      );
+      if (!delSkill) return { success: false, message: `技能 "${delName}" 不存在` };
+      const skillDir = dirname(delSkill.path);
+      try {
+        rmSync(skillDir, { recursive: true, force: true });
+        index = buildIndex();
+        return { success: true, message: `"${delName}" 已删除`, totalSkills: index.totalSkills };
+      } catch (e) {
+        return { success: false, message: `删除失败: ${String(e).slice(0, 200)}` };
+      }
+    }
+
+    case "/api/skill/toggle": {
+      const togName = params.get("name") || "";
+      const togEnable = params.get("enable") === "1";
+      if (!togName) return { success: false, message: "Missing skill name" };
+      const togSkill = index.skills.find(
+        (s) => s.name === togName || s.name.toLowerCase() === togName.toLowerCase()
+      );
+      if (!togSkill) return { success: false, message: `技能 "${togName}" 不存在` };
+      const togDir = dirname(togSkill.path);
+      const togParent = dirname(togDir);
+      const togDirName = basename(togDir);
+
+      if (!togEnable && !togDirName.startsWith(".")) {
+        const newDir = join(togParent, "." + togDirName);
+        if (!existsSync(newDir)) {
+          renameSync(togDir, newDir);
+          index = buildIndex();
+          return { success: true, message: `"${togName}" 已禁用`, enabled: false };
+        }
+      } else if (togEnable && togDirName.startsWith(".")) {
+        const newDir = join(togParent, togDirName.slice(1));
+        if (!existsSync(newDir)) {
+          renameSync(togDir, newDir);
+          index = buildIndex();
+          return { success: true, message: `"${togName}" 已启用`, enabled: true };
+        }
+      }
+      return { success: true, message: "无需变更", enabled: !togDirName.startsWith(".") };
+    }
+
+    case "/api/skill/export": {
+      const expName = params.get("name") || "";
+      if (!expName) return { error: "Missing name" };
+      const expSkill = index.skills.find(
+        (s) => s.name === expName || s.name.toLowerCase() === expName.toLowerCase()
+      );
+      if (!expSkill) return { error: "Not found" };
+      try {
+        const content = readFileSync(expSkill.path, "utf-8");
+        return { name: expSkill.name, source: expSkill.source, path: expSkill.path, content };
+      } catch {
+        return { error: "Failed to read" };
+      }
+    }
+
+    case "/api/mcp/status": {
+      const mcpPath = join(process.env.HOME || "~", ".cursor", "mcp.json");
+      let config: Record<string, unknown> = {};
+      try { config = JSON.parse(readFileSync(mcpPath, "utf-8")); } catch {}
+      const servers = (config as { mcpServers?: Record<string, { command?: string; args?: string[] }> }).mcpServers || {};
+
+      const result: Array<{ name: string; command: string; args: string[]; running: boolean; pids: number[] }> = [];
+
+      for (const [name, cfg] of Object.entries(servers)) {
+        const cmd = cfg.command || "";
+        const args = cfg.args || [];
+        const searchStr = args.length > 0 ? args[args.length - 1] : cmd;
+
+        let pids: number[] = [];
+        try {
+          const psOut = execSync("ps aux 2>/dev/null", { encoding: "utf-8", timeout: 3000 });
+          pids = psOut.split("\n")
+            .filter(line => line.includes(searchStr) && !line.includes("grep"))
+            .map(line => parseInt(line.trim().split(/\s+/)[1]))
+            .filter(p => !isNaN(p));
+        } catch {}
+
+        result.push({ name, command: cmd, args, running: pids.length > 0, pids });
+      }
+      return { path: mcpPath, servers: result };
+    }
+
+    case "/api/mcp/restart": {
+      const srvName = params.get("name") || "";
+      if (!srvName) return { error: "Missing server name" };
+
+      const mcpPath2 = join(process.env.HOME || "~", ".cursor", "mcp.json");
+      let mcpCfg: Record<string, unknown> = {};
+      try { mcpCfg = JSON.parse(readFileSync(mcpPath2, "utf-8")); } catch {}
+      const mcpServers = (mcpCfg as { mcpServers?: Record<string, { command?: string; args?: string[] }> }).mcpServers || {};
+      const srv = mcpServers[srvName];
+      if (!srv) return { error: `Server "${srvName}" not found in mcp.json` };
+
+      const searchStr = (srv.args || []).length > 0 ? (srv.args || [])[srv.args!.length - 1] : (srv.command || "");
+
+      try {
+        execSync(`ps aux | grep '${searchStr}' | grep -v grep | awk '{print $2}' | xargs -r kill -9 2>/dev/null`, { timeout: 3000 });
+      } catch {}
+
+      return { success: true, message: `已终止 ${srvName} 的所有进程。Cursor 将自动重新启动它。` };
+    }
+
+    case "/api/mcp/config": {
+      const mcpPath3 = join(process.env.HOME || "~", ".cursor", "mcp.json");
+      try {
+        const content = readFileSync(mcpPath3, "utf-8");
+        return { path: mcpPath3, content };
+      } catch {
+        return { error: "无法读取 mcp.json" };
+      }
+    }
+
     default:
       return { error: "Unknown endpoint" };
   }
@@ -220,57 +341,13 @@ const localSkillNames = () => index.skills.map((s) => s.name);
 
 async function handleAsyncApi(path: string, params: URLSearchParams): Promise<unknown> {
   switch (path) {
-    case "/api/plaza":
-      return loadPlaza(localSkillNames());
-
-    case "/api/plaza/search": {
-      const query = params.get("q") || "";
-      return searchPlaza(query, localSkillNames());
+    case "/api/community/config": {
+      const cfg = loadConfig();
+      return {
+        ...cfg,
+        sources: cfg.sources.map(s => ({ ...s, token: s.token ? "••••" + s.token.slice(-4) : undefined })),
+      };
     }
-
-    case "/api/plaza/refresh":
-      return refreshPlaza(localSkillNames());
-
-    case "/api/plaza/preview": {
-      const rawUrl = params.get("url") || "";
-      if (!rawUrl) return { error: "Missing url param" };
-      const content = await fetchSkillContent(rawUrl);
-      return content ? { content } : { error: "Failed to fetch" };
-    }
-
-    case "/api/plaza/install": {
-      const name = params.get("name") || "";
-      const rawUrl = params.get("url") || "";
-      if (!name || !rawUrl) return { error: "Missing name or url" };
-
-      const safeName = name.replace(/[^a-zA-Z0-9_-]/g, "-");
-      if (!safeName || safeName.startsWith(".")) return { error: "Invalid skill name" };
-
-      const content = await fetchSkillContent(rawUrl);
-      if (!content) return { error: "Failed to fetch skill content" };
-
-      const { mkdirSync, writeFileSync } = await import("fs");
-      const { join, resolve } = await import("path");
-      const skillsBase = join(process.env.HOME || "~", ".cursor", "skills");
-      const skillDir = join(skillsBase, safeName);
-
-      if (!resolve(skillDir).startsWith(resolve(skillsBase))) {
-        return { error: "Invalid path" };
-      }
-
-      mkdirSync(skillDir, { recursive: true });
-      writeFileSync(join(skillDir, "SKILL.md"), content, "utf-8");
-
-      index = buildIndex();
-
-      return { success: true, name: safeName, path: skillDir, totalSkills: index.totalSkills };
-    }
-
-    case "/api/plaza/registries":
-      return getRegistries();
-
-    case "/api/community/config":
-      return loadConfig();
 
     case "/api/community/save-config": {
       const repo = params.get("repo") || undefined;
@@ -283,7 +360,12 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
 
     case "/api/community/skills": {
       const config = loadConfig();
-      const skills = await listCommunitySkills(config);
+      const light = params.get("light") === "1";
+      const pageStr = params.get("page");
+      const pageSizeStr = params.get("pageSize");
+      const page = pageStr ? parseInt(pageStr) : undefined;
+      const pageSize = pageSizeStr ? parseInt(pageSizeStr) : 30;
+      const skills = await listCommunitySkills(config, { light, page, pageSize });
       const localNames = localSkillNames();
       return skills.map(s => ({
         ...s,
@@ -291,8 +373,22 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       }));
     }
 
+    case "/api/community/skills/enrich": {
+      const config = loadConfig();
+      const skills = await listCommunitySkills(config, { light: true });
+      const start = parseInt(params.get("start") || "0");
+      const count = parseInt(params.get("count") || "20");
+      const enriched = await enrichSkillMetadata(skills, start, count);
+      const localNames = localSkillNames();
+      return enriched.map(s => ({
+        ...s,
+        installed: localNames.some(n => n.toLowerCase() === s.name.toLowerCase()),
+      }));
+    }
+
     case "/api/community/upload": {
       const skillName = params.get("name") || "";
+      const extraDesc = params.get("description") || "";
       if (!skillName) return { success: false, message: "Missing skill name" };
 
       const skill = index.skills.find(
@@ -303,7 +399,25 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       const { readFileSync: rfs } = await import("fs");
       const content = rfs(skill.path, "utf-8");
       const config = loadConfig();
-      return uploadSkill(config, skillName, content);
+      const result = await uploadSkill(config, skillName, content);
+
+      if (result.success && extraDesc.trim()) {
+        await uploadDescriptionFile(config, skillName, extraDesc.trim());
+      }
+      return result;
+    }
+
+    case "/api/community/delete": {
+      const skillName = params.get("name") || "";
+      const sourceId = params.get("sourceId") || undefined;
+      if (!skillName) return { success: false, message: "Missing skill name" };
+      const config = loadConfig();
+      return deleteSkill(config, skillName, sourceId);
+    }
+
+    case "/api/community/own-skills": {
+      const config = loadConfig();
+      return listOwnSkills(config);
     }
 
     case "/api/community/install": {
@@ -328,16 +442,84 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       return { success: true, name: safeName, totalSkills: index.totalSkills };
     }
 
+    case "/api/community/install-url": {
+      const ghUrl = params.get("url") || "";
+      if (!ghUrl) return { error: "Missing url" };
+
+      const m = ghUrl.match(/github\.com\/([^/]+\/[^/]+)\/(?:blob|tree)\/([^/]+)\/(.+)/);
+      if (!m) return { error: "无法解析 GitHub 链接，需格式: github.com/owner/repo/blob/branch/path" };
+      const [, ghRepo, ghBranch, ghPath] = m;
+
+      const skillName = params.get("name") || ghPath.split("/").filter(Boolean).slice(-1)[0]?.replace(/\.md$/i, "") || "unknown";
+      const safeName = skillName.replace(/[^a-zA-Z0-9_-]/g, "-");
+
+      let rawUrl: string;
+      if (ghPath.endsWith(".md") || ghPath.endsWith(".MD")) {
+        rawUrl = `https://raw.githubusercontent.com/${ghRepo}/${ghBranch}/${ghPath}`;
+      } else {
+        const tryPaths = [`${ghPath}/SKILL.md`, `${ghPath}/skill.md`, ghPath];
+        rawUrl = `https://raw.githubusercontent.com/${ghRepo}/${ghBranch}/${tryPaths[0]}`;
+        for (const tp of tryPaths) {
+          try {
+            const r = await fetch(`https://raw.githubusercontent.com/${ghRepo}/${ghBranch}/${tp}`, { signal: AbortSignal.timeout(8000) });
+            if (r.ok) { rawUrl = `https://raw.githubusercontent.com/${ghRepo}/${ghBranch}/${tp}`; break; }
+          } catch {}
+        }
+      }
+
+      try {
+        const resp = await fetch(rawUrl, { signal: AbortSignal.timeout(10000) });
+        if (!resp.ok) return { error: `下载失败 (${resp.status})` };
+        const content = await resp.text();
+        if (!content.trim()) return { error: "内容为空" };
+
+        const skillsBase = join(process.env.HOME || "~", ".cursor", "skills");
+        const skillDir = join(skillsBase, safeName);
+        if (!resolve(skillDir).startsWith(resolve(skillsBase))) return { error: "Invalid path" };
+
+        const { mkdirSync: mk, writeFileSync: wf } = await import("fs");
+        mk(skillDir, { recursive: true });
+        wf(join(skillDir, "SKILL.md"), content, "utf-8");
+        index = buildIndex();
+
+        return { success: true, name: safeName, path: skillDir, totalSkills: index.totalSkills };
+      } catch (e: unknown) {
+        return { error: `请求失败: ${e instanceof Error ? e.message : String(e)}` };
+      }
+    }
+
     case "/api/community/refresh": {
       clearAllCache();
       const config = loadConfig();
-      const skills = await listCommunitySkills(config);
+      const skills = await listCommunitySkills(config, { light: true });
       return skills || [];
+    }
+
+    case "/api/community/cache-status": {
+      const cacheFile = join(process.env.HOME || "~", ".cursor", "skiller", "data", "community_cache.json");
+      if (!existsSync(cacheFile)) return { cached: false };
+      try {
+        const raw = JSON.parse(readFileSync(cacheFile, "utf-8"));
+        const keys = Object.keys(raw);
+        const info: Record<string, { count: number; age: string; ageMs: number }> = {};
+        for (const k of keys) {
+          const entry = raw[k];
+          if (entry?.updatedAt && Array.isArray(entry.skills)) {
+            const ageMs = Date.now() - new Date(entry.updatedAt).getTime();
+            const ageMins = Math.round(ageMs / 60000);
+            info[k] = { count: entry.skills.length, age: `${ageMins}分钟前`, ageMs };
+          }
+        }
+        return { cached: true, entries: info };
+      } catch { return { cached: false }; }
     }
 
     case "/api/community/sources": {
       const config = loadConfig();
-      return config.sources;
+      return config.sources.map(s => ({
+        ...s,
+        token: s.token ? "••••" + s.token.slice(-4) : undefined,
+      }));
     }
 
     case "/api/community/add-source": {
@@ -346,16 +528,17 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       const branch = params.get("branch") || "main";
       const skillsPath = params.get("skillsPath") || "skills";
       const writable = params.get("writable") === "true";
+      const srcToken = params.get("token") || undefined;
       if (!repo) return { error: "Missing repo" };
-      const config = addSource({ repo, branch, skillsPath, label, writable });
-      return { success: true, sources: config.sources };
+      const config = addSource({ repo, branch, skillsPath, label, writable, token: srcToken });
+      return { success: true, sources: config.sources.map(s => ({ ...s, token: s.token ? "••••" + s.token.slice(-4) : undefined })) };
     }
 
     case "/api/community/remove-source": {
       const sourceId = params.get("id") || "";
       if (!sourceId) return { error: "Missing id" };
       const config = removeSource(sourceId);
-      return { success: true, sources: config.sources };
+      return { success: true, sources: config.sources.map(s => ({ ...s, token: s.token ? "••••" + s.token.slice(-4) : undefined })) };
     }
 
     case "/api/community/source-skills": {
@@ -419,7 +602,7 @@ const server = createServer((req, res) => {
     return;
   }
 
-  if (url.pathname.startsWith("/api/plaza") || url.pathname.startsWith("/api/community")) {
+  if (url.pathname.startsWith("/api/community")) {
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.setHeader("Access-Control-Allow-Origin", "*");
     handleAsyncApi(url.pathname, url.searchParams)

@@ -174,8 +174,10 @@
     [data-theme="clean"] .plaza-card { border: 1px solid #e9ecef; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
     [data-theme="clean"] .plaza-card:hover { border-color: #339af0; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(51,154,240,0.1); }
     [data-theme="clean"] .plaza-card .plaza-name { font-family: 'Inter', sans-serif; }
-    [data-theme="clean"] .plaza-card .btn-install { border-radius: 8px; border: 1px solid; }
-    [data-theme="clean"] .plaza-card .btn-preview { border-radius: 8px; border: 1px solid; }
+    [data-theme="clean"] .btn-install { border-radius: 8px; }
+    [data-theme="clean"] .btn-preview { border-radius: 8px; }
+    [data-theme="clean"] .action-btn { border-radius: 8px; }
+    [data-theme="clean"] .btn-upload { border-radius: 8px; }
 
     [data-theme="clean"] .community-config { border: 1px solid #e9ecef; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
     [data-theme="clean"] .community-config h3 { font-family: 'Inter', sans-serif; }
@@ -1420,52 +1422,99 @@
       margin-bottom: 12px;
     }
 
-    .plaza-card .plaza-actions {
+    .plaza-card .plaza-actions,
+    .community-card .plaza-actions {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
+      flex-wrap: wrap;
     }
 
-    .plaza-card .btn-install {
-      padding: 6px 16px;
-      border-radius: 20px;
-      border: 2px solid var(--green);
-      background: var(--green-light);
-      color: #2E7D32;
+    .btn-install, .btn-preview, .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 7px 14px;
+      border-radius: 10px;
+      border: none;
       cursor: pointer;
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 12px;
-      transition: all 0.2s;
+      font-weight: 600;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      line-height: 1;
+      position: relative;
+      overflow: hidden;
     }
 
-    .plaza-card .btn-install:hover {
-      background: var(--green);
+    .btn-install {
+      background: linear-gradient(135deg, #43a047, #66bb6a);
       color: white;
-      transform: scale(1.05);
+      box-shadow: 0 2px 8px rgba(67, 160, 71, 0.3);
     }
-
-    .plaza-card .btn-install.installed {
-      background: var(--text2);
-      border-color: var(--text2);
-      color: white;
+    .btn-install:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(67, 160, 71, 0.45);
+      filter: brightness(1.08);
+    }
+    .btn-install:active { transform: translateY(0); box-shadow: 0 1px 4px rgba(67, 160, 71, 0.3); }
+    .btn-install.installed {
+      background: linear-gradient(135deg, #9e9e9e, #bdbdbd);
+      box-shadow: none;
       cursor: default;
-      opacity: 0.6;
+      opacity: 0.7;
+    }
+    .btn-install.installed:hover { transform: none; filter: none; }
+
+    .btn-preview {
+      background: var(--bg2, #f5f5f5);
+      color: var(--text, #333);
+      border: 1.5px solid var(--border2, #e0e0e0);
+    }
+    .btn-preview:hover {
+      background: var(--blue-light, #e3f2fd);
+      border-color: var(--blue, #42a5f5);
+      color: var(--blue, #1976d2);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(66, 165, 245, 0.2);
     }
 
-    .plaza-card .btn-preview {
-      padding: 6px 12px;
-      border-radius: 20px;
-      border: 2px solid var(--border2);
-      background: transparent;
-      color: var(--text2);
-      cursor: pointer;
-      font-size: 12px;
-      transition: all 0.2s;
+    .btn-preview[style*="color:var(--red"] {
+      border-color: transparent;
+    }
+    .btn-preview[style*="color:var(--red"]:hover {
+      background: #ffebee;
+      border-color: #ef5350;
+      box-shadow: 0 2px 8px rgba(239, 83, 80, 0.2);
     }
 
-    .plaza-card .btn-preview:hover {
-      border-color: var(--blue);
-      color: var(--blue);
+    .action-btn {
+      background: var(--bg2, #f5f5f5);
+      color: var(--text, #333);
+      border: 1.5px solid var(--border2, #e0e0e0);
+      padding: 8px 16px;
+      border-radius: 10px;
+    }
+    .action-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+    .action-btn .action-icon { font-size: 14px; }
+
+    .action-btn.action-export:hover {
+      background: var(--blue-light, #e3f2fd);
+      border-color: var(--blue, #42a5f5);
+      color: var(--blue, #1976d2);
+    }
+    .action-btn.action-delete {
+      color: var(--red, #e53935);
+      border-color: rgba(229, 57, 53, 0.3);
+    }
+    .action-btn.action-delete:hover {
+      background: #ffebee;
+      border-color: #ef5350;
+      box-shadow: 0 3px 10px rgba(239, 83, 80, 0.15);
     }
 
     .plaza-card .repo-badge {
@@ -1597,44 +1646,53 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 2px solid var(--border2);
-      background: var(--bg2);
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border2);
+      background: var(--surface);
       font-size: 13px;
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
 
     .upload-item:hover {
-      border-color: var(--blue);
+      border-color: var(--blue, #42a5f5);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.07);
     }
 
     .upload-item .btn-upload {
-      padding: 4px 12px;
-      border-radius: 16px;
-      border: 2px solid var(--blue);
-      background: var(--blue-light);
-      color: #1565C0;
-      cursor: pointer;
-      font-family: var(--font-display);
-      font-size: 11px;
-      transition: all 0.2s;
-    }
-
-    .upload-item .btn-upload:hover {
-      background: var(--blue);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 7px 14px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #1e88e5, #42a5f5);
       color: white;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(30, 136, 229, 0.3);
     }
-
+    .upload-item .btn-upload:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(30, 136, 229, 0.45);
+      filter: brightness(1.08);
+    }
+    .upload-item .btn-upload:active {
+      transform: translateY(0);
+    }
     .upload-item .btn-upload.uploading {
       opacity: 0.6;
       cursor: wait;
+      filter: grayscale(0.3);
     }
-
     .upload-item .btn-upload.done {
-      background: var(--green);
-      border-color: var(--green);
-      color: white;
+      background: linear-gradient(135deg, #43a047, #66bb6a);
+      box-shadow: 0 2px 8px rgba(67, 160, 71, 0.3);
     }
 
     .community-grid {
@@ -1677,6 +1735,167 @@
       .logo h1 { font-size: 22px; }
       .plaza-grid { grid-template-columns: 1fr; }
     }
+
+    /* ===== My Repo dual-panel layout ===== */
+    .myrepo-layout {
+      display: flex;
+      gap: 0;
+      height: calc(100vh - 140px);
+      border: 2px solid var(--border2);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .myrepo-left {
+      width: 38%;
+      min-width: 280px;
+      max-width: 420px;
+      border-right: 2px solid var(--border2);
+      display: flex;
+      flex-direction: column;
+      background: var(--bg2);
+    }
+    .myrepo-left-header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border2);
+      background: var(--surface);
+    }
+    .myrepo-search {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 2px solid var(--border2);
+      background: var(--bg2);
+      font-size: 13px;
+      font-family: var(--font-body);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .myrepo-search:focus { border-color: var(--blue); }
+    .myrepo-filter-bar {
+      display: flex;
+      gap: 4px;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border2);
+      flex-wrap: wrap;
+      align-items: center;
+      background: var(--surface);
+    }
+    .myrepo-filter-btn {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border2);
+      background: var(--bg2);
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--font-body);
+    }
+    .myrepo-filter-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .myrepo-filter-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .myrepo-stats {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border2);
+    }
+    .myrepo-stat {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      border-right: 1px solid var(--border2);
+    }
+    .myrepo-stat:last-child { border-right: none; }
+    .myrepo-stat .val { font-size: 18px; font-weight: 700; }
+    .myrepo-stat .lbl { font-size: 10px; color: var(--text2); margin-top: 1px; }
+    .myrepo-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 0;
+    }
+    .myrepo-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-bottom: 1px solid transparent;
+    }
+    .myrepo-item:hover { background: var(--surface); }
+    .myrepo-item.selected {
+      background: var(--blue-light, #bbdefb);
+      border-left: 3px solid var(--blue);
+    }
+    .myrepo-item .item-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .myrepo-item .item-tags {
+      display: flex;
+      gap: 3px;
+      margin-top: 2px;
+    }
+    .myrepo-item .item-badge {
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    .myrepo-right {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+    }
+    .myrepo-right-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text2);
+      font-size: 15px;
+      gap: 12px;
+    }
+    .myrepo-right-empty .icon { font-size: 48px; opacity: 0.4; }
+    .myrepo-section {
+      background: var(--bg2);
+      border: 2px solid var(--border2);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .myrepo-section-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .myrepo-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .myrepo-cat-select {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border2);
+      background: var(--bg2);
+      color: var(--text);
+      outline: none;
+      font-family: var(--font-body);
+      cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      .myrepo-layout { flex-direction: column; height: auto; }
+      .myrepo-left { width: 100%; max-width: none; border-right: none; border-bottom: 2px solid var(--border2); max-height: 50vh; }
+      .myrepo-right { min-height: 50vh; }
+    }
   </style>
 </head>
 <body>
@@ -1701,8 +1920,8 @@
         <span class="live-dot" id="liveDot"></span>
         <span id="liveText">连接中...</span>
       </div>
-      <button class="btn btn-green" onclick="showView('plaza')">🏪 技能广场</button>
       <button class="btn btn-red" onclick="showView('community')">🌍 社区</button>
+      <button class="btn btn-green" onclick="showView('mcp')">🔌 MCP</button>
       <button class="btn" onclick="rescan()">🔄 重新扫描</button>
       <button class="btn btn-blue" onclick="showView('log')">📋 使用日志</button>
       <div style="position:relative">
@@ -1733,12 +1952,23 @@
 
   <div class="main">
     <aside class="sidebar" id="sidebar">
-      <h3>技能分类</h3>
-      <div class="nav-item active" onclick="showView('all')">
-        <span>🎯 全部技能</span>
+      <h3>导航</h3>
+      <div class="nav-item active" onclick="showView('myrepo')">
+        <span>📦 我的本地仓库</span>
         <span class="count" id="totalCount">0</span>
       </div>
-      <div id="categoryNav"></div>
+      <div class="nav-item" onclick="showView('community')">
+        <span>🌍 社区</span>
+      </div>
+      <div class="nav-item" onclick="showView('catmgr')">
+        <span>🏷️ 分类管理</span>
+      </div>
+      <div class="nav-item" onclick="showView('mcp')">
+        <span>⚙️ MCP 管理</span>
+      </div>
+      <div class="nav-item" onclick="showView('log')">
+        <span>📋 使用日志</span>
+      </div>
     </aside>
 
     <main class="content" id="content"></main>
@@ -1922,38 +2152,8 @@
       }
 
       document.getElementById('totalCount').textContent = stats.total;
-      renderCategoryNav(cats, stats);
-      showView('all');
+      showView('myrepo');
       connectSSE();
-    }
-
-    function renderCategoryNav(cats, stats) {
-      const nav = document.getElementById('categoryNav');
-      const uncatCount = allSkills.filter(s => s.categories.length === 0).length;
-      let html = `
-        <div class="nav-item" onclick="showCategory('uncategorized', this)">
-          <span>📭 未分类</span>
-          <span class="count">${uncatCount}</span>
-        </div>
-      `;
-      html += cats.map(c => {
-        const icon = c.icon || '📦';
-        return `
-          <div class="nav-item" onclick="showCategory('${escapeAttr(c.id)}', this)">
-            <span>${icon} ${escapeHtml(c.label)}</span>
-            <span class="count">${c.skillCount}</span>
-          </div>
-        `;
-      }).join('');
-
-      html += `
-        <div style="margin-top:16px; padding-top:12px; border-top:2px dashed var(--border2)">
-          <div class="nav-item" onclick="showView('catmgr')">
-            <span>⚙️ 管理分类</span>
-          </div>
-        </div>
-      `;
-      nav.innerHTML = html;
     }
 
     function showView(view) {
@@ -1961,38 +2161,24 @@
       currentCategory = null;
 
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      if (view === 'all') {
-        document.querySelector('.nav-item').classList.add('active');
+      const viewMap = { myrepo: 0, community: 1, catmgr: 2, mcp: 3, log: 4 };
+      const idx = viewMap[view];
+      if (idx !== undefined) {
+        const items = document.querySelectorAll('#sidebar .nav-item');
+        if (items[idx]) items[idx].classList.add('active');
       }
 
-      if (view === 'log') {
+      if (view === 'myrepo') {
+        renderMyRepo();
+      } else if (view === 'log') {
         renderLog();
-      } else if (view === 'plaza') {
-        renderPlaza();
       } else if (view === 'community') {
         renderCommunity();
+      } else if (view === 'mcp') {
+        renderMcpPanel();
       } else if (view === 'catmgr') {
         renderCategoryManager();
-      } else {
-        renderSkills(allSkills);
       }
-    }
-
-    function showCategory(catId, el) {
-      currentView = 'category';
-      currentCategory = catId;
-
-      document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
-      if (el) el.classList.add('active');
-
-      let filtered;
-      if (catId === 'uncategorized') {
-        filtered = allSkills.filter(s => s.categories.length === 0);
-      } else {
-        const allIds = getCategoryAndDescendants(catId);
-        filtered = allSkills.filter(s => s.categories.some(c => allIds.includes(c)));
-      }
-      renderSkills(filtered);
     }
 
     function getCategoryAndDescendants(catId) {
@@ -2004,219 +2190,348 @@
       return ids;
     }
 
-    function renderSkills(skills) {
+    // ========== 我的本地 Skill 仓库 (双栏) ==========
+    let myrepoSelectedSkill = null;
+    let myrepoFilter = 'all';
+    let myrepoCatFilter = '';
+    let myrepoSearchQuery = '';
+
+    async function renderMyRepo() {
       const content = document.getElementById('content');
+      await fetchOwnSkills(false);
+      const ownSet = new Set(ownSkillsList.map(n => n.toLowerCase()));
+      const uploadedCount = allSkills.filter(s => ownSet.has(s.name.toLowerCase())).length;
+      const pendingCount = allSkills.length - uploadedCount;
 
-      const stats = {
-        total: skills.length,
-        custom: skills.filter(s => s.source === 'custom').length,
-        superpowers: skills.filter(s => s.source === 'superpowers').length,
-        skillsCursor: skills.filter(s => s.source === 'skills-cursor').length,
-      };
+      content.innerHTML = '<div class="myrepo-layout">'
+        + '<div class="myrepo-left">'
+        +   '<div class="myrepo-left-header">'
+        +     '<input class="myrepo-search" id="myrepoSearch" placeholder="搜索技能名称、标签..." oninput="myrepoSearchQuery=this.value; renderMyRepoList()">'
+        +   '</div>'
+        +   '<div class="myrepo-filter-bar">'
+        +     '<button class="myrepo-filter-btn' + (myrepoFilter === 'all' ? ' active' : '') + '" onclick="myrepoFilter=\'all\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.myrepo-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">全部</button>'
+        +     '<button class="myrepo-filter-btn' + (myrepoFilter === 'uploaded' ? ' active' : '') + '" onclick="myrepoFilter=\'uploaded\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.myrepo-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">已上传</button>'
+        +     '<button class="myrepo-filter-btn' + (myrepoFilter === 'pending' ? ' active' : '') + '" onclick="myrepoFilter=\'pending\'; renderMyRepoList(); this.parentNode.querySelectorAll(\'.myrepo-filter-btn\').forEach(b=>b.classList.remove(\'active\')); this.classList.add(\'active\')">未上传</button>'
+        +     '<select class="myrepo-cat-select" id="myrepoCatSelect" onchange="myrepoCatFilter=this.value; renderMyRepoList()">'
+        +       '<option value="">全部分类</option>'
+        +       '<option value="__uncategorized__">未分类</option>'
+        +       userCategories.map(function(uc) { return '<option value="' + escapeAttr(uc.id) + '">' + escapeHtml((uc.icon || '') + ' ' + uc.label) + '</option>'; }).join('')
+        +     '</select>'
+        +   '</div>'
+        +   '<div class="myrepo-stats">'
+        +     '<div class="myrepo-stat"><div class="val" style="color:var(--blue)">' + allSkills.length + '</div><div class="lbl">本地总数</div></div>'
+        +     '<div class="myrepo-stat"><div class="val" style="color:var(--green)">' + uploadedCount + '</div><div class="lbl">已上架</div></div>'
+        +     '<div class="myrepo-stat"><div class="val" style="color:var(--orange)">' + pendingCount + '</div><div class="lbl">待上传</div></div>'
+        +   '</div>'
+        +   '<div class="myrepo-list" id="myrepoList"></div>'
+        + '</div>'
+        + '<div class="myrepo-right" id="myrepoRight">'
+        +   '<div class="myrepo-right-empty"><div class="icon">📦</div><div>选择左侧技能查看详情</div></div>'
+        + '</div>'
+        + '</div>';
 
-      content.innerHTML = `
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="label">技能总数</div>
-            <div class="value red">${stats.total}</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">自定义</div>
-            <div class="value green">${stats.custom}</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">Superpowers</div>
-            <div class="value blue">${stats.superpowers}</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">Cursor 内置</div>
-            <div class="value orange">${stats.skillsCursor}</div>
-          </div>
-        </div>
-        <div class="search-box">
-          <input type="text" id="searchInput" placeholder="🔍 搜索技能名称、标签、分类..." oninput="onSearch(this.value)">
-        </div>
-        <div class="skill-list" id="skillList">
-          ${skills.map(renderSkillCard).join('')}
-        </div>
-      `;
+      renderMyRepoList();
+      if (myrepoSelectedSkill) selectMyRepoSkill(myrepoSelectedSkill);
     }
 
-    function renderSkillCard(skill) {
-      const subCount = skillSubCounts[skill.name] || 0;
-      const subSource = skillSubSources[skill.name] || 'auto';
-      const badgeText = subSource === 'declared' ? `${subCount} 子技能` : `${subCount} 结构`;
-      const badgeClass = subSource === 'declared' ? 'declared' : 'auto';
-      const catTags = skill.categories.length > 0
-        ? skill.categories.map(c => {
-            const cat = userCategories.find(uc => uc.id === c);
-            const label = cat ? (cat.icon ? cat.icon + ' ' : '') + cat.label : c;
-            return `<span class="tag category" onclick="event.stopPropagation(); showCategory('${escapeAttr(c)}')">${escapeHtml(label)}</span>`;
-          }).join('')
-        : '<span class="tag" style="background:var(--surface2);color:var(--text2);border-color:var(--border2)">未分类</span>';
-      return `
-        <div class="skill-card" data-skill="${escapeAttr(skill.name)}" onclick="showSkillDetail(this.dataset.skill)">
-          <div class="name">${escapeHtml(skill.name)} ${subCount > 0 ? `<span class="sub-skill-badge ${badgeClass}">${badgeText}</span>` : ''}</div>
-          <div class="desc">${escapeHtml(skill.description)}</div>
-          <div class="meta">
-            ${catTags}
-            <span class="tag source">${skill.source}</span>
-            <span class="tag tokens">~${skill.tokenEstimate} tokens</span>
-            ${skill.tags.slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('')}
-          </div>
-        </div>
-      `;
-    }
-
-    function onSearch(query) {
-      if (!query.trim()) {
-        let base;
-        if (currentCategory === 'uncategorized') {
-          base = allSkills.filter(s => s.categories.length === 0);
-        } else if (currentCategory) {
-          const allIds = getCategoryAndDescendants(currentCategory);
-          base = allSkills.filter(s => s.categories.some(c => allIds.includes(c)));
-        } else {
-          base = allSkills;
+    function renderMyRepoList() {
+      var ownSet = new Set(ownSkillsList.map(function(n) { return n.toLowerCase(); }));
+      var q = (myrepoSearchQuery || '').toLowerCase().trim();
+      var filtered = allSkills.filter(function(s) {
+        if (myrepoFilter === 'uploaded' && !ownSet.has(s.name.toLowerCase())) return false;
+        if (myrepoFilter === 'pending' && ownSet.has(s.name.toLowerCase())) return false;
+        if (myrepoCatFilter === '__uncategorized__' && s.categories.length > 0) return false;
+        if (myrepoCatFilter && myrepoCatFilter !== '__uncategorized__') {
+          var allIds = getCategoryAndDescendants(myrepoCatFilter);
+          if (!s.categories.some(function(c) { return allIds.indexOf(c) >= 0; })) return false;
         }
-        document.getElementById('skillList').innerHTML = base.map(renderSkillCard).join('');
+        if (q) {
+          var match = s.name.toLowerCase().indexOf(q) >= 0
+            || s.description.toLowerCase().indexOf(q) >= 0
+            || s.tags.some(function(t) { return t.toLowerCase().indexOf(q) >= 0; });
+          if (!match) return false;
+        }
+        return true;
+      });
+
+      var listEl = document.getElementById('myrepoList');
+      if (!listEl) return;
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text2); font-size:13px">没有匹配的技能</div>';
         return;
       }
 
-      const q = query.toLowerCase();
-      const filtered = allSkills.filter(s =>
-        s.name.toLowerCase().includes(q) ||
-        s.description.toLowerCase().includes(q) ||
-        s.tags.some(t => t.toLowerCase().includes(q)) ||
-        s.categories.some(c => c.toLowerCase().includes(q))
-      );
-      document.getElementById('skillList').innerHTML = filtered.length > 0
-        ? filtered.map(renderSkillCard).join('')
-        : '<div class="empty-state"><div class="icon">🤔</div><p>没有找到匹配的技能哦~</p></div>';
+      listEl.innerHTML = filtered.map(function(s) {
+        var isUploaded = ownSet.has(s.name.toLowerCase());
+        var selected = myrepoSelectedSkill === s.name;
+        var catLabels = s.categories.slice(0, 2).map(function(c) {
+          var cat = userCategories.find(function(uc) { return uc.id === c; });
+          return cat ? (cat.icon || '') + cat.label : c;
+        });
+        return '<div class="myrepo-item' + (selected ? ' selected' : '') + '" onclick="selectMyRepoSkill(\'' + escapeAttr(s.name).replace(/'/g, "\\'") + '\')">'
+          + '<div style="flex:1; min-width:0">'
+          +   '<div class="item-name">' + escapeHtml(s.name) + '</div>'
+          +   '<div class="item-tags">'
+          +     (isUploaded
+              ? '<span class="item-badge" style="background:#e8f5e9; color:#2e7d32">已上传</span>'
+              : '<span class="item-badge" style="background:#fff3e0; color:#e65100">未上传</span>')
+          +     '<span class="item-badge" style="background:var(--bg2); color:var(--text2)">' + escapeHtml(s.source) + '</span>'
+          +     catLabels.map(function(l) { return '<span class="item-badge" style="background:var(--red-light); color:var(--red)">' + escapeHtml(l) + '</span>'; }).join('')
+          +   '</div>'
+          + '</div>'
+          + '</div>';
+      }).join('');
     }
 
-    async function showSkillDetail(name) {
-      const panel = document.getElementById('detailPanel');
-      const title = document.getElementById('detailTitle');
-      const body = document.getElementById('detailBody');
-
-      title.textContent = name;
-      body.innerHTML = '<div class="empty-state"><div class="icon" style="animation:wobble 1s infinite">⏳</div><p>加载中...</p></div>';
-      panel.classList.add('open');
-
-      const data = await api(`/api/skill?name=${encodeURIComponent(name)}`);
-      const subSkills = data.subSkills || [];
-      const subCount = countTreeNodes(subSkills);
-      const subSource = data.subSkillSource || 'auto';
-
-      const sourceLabel = subSource === 'declared'
-        ? '<span class="source-badge declared">✅ 作者声明的子技能</span>'
-        : '<span class="source-badge auto">🔍 自动解析（作者未声明 sub_skills）</span>';
-
-      const skillCats = data.categories || [];
-      const catLabels = skillCats.map(c => {
-        const cat = userCategories.find(uc => uc.id === c);
-        return cat ? (cat.icon ? cat.icon + ' ' : '') + cat.label : c;
+    async function selectMyRepoSkill(name) {
+      myrepoSelectedSkill = name;
+      var items = document.querySelectorAll('.myrepo-item');
+      items.forEach(function(el) { el.classList.remove('selected'); });
+      items.forEach(function(el) {
+        if (el.querySelector('.item-name') && el.querySelector('.item-name').textContent === name) {
+          el.classList.add('selected');
+        }
       });
-      const catDisplay = catLabels.length > 0
-        ? catLabels.map((l, i) => `<span class="tag category">${escapeHtml(l)}</span>`).join(' ')
-        : '<span class="tag" style="background:var(--surface2);color:var(--text2)">未分类</span>';
 
-      body.innerHTML = `
-        <div style="margin-bottom:16px">
-          ${catDisplay}
-          <span class="tag source">${data.source}</span>
-          <span class="tag tokens">~${data.tokenEstimate} tokens</span>
-        </div>
-        <p style="color:var(--text2); margin-bottom:12px; line-height:1.6">${escapeHtml(data.description)}</p>
-        <div style="margin-bottom:16px">
-          ${(data.tags || []).map(t => `<span class="tag">${t}</span>`).join(' ')}
-        </div>
+      var right = document.getElementById('myrepoRight');
+      if (!right) return;
+      right.innerHTML = '<div class="myrepo-right-empty"><div class="icon" style="animation:spin 1s linear infinite">⏳</div><div>加载中...</div></div>';
 
-        <div style="margin-bottom:16px; background:var(--bg2); border:2px solid var(--border2); border-radius:14px; padding:14px">
-          <div style="font-family:var(--font-display); font-size:14px; color:var(--text); margin-bottom:10px">🏷️ 管理分类</div>
-          <div id="detailCatCheckboxes" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px">
-            ${userCategories.map(uc => {
-              const checked = skillCats.includes(uc.id) ? 'checked' : '';
-              return `<label style="display:flex; align-items:center; gap:4px; padding:4px 10px; border-radius:10px; border:2px solid var(--border2); background:var(--surface); cursor:pointer; font-size:13px; transition:all 0.2s">
-                <input type="checkbox" value="${escapeAttr(uc.id)}" ${checked} style="accent-color:var(--red)">
-                ${uc.icon || ''} ${escapeHtml(uc.label)}
-              </label>`;
-            }).join('')}
-            ${userCategories.length === 0 ? '<span style="color:var(--text2); font-size:13px">暂无分类，请先在「管理分类」中创建</span>' : ''}
-          </div>
-          ${userCategories.length > 0 ? `<button class="btn btn-green" style="padding:6px 14px; font-size:12px" onclick="saveSkillCategories('${escapeAttr(data.name)}')">💾 保存分类</button>` : ''}
-        </div>
+      var data = await api('/api/skill?name=' + encodeURIComponent(name));
+      if (data.error) {
+        right.innerHTML = '<div class="myrepo-right-empty"><div class="icon">❌</div><div>' + escapeHtml(data.error) + '</div></div>';
+        return;
+      }
 
-        <div class="tab-bar">
-          <div class="tab-btn active" onclick="switchTab('tree', this)">🌳 子技能树 ${subCount > 0 ? `(${subCount})` : ''}</div>
-          <div class="tab-btn" onclick="switchTab('raw', this)">📄 原始内容</div>
-        </div>
+      var ownSet = new Set(ownSkillsList.map(function(n) { return n.toLowerCase(); }));
+      var isUploaded = ownSet.has(name.toLowerCase());
+      var subSkills = data.subSkills || [];
+      var subCount = countTreeNodes(subSkills);
+      var subSource = data.subSkillSource || 'auto';
+      var sourceLabel = subSource === 'declared'
+        ? '<span class="source-badge declared">作者声明的子技能</span>'
+        : '<span class="source-badge auto">自动解析</span>';
 
-        <div id="tabTree" class="tab-content">
-          ${sourceLabel}
-          ${subSkills.length > 0
-            ? `<div class="skill-tree">${renderTree(subSkills)}</div>`
-            : '<div class="empty-state"><div class="icon">📭</div><p>此技能没有子技能结构</p></div>'
-          }
-        </div>
+      var skillCats = data.categories || [];
 
-        <div id="tabRaw" class="tab-content" style="display:none">
-          <pre>${escapeHtml(data.content || 'No content')}</pre>
-        </div>
-      `;
+      var html = '';
+
+      // Info header
+      html += '<div style="margin-bottom:16px">'
+        + '<h2 style="font-family:var(--font-display); font-size:22px; margin-bottom:8px">' + escapeHtml(data.name) + '</h2>'
+        + '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px">'
+        + (isUploaded ? '<span class="tag" style="background:#e8f5e9; color:#2e7d32; font-weight:600">已上传到社区</span>' : '<span class="tag" style="background:#fff3e0; color:#e65100; font-weight:600">未上传</span>')
+        + '<span class="tag source">' + escapeHtml(data.source) + '</span>'
+        + '<span class="tag tokens">~' + (data.tokenEstimate || 0) + ' tokens</span>'
+        + '</div>'
+        + '<p style="color:var(--text2); font-size:13px; line-height:1.6; margin-bottom:4px">' + escapeHtml(data.description) + '</p>'
+        + '<div style="font-size:11px; color:var(--text2)">📂 ' + escapeHtml(data.path || '') + '</div>'
+        + '</div>';
+
+      // Category management
+      html += '<div class="myrepo-section">'
+        + '<div class="myrepo-section-title">🏷️ 分类管理</div>'
+        + '<div id="myrepoCatCheckboxes" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px">';
+      for (var i = 0; i < userCategories.length; i++) {
+        var uc = userCategories[i];
+        var checked = skillCats.indexOf(uc.id) >= 0 ? ' checked' : '';
+        html += '<label style="display:flex; align-items:center; gap:4px; padding:4px 10px; border-radius:10px; border:2px solid var(--border2); background:var(--surface); cursor:pointer; font-size:12px; transition:all 0.2s">'
+          + '<input type="checkbox" value="' + escapeAttr(uc.id) + '"' + checked + ' style="accent-color:var(--red)">'
+          + (uc.icon || '') + ' ' + escapeHtml(uc.label)
+          + '</label>';
+      }
+      if (userCategories.length === 0) {
+        html += '<span style="color:var(--text2); font-size:12px">暂无分类，请在「分类管理」中创建</span>';
+      }
+      html += '</div>';
+      if (userCategories.length > 0) {
+        html += '<button class="btn btn-green" style="padding:5px 14px; font-size:12px" onclick="myrepoSaveCategories(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\')">💾 保存分类</button>';
+      }
+      html += '</div>';
+
+      // Description editor for upload
+      html += '<div class="myrepo-section">'
+        + '<div class="myrepo-section-title">📝 上传描述</div>'
+        + '<div style="display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap">'
+        + '<span style="font-size:11px; color:var(--text2); line-height:28px">模板:</span>';
+      for (var pi = 0; pi < UPLOAD_DESC_PRESETS.length; pi++) {
+        html += '<button class="btn-preview" style="font-size:10px; padding:3px 8px" onclick="myrepoApplyPreset(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\',' + pi + ')">' + escapeHtml(UPLOAD_DESC_PRESETS[pi].label) + '</button>';
+      }
+      html += '<button class="btn-preview" style="font-size:10px; padding:3px 8px" onclick="myrepoApplyPreset(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\',-1)">通用</button>';
+      html += '</div>';
+      var descSafeId = name.replace(/[^a-zA-Z0-9]/g, '_');
+      html += '<textarea id="myrepo-desc-' + descSafeId + '" style="width:100%; min-height:120px; padding:10px; border-radius:10px; border:1.5px solid var(--border2); background:var(--bg2); font-size:12px; font-family:var(--font-body); line-height:1.6; resize:vertical; outline:none; transition:border-color 0.2s" onfocus="this.style.borderColor=\'var(--blue)\'" onblur="this.style.borderColor=\'var(--border2)\'" placeholder="（可选）填写技能使用场景描述..." oninput="uploadDescriptions[\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\']=this.value">' + escapeHtml(uploadDescriptions[name] || '') + '</textarea>';
+      html += '<div style="font-size:10px; color:var(--text2); margin-top:4px">描述将单独保存为 DESCRIPTION.md，不影响 SKILL.md 内容</div>';
+      html += '</div>';
+
+      // Action buttons
+      html += '<div class="myrepo-section">'
+        + '<div class="myrepo-section-title">⚡ 操作</div>'
+        + '<div class="myrepo-actions">';
+      html += '<button class="action-btn action-export" id="myrepo-upload-btn" onclick="myrepoUpload(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\', this)">'
+        + '<span class="action-icon">' + (isUploaded ? '🔄' : '📤') + '</span> ' + (isUploaded ? '更新到社区' : '上传到社区')
+        + '</button>';
+      html += '<button class="action-btn action-export" onclick="exportLocalSkill(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\')">'
+        + '<span class="action-icon">📋</span> 复制内容'
+        + '</button>';
+      if (isUploaded) {
+        html += '<button class="action-btn" style="color:var(--orange); border-color:var(--orange)" onclick="myrepoUnpublish(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\', this)">'
+          + '<span class="action-icon">🗑️</span> 从社区下架'
+          + '</button>';
+      }
+      html += '<button class="action-btn action-delete" onclick="myrepoDeleteLocal(\'' + escapeAttr(data.name).replace(/'/g, "\\'") + '\')">'
+        + '<span class="action-icon">🗑️</span> 删除本地'
+        + '</button>';
+      html += '</div></div>';
+
+      // Content tabs: sub-skill tree + raw
+      html += '<div class="tab-bar" style="margin-top:0">'
+        + '<div class="tab-btn active" onclick="myrepoSwitchTab(\'tree\', this)">🌳 子技能树' + (subCount > 0 ? ' (' + subCount + ')' : '') + '</div>'
+        + '<div class="tab-btn" onclick="myrepoSwitchTab(\'raw\', this)">📄 原始内容</div>'
+        + '</div>';
+
+      html += '<div id="myrepoTabTree" class="tab-content">'
+        + sourceLabel;
+      if (subSkills.length > 0) {
+        html += '<div class="skill-tree">' + renderTree(subSkills) + '</div>';
+      } else {
+        html += '<div class="empty-state" style="padding:20px"><div class="icon">📭</div><p style="font-size:13px">此技能没有子技能结构</p></div>';
+      }
+      html += '</div>';
+      html += '<div id="myrepoTabRaw" class="tab-content" style="display:none"><pre style="font-size:12px; line-height:1.6; white-space:pre-wrap; word-break:break-word">' + escapeHtml(data.content || 'No content') + '</pre></div>';
+
+      right.innerHTML = html;
     }
 
-    function switchTab(tab, el) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    function myrepoSwitchTab(tab, el) {
+      el.parentNode.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       el.classList.add('active');
-      document.getElementById('tabTree').style.display = tab === 'tree' ? 'block' : 'none';
-      document.getElementById('tabRaw').style.display = tab === 'raw' ? 'block' : 'none';
+      document.getElementById('myrepoTabTree').style.display = tab === 'tree' ? 'block' : 'none';
+      document.getElementById('myrepoTabRaw').style.display = tab === 'raw' ? 'block' : 'none';
+    }
+
+    async function myrepoSaveCategories(skillName) {
+      var checkboxes = document.querySelectorAll('#myrepoCatCheckboxes input[type=checkbox]');
+      var selected = [];
+      checkboxes.forEach(function(cb) { if (cb.checked) selected.push(cb.value); });
+      await api('/api/categories/tag-skill?skill=' + encodeURIComponent(skillName) + '&categories=' + encodeURIComponent(selected.join(',')));
+      showToast({ tool: 'tag', resultSummary: '已更新 ' + skillName + ' 的分类', timestamp: new Date().toISOString() });
+      allSkills = await api('/api/skills');
+      categories = await api('/api/categories');
+      userCategories = await api('/api/categories/list');
+      renderMyRepoList();
+    }
+
+    async function myrepoUpload(name, btn) {
+      btn.innerHTML = '<span class="action-icon">⏳</span> 上传中...';
+      btn.disabled = true;
+      var desc = uploadDescriptions[name] || '';
+      var descParam = desc ? '&description=' + encodeURIComponent(desc) : '';
+      try {
+        var result = await api('/api/community/upload?name=' + encodeURIComponent(name) + descParam);
+        if (result.success) {
+          btn.innerHTML = '<span class="action-icon">✓</span> 已上传';
+          showToast({ tool: 'upload', resultSummary: result.message, timestamp: new Date().toISOString() });
+          communityLoaded = false;
+          if (ownSkillsList.indexOf(name) < 0) ownSkillsList.push(name);
+          ownSkillsCachedAt = 0;
+          renderMyRepoList();
+        } else {
+          btn.innerHTML = '<span class="action-icon">❌</span> ' + (result.message || '失败').slice(0, 20);
+          btn.disabled = false;
+        }
+      } catch (e) {
+        btn.innerHTML = '<span class="action-icon">❌</span> 网络错误';
+        btn.disabled = false;
+      }
+    }
+
+    async function myrepoUnpublish(name, btn) {
+      if (!confirm('确定要从社区下架 "' + name + '" 吗？')) return;
+      btn.innerHTML = '<span class="action-icon">⏳</span> 下架中...';
+      btn.disabled = true;
+      try {
+        var result = await api('/api/community/delete?name=' + encodeURIComponent(name));
+        if (result.success) {
+          showToast({ tool: 'delete', resultSummary: result.message, timestamp: new Date().toISOString() });
+          ownSkillsList = ownSkillsList.filter(function(n) { return n !== name; });
+          ownSkillsCachedAt = 0;
+          renderMyRepoList();
+          selectMyRepoSkill(name);
+        } else {
+          alert('下架失败: ' + result.message);
+          btn.innerHTML = '<span class="action-icon">🗑️</span> 从社区下架';
+          btn.disabled = false;
+        }
+      } catch (e) {
+        alert('网络错误');
+        btn.innerHTML = '<span class="action-icon">🗑️</span> 从社区下架';
+        btn.disabled = false;
+      }
+    }
+
+    async function myrepoDeleteLocal(name) {
+      if (!confirm('确定要删除本地技能 "' + name + '" 吗？此操作不可恢复！')) return;
+      var result = await api('/api/skill/delete?name=' + encodeURIComponent(name));
+      if (result.success) {
+        showToast({ tool: 'delete', resultSummary: result.message, timestamp: new Date().toISOString() });
+        allSkills = await api('/api/skills');
+        document.getElementById('totalCount').textContent = allSkills.length;
+        myrepoSelectedSkill = null;
+        renderMyRepo();
+      } else {
+        alert('删除失败: ' + (result.message || '未知错误'));
+      }
+    }
+
+    function myrepoApplyPreset(name, presetIdx) {
+      var safeId = name.replace(/[^a-zA-Z0-9]/g, '_');
+      var textarea = document.getElementById('myrepo-desc-' + safeId);
+      if (!textarea) return;
+      var template = presetIdx >= 0 ? UPLOAD_DESC_PRESETS[presetIdx].template : UPLOAD_DESC_TEMPLATE;
+      textarea.value = template;
+      uploadDescriptions[name] = template;
     }
 
     function countTreeNodes(tree) {
-      let count = 0;
-      for (const n of tree) {
+      var count = 0;
+      for (var i = 0; i < tree.length; i++) {
         count += 1;
-        if (n.children) count += countTreeNodes(n.children);
+        if (tree[i].children) count += countTreeNodes(tree[i].children);
       }
       return count;
     }
 
     function renderTree(nodes) {
-      return nodes.map(node => {
-        const hasChildren = node.children && node.children.length > 0;
-        const hasBullets = node.bulletPoints && node.bulletPoints.length > 0;
-        const childCount = hasChildren ? countTreeNodes(node.children) : 0;
-        const nodeId = 'tn_' + Math.random().toString(36).slice(2, 8);
-
-        return `
-          <div class="tree-node">
-            <div class="tree-header" onclick="toggleTreeNode('${nodeId}', this)">
-              <span class="toggle">${(hasChildren || hasBullets) ? '▶' : '•'}</span>
-              <span class="node-title level-${node.level}">${escapeHtml(node.title)}</span>
-              ${childCount > 0 ? `<span class="child-count">${childCount}</span>` : ''}
-            </div>
-            ${node.summary ? `<div class="tree-summary">${escapeHtml(node.summary)}</div>` : ''}
-            ${(hasChildren || hasBullets) ? `
-              <div class="tree-children" id="${nodeId}">
-                ${hasBullets ? `
-                  <div class="tree-bullets">
-                    ${node.bulletPoints.map(b => `<div class="tree-bullet">${escapeHtml(b)}</div>`).join('')}
-                  </div>
-                ` : ''}
-                ${hasChildren ? renderTree(node.children) : ''}
-              </div>
-            ` : ''}
-          </div>
-        `;
+      return nodes.map(function(node) {
+        var hasChildren = node.children && node.children.length > 0;
+        var hasBullets = node.bulletPoints && node.bulletPoints.length > 0;
+        var childCount = hasChildren ? countTreeNodes(node.children) : 0;
+        var nodeId = 'tn_' + Math.random().toString(36).slice(2, 8);
+        var h = '<div class="tree-node">'
+          + '<div class="tree-header" onclick="toggleTreeNode(\'' + nodeId + '\', this)">'
+          + '<span class="toggle">' + ((hasChildren || hasBullets) ? '▶' : '•') + '</span>'
+          + '<span class="node-title level-' + node.level + '">' + escapeHtml(node.title) + '</span>'
+          + (childCount > 0 ? '<span class="child-count">' + childCount + '</span>' : '')
+          + '</div>';
+        if (node.summary) h += '<div class="tree-summary">' + escapeHtml(node.summary) + '</div>';
+        if (hasChildren || hasBullets) {
+          h += '<div class="tree-children" id="' + nodeId + '">';
+          if (hasBullets) {
+            h += '<div class="tree-bullets">' + node.bulletPoints.map(function(b) { return '<div class="tree-bullet">' + escapeHtml(b) + '</div>'; }).join('') + '</div>';
+          }
+          if (hasChildren) h += renderTree(node.children);
+          h += '</div>';
+        }
+        h += '</div>';
+        return h;
       }).join('');
     }
 
     function toggleTreeNode(nodeId, headerEl) {
-      const children = document.getElementById(nodeId);
+      var children = document.getElementById(nodeId);
       if (!children) return;
-      const isVisible = children.classList.contains('visible');
       children.classList.toggle('visible');
       headerEl.classList.toggle('expanded');
     }
@@ -2273,17 +2588,31 @@
 
     // ========== 分类管理 ==========
 
-    async function saveSkillCategories(skillName) {
-      const checkboxes = document.querySelectorAll('#detailCatCheckboxes input[type=checkbox]');
-      const selected = [];
-      checkboxes.forEach(cb => { if (cb.checked) selected.push(cb.value); });
+    async function deleteLocalSkill(name) {
+      if (!confirm('确定要删除本地技能 "' + name + '" 吗？此操作不可恢复！')) return;
+      try {
+        var result = await api('/api/skill/delete?name=' + encodeURIComponent(name));
+        if (result.success) {
+          showToast({ tool: 'delete', resultSummary: result.message, timestamp: new Date().toISOString() });
+          allSkills = await api('/api/skills');
+          document.getElementById('totalCount').textContent = allSkills.length;
+          if (currentView === 'myrepo') renderMyRepo();
+        } else {
+          alert('删除失败: ' + result.message);
+        }
+      } catch { alert('网络错误'); }
+    }
 
-      await api(`/api/categories/tag-skill?skill=${encodeURIComponent(skillName)}&categories=${encodeURIComponent(selected.join(','))}`);
-      showToast({ tool: 'tag', resultSummary: `已更新 ${skillName} 的分类`, timestamp: new Date().toISOString() });
-
-      allSkills = await api('/api/skills');
-      categories = await api('/api/categories');
-      renderCategoryNav(categories);
+    async function exportLocalSkill(name) {
+      try {
+        const data = await api(`/api/skill/export?name=${encodeURIComponent(name)}`);
+        if (data.content) {
+          await navigator.clipboard.writeText(data.content);
+          showToast({ tool: 'export', resultSummary: `"${name}" 内容已复制到剪贴板`, timestamp: new Date().toISOString() });
+        } else {
+          alert('导出失败');
+        }
+      } catch { alert('操作失败'); }
     }
 
     async function renderCategoryManager() {
@@ -2339,9 +2668,10 @@
             <div style="font-family:var(--font-display); font-size:17px; color:var(--orange); margin-bottom:12px">
               📭 未分类的技能 (${allSkills.filter(s => s.categories.length === 0).length})
             </div>
-            <div class="skill-list">
-              ${allSkills.filter(s => s.categories.length === 0).map(renderSkillCard).join('')}
+            <div style="display:flex; flex-wrap:wrap; gap:6px">
+              ${allSkills.filter(s => s.categories.length === 0).map(s => '<span class="tag" style="font-size:12px; padding:4px 12px">' + escapeHtml(s.name) + '</span>').join('')}
             </div>
+            <div style="margin-top:10px; font-size:12px; color:var(--text2)">前往「📦 我的本地仓库」管理分类</div>
           </div>
         ` : ''}
       `;
@@ -2360,7 +2690,6 @@
       allSkills = await api('/api/skills');
       categories = await api('/api/categories');
       userCategories = await api('/api/categories/list');
-      renderCategoryNav(categories);
       renderCategoryManager();
     }
 
@@ -2375,7 +2704,6 @@
       allSkills = await api('/api/skills');
       categories = await api('/api/categories');
       userCategories = await api('/api/categories/list');
-      renderCategoryNav(categories);
       renderCategoryManager();
     }
 
@@ -2390,7 +2718,6 @@
       allSkills = await api('/api/skills');
       categories = await api('/api/categories');
       userCategories = await api('/api/categories/list');
-      renderCategoryNav(categories);
       renderCategoryManager();
     }
 
@@ -2403,7 +2730,6 @@
       allSkills = await api('/api/skills');
       categories = await api('/api/categories');
       userCategories = await api('/api/categories/list');
-      renderCategoryNav(categories);
       renderCategoryManager();
     }
 
@@ -2431,8 +2757,8 @@
         <div class="tab-bar" style="margin-bottom:20px">
           <div class="tab-btn ${communityTab==='browse'?'active':''}" onclick="communityTab='browse'; renderCommunity()">🌐 浏览技能</div>
           <div class="tab-btn ${communityTab==='sources'?'active':''}" onclick="communityTab='sources'; renderCommunity()">📡 订阅源管理</div>
-          ${hasRepo ? `<div class="tab-btn ${communityTab==='upload'?'active':''}" onclick="communityTab='upload'; renderCommunity()">📤 上传/投稿</div>` : ''}
           ${hasRepo ? `<div class="tab-btn ${communityTab==='submissions'?'active':''}" onclick="communityTab='submissions'; renderCommunity()">📝 投稿列表</div>` : ''}
+          <div class="tab-btn ${communityTab==='linkinstall'?'active':''}" onclick="communityTab='linkinstall'; renderCommunity()">🔗 链接安装</div>
           <div class="tab-btn ${communityTab==='help'?'active':''}" onclick="communityTab='help'; renderCommunity()">❓ 帮助</div>
           <div class="tab-btn ${communityTab==='settings'?'active':''}" onclick="communityTab='settings'; renderCommunity()">⚙️ 设置</div>
         </div>
@@ -2442,15 +2768,15 @@
 
       const body = document.getElementById('communityBody');
 
-      if (!hasRepo && (communityTab === 'upload' || communityTab === 'submissions')) {
+      if (!hasRepo && communityTab === 'submissions') {
         communityTab = 'sources';
       }
 
       switch (communityTab) {
         case 'browse': renderCommunityBrowse(body); break;
-        case 'upload': renderCommunityUpload(body); break;
         case 'sources': renderCommunitySources(body); break;
         case 'submissions': renderCommunitySubmissions(body); break;
+        case 'linkinstall': renderLinkInstall(body); break;
         case 'help': renderCommunityHelp(body); break;
         case 'settings': renderCommunitySettings(body); break;
       }
@@ -2491,36 +2817,178 @@
       loadCommunitySkills();
     }
 
+    let communityPage = 0;
+    const COMMUNITY_PAGE_SIZE = 30;
+    let communityLoadingMore = false;
+    let communityEnrichedUpTo = 0;
+    let communityEnriching = false;
+    let communityFilterSource = 'all';
+    let communitySearchTerm = '';
+
+    function getFilteredCommunity() {
+      let list = communitySkills;
+      if (communityFilterSource !== 'all') {
+        list = list.filter(s => s.sourceLabel === communityFilterSource);
+      }
+      if (communitySearchTerm) {
+        const q = communitySearchTerm.toLowerCase();
+        list = list.filter(s => s.name.toLowerCase().includes(q) || (s.description || '').toLowerCase().includes(q));
+      }
+      return list;
+    }
+
+    function renderCommunityList() {
+      const filtered = getFilteredCommunity();
+      const visibleEnd = (communityPage + 1) * COMMUNITY_PAGE_SIZE;
+      const visible = filtered.slice(0, visibleEnd);
+      const remaining = filtered.length - visible.length;
+
+      const grid = document.getElementById('communityGrid');
+      if (grid) grid.innerHTML = visible.map(renderCommunityCard).join('');
+
+      const loadMoreEl = document.getElementById('communityLoadMore');
+      if (loadMoreEl) {
+        if (remaining > 0) {
+          loadMoreEl.innerHTML = `<button class="btn btn-blue" onclick="loadMoreCommunitySkills()">加载更多 (${remaining} 剩余)</button>`;
+        } else if (filtered.length > 0) {
+          loadMoreEl.innerHTML = '<span style="color:var(--text2); font-size:13px">已显示全部</span>';
+        } else {
+          loadMoreEl.innerHTML = '';
+        }
+      }
+    }
+
     async function loadCommunitySkills() {
+      communityPage = 0;
+      communitySkills = [];
+      communityEnrichedUpTo = 0;
+      communityFilterSource = 'all';
+      communitySearchTerm = '';
+
+      const listEl = document.getElementById('communityList');
+      if (!listEl) return;
+      listEl.innerHTML = '<div class="empty-state"><div class="icon" style="animation:spin 1s linear infinite">⏳</div><p>正在加载技能列表...</p></div>';
+
+      const t0 = performance.now();
       try {
-        communitySkills = await api('/api/community/skills');
-        const listEl = document.getElementById('communityList');
-        if (!listEl) return;
+        communitySkills = await api('/api/community/skills?light=1');
+        const loadMs = Math.round(performance.now() - t0);
+        const isFast = loadMs < 500;
 
         if (communitySkills.length === 0) {
           listEl.innerHTML = '<div class="empty-state"><div class="icon">🌱</div><p>社区还没有技能，成为第一个上传者吧！</p></div>';
           return;
         }
 
+        const hasDesc = communitySkills.some(s => s.description && s.description !== s.name + ' skill');
+        if (hasDesc) {
+          communityEnrichedUpTo = communitySkills.length;
+        }
+
         const sources = [...new Set(communitySkills.map(s => s.sourceLabel).filter(Boolean))];
+        const cacheHint = isFast ? `<span style="font-size:11px; color:var(--accent); margin-left:4px" title="从缓存加载">⚡ 缓存 ${loadMs}ms</span>` : '';
+        const enrichHint = hasDesc ? '描述已就绪' : '加载描述中...';
 
         listEl.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px">
+            <span style="font-size:13px; color:var(--text2)">共 ${communitySkills.length} 个技能${cacheHint}</span>
+            <div style="display:flex; gap:8px; align-items:center">
+              <input type="text" id="communitySearchInput" placeholder="搜索技能..." oninput="onCommunitySearch(this.value)"
+                style="padding:4px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; background:var(--bg2); color:var(--text); width:160px">
+              <span style="font-size:12px; color:var(--text2)" id="communityEnrichStatus">${enrichHint}</span>
+              <button onclick="refreshCommunitySkills()" title="强制刷新（清除缓存）"
+                style="background:none; border:none; cursor:pointer; font-size:14px; padding:2px 6px; border-radius:4px; color:var(--text2)"
+                onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='none'">🔄</button>
+            </div>
+          </div>
           ${sources.length > 1 ? `
             <div class="plaza-filters" style="margin-bottom:16px">
               <div class="filter-btn active" onclick="filterCommunitySource('all', this)">全部 (${communitySkills.length})</div>
-              ${sources.map(s => `<div class="filter-btn" onclick="filterCommunitySource('${escapeAttr(s)}', this)">📡 ${escapeHtml(s)}</div>`).join('')}
+              ${sources.map(s => {
+                const cnt = communitySkills.filter(sk => sk.sourceLabel === s).length;
+                return `<div class="filter-btn" onclick="filterCommunitySource('${escapeAttr(s)}', this)">📡 ${escapeHtml(s)} (${cnt})</div>`;
+              }).join('')}
             </div>
           ` : ''}
           <div class="community-grid" id="communityGrid">
-            ${communitySkills.map(renderCommunityCard).join('')}
+            ${communitySkills.slice(0, COMMUNITY_PAGE_SIZE).map(renderCommunityCard).join('')}
+          </div>
+          <div id="communityLoadMore" style="text-align:center; padding:20px">
+            ${communitySkills.length > COMMUNITY_PAGE_SIZE ?
+              `<button class="btn btn-blue" onclick="loadMoreCommunitySkills()">加载更多 (${communitySkills.length - COMMUNITY_PAGE_SIZE} 剩余)</button>` : ''}
           </div>
         `;
-      } catch {
-        const listEl = document.getElementById('communityList');
-        if (listEl) {
-          listEl.innerHTML = '<div class="empty-state"><div class="icon">😵</div><p>加载失败，请检查网络和仓库配置</p></div>';
+
+        if (!hasDesc) enrichVisibleCommunity();
+      } catch (e) {
+        listEl.innerHTML = '<div class="empty-state"><div class="icon">😵</div><p>加载失败，请检查网络和仓库配置</p></div>';
+      }
+    }
+
+    async function refreshCommunitySkills() {
+      const statusEl = document.getElementById('communityEnrichStatus');
+      if (statusEl) statusEl.textContent = '正在刷新...';
+      try {
+        await api('/api/community/refresh');
+      } catch {}
+      loadCommunitySkills();
+    }
+
+    function onCommunitySearch(val) {
+      communitySearchTerm = val.trim();
+      communityPage = 0;
+      renderCommunityList();
+    }
+
+    function loadMoreCommunitySkills() {
+      if (communityLoadingMore) return;
+      communityLoadingMore = true;
+      communityPage++;
+      renderCommunityList();
+      communityLoadingMore = false;
+
+      const visibleEnd = (communityPage + 1) * COMMUNITY_PAGE_SIZE;
+      if (visibleEnd > communityEnrichedUpTo) {
+        enrichVisibleCommunity();
+      }
+    }
+
+    async function enrichVisibleCommunity() {
+      if (communityEnriching) return;
+      communityEnriching = true;
+
+      const visibleEnd = Math.min(
+        (communityPage + 2) * COMMUNITY_PAGE_SIZE,
+        communitySkills.length
+      );
+
+      const BATCH = 20;
+      while (communityEnrichedUpTo < visibleEnd) {
+        const start = communityEnrichedUpTo;
+        const count = Math.min(BATCH, visibleEnd - start);
+        try {
+          const enriched = await api(`/api/community/skills/enrich?start=${start}&count=${count}`);
+          for (const s of enriched) {
+            const idx = communitySkills.findIndex(cs => cs.name === s.name && cs.sourceId === s.sourceId);
+            if (idx >= 0) {
+              communitySkills[idx].description = s.description;
+              communitySkills[idx].author = s.author;
+            }
+          }
+          communityEnrichedUpTo = start + enriched.length;
+          renderCommunityList();
+        } catch { break; }
+
+        const statusEl = document.getElementById('communityEnrichStatus');
+        if (statusEl) {
+          if (communityEnrichedUpTo >= communitySkills.length) {
+            statusEl.textContent = '描述加载完成';
+          } else {
+            statusEl.textContent = `已加载 ${communityEnrichedUpTo}/${communitySkills.length} 描述`;
+          }
         }
       }
+      communityEnriching = false;
     }
 
     function filterCommunitySource(source, el) {
@@ -2532,91 +3000,124 @@
     }
 
     function renderCommunityCard(skill) {
+      const isOwn = skill.sourceId === 'primary';
+      const desc = skill.description || '';
+      const truncDesc = desc.length > 100 ? desc.slice(0, 100) + '...' : desc;
       return `
-        <div class="community-card" data-name="${escapeAttr(skill.name)}" data-url="${escapeAttr(skill.rawUrl)}">
-          <div class="plaza-name">${escapeHtml(skill.name)}</div>
+        <div class="community-card" data-name="${escapeAttr(skill.name)}" data-url="${escapeAttr(skill.rawUrl)}" data-source="${escapeAttr(skill.sourceId || '')}">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; cursor:pointer"
+               onclick="previewSkill('${escapeAttr(skill.name)}', '${escapeAttr(skill.rawUrl)}')">
+            <div class="plaza-name">${escapeHtml(skill.name)}</div>
+            ${isOwn ? '<span class="tag" style="font-size:10px; background:var(--green-light,#e8f5e9); color:var(--green,#4caf50)">我的</span>' : ''}
+          </div>
           <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px">
             <span class="author">by ${escapeHtml(skill.author)}</span>
             ${skill.sourceLabel ? `<span class="tag" style="font-size:10px">📡 ${escapeHtml(skill.sourceLabel)}</span>` : ''}
           </div>
-          <div class="plaza-desc" style="margin-top:6px">${escapeHtml(skill.description)}</div>
+          <div class="plaza-desc" style="margin-top:6px; font-size:13px; color:var(--text2); line-height:1.5">${escapeHtml(truncDesc)}</div>
+          <div style="font-size:10px; color:var(--text3,#999); margin-top:4px; font-style:italic">点击名称查看 SKILL.md 全文</div>
           <div class="plaza-actions" style="margin-top:12px">
             ${skill.installed
               ? '<button class="btn-install installed" disabled>✓ 已安装</button>'
-              : `<button class="btn-install" onclick="installCommunitySkill(this.closest('.community-card').dataset.name, this.closest('.community-card').dataset.url, this)">⬇️ 安装</button>`
+              : `<button class="btn-install" onclick="event.stopPropagation(); installCommunitySkill(this.closest('.community-card').dataset.name, this.closest('.community-card').dataset.url, this)">⬇️ 安装</button>`
             }
-            <button class="btn-preview" onclick="previewSkill(this.closest('.community-card').dataset.name, this.closest('.community-card').dataset.url)">👁️ 预览</button>
-            <a href="${escapeAttr(skill.htmlUrl)}" target="_blank" class="btn-preview" style="text-decoration:none">🔗 GitHub</a>
+            <button class="btn-preview" onclick="event.stopPropagation(); previewSkill(this.closest('.community-card').dataset.name, this.closest('.community-card').dataset.url)">📄 查看全文</button>
+            <a href="${escapeAttr(skill.htmlUrl)}" target="_blank" class="btn-preview" style="text-decoration:none" onclick="event.stopPropagation()">🔗 GitHub</a>
+            ${isOwn ? `<button class="btn-preview" style="color:var(--red,#e53935); border-color:var(--red,#e53935)"
+              onclick="event.stopPropagation(); deleteFromCommunityBrowse('${escapeAttr(skill.name)}', this)">🗑️ 下架</button>` : ''}
           </div>
         </div>
       `;
     }
 
-    function renderCommunityUpload(container) {
-      container.innerHTML = `
-        <div class="upload-section">
-          <h3>📤 直接上传（需要仓库写权限）</h3>
-          <p style="font-size:13px; color:var(--text2); margin-bottom:12px">你有 <strong>${communityConfig.repo}</strong> 的写权限？直接上传！</p>
-          <div class="upload-list" id="uploadList">
-            ${allSkills.map(s => `
-              <div class="upload-item">
-                <span>${escapeHtml(s.name)}</span>
-                <button class="btn-upload" data-name="${escapeAttr(s.name)}" onclick="uploadToCommunity(this.dataset.name, this)">📤 上传</button>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="upload-section" style="border-color:var(--purple); margin-top:20px">
-          <h3 style="color:var(--purple)">📝 通过 Issue 投稿（无需写权限）</h3>
-          <p style="font-size:13px; color:var(--text2); margin-bottom:12px">
-            没有仓库写权限？通过 GitHub Issue 提交你的技能，仓库管理员审核后将收录到社区中。
-          </p>
-          <div class="config-field">
-            <label>目标仓库</label>
-            <input type="text" id="submitRepo" value="${escapeAttr(communityConfig.repo)}" placeholder="owner/repo">
-            <div class="hint">你想投稿到哪个社区仓库</div>
-          </div>
-          <div class="config-field">
-            <label>选择要投稿的技能</label>
-            <select id="submitSkillSelect" style="width:100%; padding:10px; border-radius:12px; border:2px solid var(--border2); background:var(--bg2); font-size:14px">
-              ${allSkills.map(s => `<option value="${escapeAttr(s.name)}">${escapeHtml(s.name)} [${s.categories.length > 0 ? s.categories.join(', ') : '未分类'}]</option>`).join('')}
-            </select>
-          </div>
-          <button class="btn btn-blue" onclick="submitViaIssue()" style="margin-top:8px">📝 提交投稿</button>
-          <div id="submitResult" style="margin-top:12px"></div>
-        </div>
-      `;
-    }
-
-    async function submitViaIssue() {
-      const repo = document.getElementById('submitRepo').value.trim();
-      const skillName = document.getElementById('submitSkillSelect').value;
-      const resultEl = document.getElementById('submitResult');
-
-      if (!repo || !skillName) {
-        resultEl.innerHTML = '<span style="color:var(--red)">请填写目标仓库和选择技能</span>';
-        return;
-      }
-
-      resultEl.innerHTML = '<span style="color:var(--blue)">⏳ 提交中...</span>';
-
+    async function deleteFromCommunityBrowse(skillName, btn) {
+      if (!confirm('确定要从社区下架 "' + skillName + '" 吗？\\n\\n这会从你的 GitHub 仓库中删除该技能。')) return;
+      const origText = btn.textContent;
+      btn.textContent = '⏳ 下架中...';
+      btn.disabled = true;
       try {
-        const result = await api(`/api/community/submit?name=${encodeURIComponent(skillName)}&targetRepo=${encodeURIComponent(repo)}`);
+        const result = await api('/api/community/delete?name=' + encodeURIComponent(skillName));
         if (result.success) {
-          resultEl.innerHTML = `
-            <div style="background:var(--green-light); border:2px solid var(--green); border-radius:12px; padding:12px; color:#2E7D32">
-              ✅ ${escapeHtml(result.message)}
-              ${result.issueUrl ? `<br><a href="${escapeAttr(result.issueUrl)}" target="_blank" style="color:var(--blue)">🔗 查看 Issue</a>` : ''}
-            </div>
-          `;
-          showToast({ tool: 'submit', resultSummary: result.message, timestamp: new Date().toISOString() });
+          showToast({ tool: 'delete', resultSummary: result.message, timestamp: new Date().toISOString() });
+          communitySkills = communitySkills.filter(s => !(s.name === skillName && s.sourceId === 'primary'));
+          ownSkillsList = ownSkillsList.filter(n => n !== skillName);
+          renderCommunityList();
         } else {
-          resultEl.innerHTML = `<span style="color:var(--red)">❌ ${escapeHtml(result.message)}</span>`;
+          alert('下架失败: ' + result.message);
+          btn.textContent = origText;
+          btn.disabled = false;
         }
-      } catch (e) {
-        resultEl.innerHTML = '<span style="color:var(--red)">❌ 网络错误</span>';
+      } catch {
+        alert('网络错误');
+        btn.textContent = origText;
+        btn.disabled = false;
       }
+    }
+
+    async function previewSkill(name, rawUrl) {
+      const panel = document.getElementById('detailPanel');
+      const title = document.getElementById('detailTitle');
+      const body = document.getElementById('detailBody');
+      title.textContent = name;
+      body.innerHTML = '<div class="empty-state"><div class="icon" style="animation:wobble 1s infinite">⏳</div><p>正在从 GitHub 加载 SKILL.md 全文...</p></div>';
+      panel.classList.add('open');
+      try {
+        const resp = await fetch(rawUrl);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const text = await resp.text();
+        const parts = rawUrl.split('/');
+        const ghLink = 'https://github.com/' + parts[3] + '/' + parts[4] + '/tree/' + parts[5] + '/' + parts.slice(6, -1).join('/');
+        const tokenEst = Math.round(text.length / 4);
+        body.innerHTML = '<div style="margin-bottom:12px; display:flex; gap:8px; flex-wrap:wrap">'
+          + '<span class="tag source">社区技能</span>'
+          + '<span class="tag tokens">~' + tokenEst + ' tokens</span>'
+          + '</div>'
+          + '<div style="background:var(--bg2); border:2px solid var(--border2); border-radius:14px; padding:16px; margin-bottom:16px">'
+          + '<div style="font-family:var(--font-display); font-size:14px; color:var(--text); margin-bottom:10px">📄 SKILL.md 完整内容</div>'
+          + '<pre style="white-space:pre-wrap; word-break:break-word; font-size:12px; line-height:1.6; max-height:60vh; overflow-y:auto; color:var(--text); background:var(--surface); padding:12px; border-radius:10px; border:1px solid var(--border2)">' + escapeHtml(text) + '</pre>'
+          + '</div>'
+          + '<div style="display:flex; gap:8px; flex-wrap:wrap">'
+          + '<button class="action-btn action-export" onclick="navigator.clipboard.writeText(document.querySelector(\'#detailBody pre\').textContent).then(function(){showToast({tool:\'copy\',resultSummary:\'已复制 SKILL.md 内容\',timestamp:new Date().toISOString()})})"><span class="action-icon">📋</span> 复制全文</button>'
+          + '<a href="' + escapeAttr(ghLink) + '" target="_blank" class="action-btn" style="text-decoration:none; color:var(--text)"><span class="action-icon">🔗</span> GitHub</a>'
+          + '</div>';
+      } catch (e) {
+        body.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>加载失败: ' + escapeHtml(String(e)) + '</p></div>';
+      }
+    }
+
+    const UPLOAD_DESC_TEMPLATE = `## 使用场景
+
+### 适用场景
+- 
+
+### 典型用户
+- 
+
+### 使用示例
+1. 
+
+### 关键能力
+- 
+
+### 注意事项
+- `;
+
+    const UPLOAD_DESC_PRESETS = [
+      { label: '开发工具', template: `## 使用场景\n\n### 适用场景\n- 项目开发中需要自动化某些流程时\n- 需要快速搭建特定技术栈的项目时\n\n### 典型用户\n- 前端/后端/全栈开发者\n- DevOps 工程师\n\n### 使用示例\n1. 在 Cursor 中对话时，AI 会自动加载此技能\n2. 输入相关指令，技能会指导 AI 完成任务\n\n### 关键能力\n- \n\n### 注意事项\n- 需要相关开发环境已配置` },
+      { label: 'AI/Agent', template: `## 使用场景\n\n### 适用场景\n- 需要 AI Agent 完成复杂多步骤任务时\n- 需要特定的 Prompt 工程或对话策略时\n\n### 典型用户\n- AI 应用开发者\n- Prompt 工程师\n\n### 使用示例\n1. 当用户提出需要多步推理的问题时触发\n2. AI 按照技能中定义的流程逐步执行\n\n### 关键能力\n- \n\n### 注意事项\n- 可能需要较大的上下文窗口` },
+      { label: '工作流', template: `## 使用场景\n\n### 适用场景\n- 日常工作中重复性任务的自动化\n- 团队协作流程的标准化\n\n### 典型用户\n- 需要提升工作效率的个人\n- 需要规范化流程的团队\n\n### 使用示例\n1. 描述你要完成的任务\n2. AI 按照技能定义的最佳实践执行\n\n### 关键能力\n- \n\n### 注意事项\n- 建议根据团队实际情况调整` },
+      { label: '创意/设计', template: `## 使用场景\n\n### 适用场景\n- 需要创意灵感或设计方案时\n- 需要生成可视化内容时\n\n### 典型用户\n- UI/UX 设计师\n- 创意工作者\n\n### 使用示例\n1. 提供设计需求描述\n2. AI 根据技能中的设计规范给出方案\n\n### 关键能力\n- \n\n### 注意事项\n- 生成结果可能需要人工微调` },
+    ];
+
+    let uploadDescriptions = {};
+
+    let ownSkillsList = [];
+    let ownSkillsCachedAt = 0;
+    const OWN_CACHE_TTL = 5 * 60 * 1000;
+
+    async function fetchOwnSkills(force) {
+      if (!force && ownSkillsList.length > 0 && Date.now() - ownSkillsCachedAt < OWN_CACHE_TTL) return;
+      try { ownSkillsList = await api('/api/community/own-skills'); ownSkillsCachedAt = Date.now(); } catch { ownSkillsList = []; }
     }
 
     const RECOMMENDED_SOURCES = [
@@ -2646,6 +3147,18 @@
             </button>
           </div>
           <div id="quickSubscribeParsed" style="margin-top:8px; font-size:13px; color:var(--text2)"></div>
+          <details style="margin-top:10px">
+            <summary style="cursor:pointer; font-size:13px; color:var(--text2); user-select:none">🔐 私有仓库？点击填写授权 Token</summary>
+            <div style="margin-top:8px; padding:12px; background:var(--bg2); border-radius:12px; border:1.5px solid var(--border2)">
+              <input type="password" id="quickSubscribeToken"
+                placeholder="ghp_xxxxx（源主提供的只读 Token，公开仓库无需填写）"
+                style="width:100%; padding:10px 14px; border-radius:10px; border:1.5px solid var(--border2); background:var(--surface); font-size:13px; font-family:monospace; outline:none">
+              <div style="font-size:11px; color:var(--text2); margin-top:6px; line-height:1.8">
+                💡 私有仓库需要源主生成 <strong>Fine-grained PAT</strong>（只读权限），分享给你填入此处。<br>
+                公开仓库无需填写，留空即可。Token 仅存储在本地，不会上传。
+              </div>
+            </div>
+          </details>
           <div id="quickSubscribeResult" style="margin-top:8px"></div>
         </div>
 
@@ -2681,10 +3194,17 @@
                 <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-radius:14px; border:2px solid var(--border2); background:var(--bg2); transition:all 0.2s"
                      onmouseenter="this.style.borderColor='var(--blue)'" onmouseleave="this.style.borderColor='var(--border2)'">
                   <div>
-                    <div style="font-family:var(--font-display); font-size:15px; color:var(--text)">${escapeHtml(s.label)}</div>
+                    <div style="display:flex; align-items:center; gap:8px">
+                      <span style="font-family:var(--font-display); font-size:15px; color:var(--text)">${escapeHtml(s.label)}</span>
+                      ${s.token ? '<span class="tag" style="font-size:10px; background:#e8f5e9; color:#43a047">🔐 专用Token</span>' : ''}
+                      ${s.writable ? '<span class="tag" style="font-size:10px; background:#fff3e0; color:#ef6c00">✏️ 可写</span>' : ''}
+                    </div>
                     <div style="font-size:12px; color:var(--text2); margin-top:2px; font-family:monospace">${escapeHtml(s.repo)}</div>
                   </div>
-                  <button class="btn btn-red" style="padding:4px 12px; font-size:11px" data-id="${escapeAttr(s.id)}" onclick="removeCommunitySource(this.dataset.id)">✕ 取消订阅</button>
+                  <div style="display:flex; gap:6px; align-items:center">
+                    <button class="btn" style="padding:4px 10px; font-size:11px" onclick="editSourceToken('${escapeAttr(s.id)}', '${escapeAttr(s.repo)}', '${escapeAttr(s.label)}')">🔑 Token</button>
+                    <button class="btn" style="padding:4px 12px; font-size:11px; color:var(--red,#e53935); border-color:var(--red,#e53935)" data-id="${escapeAttr(s.id)}" onclick="removeCommunitySource(this.dataset.id)">✕ 取消</button>
+                  </div>
                 </div>
               `).join('')}
             </div>
@@ -2727,6 +3247,8 @@
       const input = document.getElementById('quickSubscribeInput').value;
       const repo = parseGitHubUrl(input);
       const resultEl = document.getElementById('quickSubscribeResult');
+      const tokenEl = document.getElementById('quickSubscribeToken');
+      const token = tokenEl ? tokenEl.value.trim() : '';
 
       if (!repo) {
         resultEl.innerHTML = '<span style="color:var(--red)">❌ 无法识别仓库地址，请检查格式</span>';
@@ -2734,19 +3256,21 @@
       }
 
       const label = repo.split('/').pop() || repo;
-      await doSubscribe(repo, label, resultEl);
+      await doSubscribe(repo, label, resultEl, token);
     }
 
     async function quickSubscribeRepo(repo, label, btn) {
       btn.textContent = '⏳ 订阅中...';
       btn.disabled = true;
-      await doSubscribe(repo, label, null);
+      await doSubscribe(repo, label, null, '');
       btn.textContent = '✅ 已订阅';
     }
 
-    async function doSubscribe(repo, label, resultEl) {
+    async function doSubscribe(repo, label, resultEl, token) {
       try {
-        const result = await api(`/api/community/add-source?repo=${encodeURIComponent(repo)}&label=${encodeURIComponent(label)}&branch=main&skillsPath=skills`);
+        let url = `/api/community/add-source?repo=${encodeURIComponent(repo)}&label=${encodeURIComponent(label)}&branch=main&skillsPath=skills`;
+        if (token) url += `&token=${encodeURIComponent(token)}`;
+        const result = await api(url);
         if (result.success) {
           communityConfig.sources = result.sources;
           communityLoaded = false;
@@ -2772,11 +3296,46 @@
       } catch {}
     }
 
+    async function editSourceToken(sourceId, repo, label) {
+      const source = (communityConfig.sources || []).find(s => s.id === sourceId);
+      const currentToken = source?.token || '';
+      const hasToken = !!currentToken;
+
+      const newToken = prompt(
+        `${hasToken ? '当前已配置专用 Token。' : '当前无专用 Token（使用全局 Token）。'}\n\n` +
+        `为 "${label}" (${repo}) 设置专用授权 Token：\n\n` +
+        `• 私有仓库需要源主提供只读 Fine-grained PAT\n` +
+        `• 公开仓库留空即可\n` +
+        `• 输入 "clear" 清除已有 Token`,
+        hasToken ? '••••••••' : ''
+      );
+
+      if (newToken === null) return;
+      const token = newToken === 'clear' ? '' : newToken === '••••••••' ? currentToken : newToken;
+
+      try {
+        const url = `/api/community/add-source?repo=${encodeURIComponent(repo)}&label=${encodeURIComponent(label)}&branch=${encodeURIComponent(source?.branch || 'main')}&skillsPath=${encodeURIComponent(source?.skillsPath || 'skills')}&token=${encodeURIComponent(token)}`;
+        const result = await api(url);
+        if (result.sources) {
+          communityConfig.sources = result.sources;
+          communityLoaded = false;
+          showToast({ tool: 'token', resultSummary: token ? `已为 ${label} 设置专用 Token` : `已清除 ${label} 的 Token`, timestamp: new Date().toISOString() });
+          renderCommunity();
+        }
+      } catch { alert('操作失败'); }
+    }
+
+    let submissionsCache = [];
+    let submissionsCachedAt = 0;
+
     async function renderCommunitySubmissions(container) {
       container.innerHTML = '<div class="plaza-loading"><span class="spinner">📝</span><p>加载投稿列表...</p></div>';
 
       try {
-        const submissions = await api('/api/community/submissions');
+        const useCache = submissionsCache.length > 0 && Date.now() - submissionsCachedAt < 5 * 60 * 1000;
+        const submissions = useCache ? submissionsCache : await api('/api/community/submissions');
+        if (!useCache) { submissionsCache = submissions; submissionsCachedAt = Date.now(); }
+
         if (submissions.length === 0) {
           container.innerHTML = `
             <div class="empty-state">
@@ -2788,22 +3347,33 @@
           return;
         }
 
+        const statusCfg = {
+          open:     { label: '待审核', bg: 'linear-gradient(135deg,#fff8e1,#fff3c4)', border: '#ffd54f', color: '#f9a825', icon: '⏳' },
+          approved: { label: '已通过', bg: 'linear-gradient(135deg,#e8f5e9,#c8e6c9)', border: '#66bb6a', color: '#2e7d32', icon: '✅' },
+          rejected: { label: '已拒绝', bg: 'linear-gradient(135deg,#ffebee,#ffcdd2)', border: '#ef5350', color: '#c62828', icon: '❌' },
+        };
+
         container.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
+            <span style="font-size:13px; color:var(--text2)">${submissions.length} 条投稿${useCache ? ' (缓存)' : ''}</span>
+            <button class="btn-preview" style="font-size:11px; padding:5px 12px" onclick="submissionsCachedAt=0; renderCommunitySubmissions(this.closest('#communityBody'))">🔄 刷新</button>
+          </div>
           <div style="display:grid; gap:12px">
             ${submissions.map(s => {
-              const statusMap = { open: '🟡 待审核', approved: '✅ 已通过', rejected: '❌ 已拒绝' };
-              const statusColor = { open: 'var(--yellow)', approved: 'var(--green)', rejected: 'var(--red)' };
+              const cfg = statusCfg[s.status] || statusCfg.open;
               return `
-                <div style="background:var(--surface); border:3px solid var(--border2); border-radius:16px; padding:18px; box-shadow:var(--crayon-shadow)">
+                <div style="background:var(--surface); border:2px solid var(--border2); border-radius:14px; padding:18px; transition:all 0.2s; box-shadow:0 1px 4px rgba(0,0,0,0.04)"
+                  onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)'"
+                  onmouseleave="this.style.transform='';this.style.boxShadow='0 1px 4px rgba(0,0,0,0.04)'">
                   <div style="display:flex; justify-content:space-between; align-items:center">
-                    <div>
+                    <div style="display:flex; align-items:center; gap:8px">
                       <span style="font-family:var(--font-display); font-size:16px">${escapeHtml(s.skillName)}</span>
-                      <span class="author" style="margin-left:8px">by ${escapeHtml(s.author)}</span>
+                      <span class="author">by ${escapeHtml(s.author)}</span>
                     </div>
-                    <span style="font-family:var(--font-display); font-size:13px; color:${statusColor[s.status]}">${statusMap[s.status] || s.status}</span>
+                    <span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; padding:4px 12px; border-radius:8px; background:${cfg.bg}; color:${cfg.color}; border:1px solid ${cfg.border}">${cfg.icon} ${cfg.label}</span>
                   </div>
-                  ${s.description ? `<p style="font-size:13px; color:var(--text2); margin-top:6px">${escapeHtml(s.description)}</p>` : ''}
-                  ${s.issueUrl ? `<a href="${escapeAttr(s.issueUrl)}" target="_blank" style="font-size:12px; color:var(--blue); margin-top:6px; display:inline-block">🔗 查看 GitHub Issue</a>` : ''}
+                  ${s.description ? `<p style="font-size:13px; color:var(--text2); margin-top:8px; line-height:1.6">${escapeHtml(s.description)}</p>` : ''}
+                  ${s.issueUrl ? `<a href="${escapeAttr(s.issueUrl)}" target="_blank" class="btn-preview" style="text-decoration:none; font-size:11px; padding:5px 12px; margin-top:10px; display:inline-flex">🔗 查看 Issue</a>` : ''}
                 </div>
               `;
             }).join('')}
@@ -2812,6 +3382,159 @@
       } catch {
         container.innerHTML = '<div class="empty-state"><div class="icon">😵</div><p>加载失败</p></div>';
       }
+    }
+
+    function renderLinkInstall(container) {
+      container.innerHTML = `
+        <div class="community-config" style="border-color:var(--blue,#1e88e5)">
+          <h3 style="color:var(--blue,#1e88e5); font-size:18px; margin-bottom:16px">🔗 通过 GitHub 链接安装技能</h3>
+          <p style="font-size:14px; color:var(--text2); margin-bottom:20px; line-height:1.8">
+            粘贴任何 GitHub 上的 SKILL.md 文件链接，一键安装到本地。<br>
+            支持格式：<code style="padding:2px 8px; border-radius:6px; background:var(--bg2)">https://github.com/owner/repo/blob/main/skills/my-skill/SKILL.md</code><br>
+            也可以粘贴目录链接（自动查找 SKILL.md）：<code style="padding:2px 8px; border-radius:6px; background:var(--bg2)">https://github.com/owner/repo/tree/main/skills/my-skill</code>
+          </p>
+
+          <div style="display:flex; gap:10px; align-items:stretch">
+            <input type="text" id="linkInstallUrl"
+              placeholder="粘贴 GitHub 链接..."
+              style="flex:1; padding:14px 20px; border-radius:14px; border:2px solid var(--border2); background:var(--surface); font-size:15px; font-family:var(--font-body); outline:none; transition:border-color 0.2s"
+              onfocus="this.style.borderColor='var(--blue,#42a5f5)'"
+              onblur="this.style.borderColor='var(--border2)'"
+              oninput="parseLinkInstallUrl()"
+              onkeydown="if(event.key==='Enter') doLinkInstall()">
+            <button class="btn-install" onclick="doLinkInstall()" id="linkInstallBtn" style="white-space:nowrap; font-size:15px; padding:14px 24px">
+              ⬇️ 安装
+            </button>
+          </div>
+
+          <div id="linkInstallParsed" style="margin-top:10px; font-size:13px; color:var(--text2)"></div>
+
+          <div style="margin-top:12px">
+            <label style="font-size:13px; color:var(--text2)">自定义技能名（可选）</label>
+            <input type="text" id="linkInstallName"
+              placeholder="留空自动从路径提取..."
+              style="width:100%; padding:10px 14px; border-radius:10px; border:1.5px solid var(--border2); background:var(--bg2); font-size:13px; font-family:monospace; outline:none; margin-top:4px; transition:border-color 0.2s"
+              onfocus="this.style.borderColor='var(--blue,#42a5f5)'"
+              onblur="this.style.borderColor='var(--border2)'">
+          </div>
+
+          <div id="linkInstallResult" style="margin-top:16px"></div>
+        </div>
+
+        <div class="community-config" style="border-color:var(--green,#43a047); margin-top:20px">
+          <h3 style="color:var(--green,#43a047); margin-bottom:12px">📋 最近安装</h3>
+          <div id="recentInstalls" style="font-size:13px; color:var(--text2)">暂无安装记录</div>
+        </div>
+
+        <div class="community-config" style="border-color:var(--purple,#7e57c2); margin-top:20px">
+          <h3 style="color:var(--purple,#7e57c2); margin-bottom:12px">💡 使用提示</h3>
+          <div style="font-size:14px; color:var(--text); line-height:2.2">
+            <div style="display:flex; align-items:flex-start; gap:12px; padding:8px 0; border-bottom:1px solid var(--border2)">
+              <span style="background:var(--blue,#1e88e5); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px; font-weight:600">1</span>
+              <span>在 GitHub 上找到你想安装的 Skill，复制页面链接</span>
+            </div>
+            <div style="display:flex; align-items:flex-start; gap:12px; padding:8px 0; border-bottom:1px solid var(--border2)">
+              <span style="background:var(--blue,#1e88e5); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px; font-weight:600">2</span>
+              <span>粘贴到输入框，自动识别仓库/分支/路径</span>
+            </div>
+            <div style="display:flex; align-items:flex-start; gap:12px; padding:8px 0">
+              <span style="background:var(--blue,#1e88e5); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px; font-weight:600">3</span>
+              <span>点击安装，技能下载到 <code style="padding:2px 6px; border-radius:4px; background:var(--bg2)">~/.cursor/skills/</code> 即刻可用</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      loadRecentInstalls();
+    }
+
+    let recentInstallList = JSON.parse(localStorage.getItem('skiller_recent_installs') || '[]');
+
+    function parseLinkInstallUrl() {
+      const url = document.getElementById('linkInstallUrl').value.trim();
+      const parsed = document.getElementById('linkInstallParsed');
+      if (!url) { parsed.innerHTML = ''; return; }
+
+      const m = url.match(/github\.com\/([^/]+\/[^/]+)\/(?:blob|tree)\/([^/]+)\/(.+)/);
+      if (m) {
+        const [, repo, branch, path] = m;
+        const name = path.split('/').filter(Boolean).pop()?.replace(/\.md$/i, '') || 'unknown';
+        parsed.innerHTML = `
+          <span style="color:var(--green,#43a047)">✅ 已识别</span>
+          &nbsp;仓库: <strong>${escapeHtml(repo)}</strong>
+          &nbsp;分支: <code>${escapeHtml(branch)}</code>
+          &nbsp;路径: <code>${escapeHtml(path)}</code>
+          &nbsp;技能名: <strong>${escapeHtml(name)}</strong>
+        `;
+      } else if (url.includes('github.com')) {
+        parsed.innerHTML = '<span style="color:var(--yellow,#f9a825)">⚠️ 请确保链接包含 /blob/ 或 /tree/ 路径</span>';
+      } else {
+        parsed.innerHTML = '<span style="color:var(--red,#e53935)">❌ 不是有效的 GitHub 链接</span>';
+      }
+    }
+
+    async function doLinkInstall() {
+      const url = document.getElementById('linkInstallUrl').value.trim();
+      const customName = document.getElementById('linkInstallName').value.trim();
+      const btn = document.getElementById('linkInstallBtn');
+      const result = document.getElementById('linkInstallResult');
+
+      if (!url) { result.innerHTML = '<span style="color:var(--red)">❌ 请输入链接</span>'; return; }
+
+      btn.textContent = '⏳ 安装中...';
+      btn.disabled = true;
+
+      try {
+        let apiUrl = `/api/community/install-url?url=${encodeURIComponent(url)}`;
+        if (customName) apiUrl += `&name=${encodeURIComponent(customName)}`;
+
+        const data = await api(apiUrl);
+        if (data.success) {
+          result.innerHTML = `
+            <div style="padding:16px; background:#e8f5e9; border:1.5px solid #66bb6a; border-radius:12px">
+              <div style="font-size:16px; font-weight:600; color:#2e7d32">✅ 安装成功！</div>
+              <div style="font-size:13px; color:#388e3c; margin-top:6px">
+                技能 <strong>${escapeHtml(data.name)}</strong> 已保存到 <code>${escapeHtml(data.path)}</code><br>
+                当前共 ${data.totalSkills} 个本地技能
+              </div>
+            </div>
+          `;
+          btn.textContent = '✓ 已安装';
+
+          recentInstallList.unshift({ name: data.name, url, time: new Date().toISOString() });
+          if (recentInstallList.length > 20) recentInstallList = recentInstallList.slice(0, 20);
+          localStorage.setItem('skiller_recent_installs', JSON.stringify(recentInstallList));
+          loadRecentInstalls();
+
+          allSkills = await api('/api/skills');
+
+          setTimeout(() => { btn.textContent = '⬇️ 安装'; btn.disabled = false; }, 3000);
+        } else {
+          result.innerHTML = `<div style="padding:12px; background:#ffebee; border:1.5px solid #ef5350; border-radius:12px; color:#c62828">❌ ${escapeHtml(data.error || '安装失败')}</div>`;
+          btn.textContent = '⬇️ 安装';
+          btn.disabled = false;
+        }
+      } catch (e) {
+        result.innerHTML = '<div style="padding:12px; background:#ffebee; border:1.5px solid #ef5350; border-radius:12px; color:#c62828">❌ 网络请求失败</div>';
+        btn.textContent = '⬇️ 安装';
+        btn.disabled = false;
+      }
+    }
+
+    function loadRecentInstalls() {
+      const el = document.getElementById('recentInstalls');
+      if (!el) return;
+      if (recentInstallList.length === 0) { el.innerHTML = '暂无安装记录'; return; }
+      el.innerHTML = recentInstallList.slice(0, 10).map(r => `
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-radius:10px; border:1px solid var(--border2); margin-bottom:6px; transition:all 0.15s"
+          onmouseenter="this.style.background='var(--bg2)'" onmouseleave="this.style.background=''">
+          <div>
+            <span style="font-weight:600">${escapeHtml(r.name)}</span>
+            <span style="font-size:11px; color:var(--text2); margin-left:8px">${new Date(r.time).toLocaleString()}</span>
+          </div>
+          <a href="${escapeAttr(r.url)}" target="_blank" class="btn-preview" style="text-decoration:none; font-size:11px; padding:3px 10px">🔗 GitHub</a>
+        </div>
+      `).join('');
     }
 
     function renderCommunityHelp(container) {
@@ -2933,28 +3656,6 @@
       renderCommunitySetup();
     }
 
-    async function uploadToCommunity(name, btn) {
-      btn.textContent = '⏳ 上传中...';
-      btn.className = 'btn-upload uploading';
-      btn.disabled = true;
-
-      try {
-        const result = await api(`/api/community/upload?name=${encodeURIComponent(name)}`);
-        if (result.success) {
-          btn.textContent = '✓ 已上传';
-          btn.className = 'btn-upload done';
-          showToast({ tool: 'upload', resultSummary: result.message, timestamp: new Date().toISOString() });
-          communityLoaded = false;
-        } else {
-          btn.textContent = '❌ ' + (result.message || '失败').slice(0, 20);
-          setTimeout(() => { btn.textContent = '📤 上传'; btn.className = 'btn-upload'; btn.disabled = false; }, 3000);
-        }
-      } catch (e) {
-        btn.textContent = '❌ 网络错误';
-        setTimeout(() => { btn.textContent = '📤 上传'; btn.className = 'btn-upload'; btn.disabled = false; }, 3000);
-      }
-    }
-
     async function installCommunitySkill(name, rawUrl, btn) {
       btn.textContent = '⏳ 安装中...';
       btn.disabled = true;
@@ -3043,187 +3744,118 @@
       }
     }
 
-    // ========== 技能广场 ==========
+    // ========== MCP 管理面板 ==========
 
-    let plazaSkills = [];
-    let plazaFilter = 'all';
-    let plazaLoaded = false;
-
-    async function renderPlaza() {
+    async function renderMcpPanel() {
       const content = document.getElementById('content');
-
-      if (!plazaLoaded) {
-        content.innerHTML = `
-          <div class="page-title">🏪 技能广场</div>
-          <div class="plaza-loading">
-            <span class="spinner">🔍</span>
-            <p>正在从 GitHub 获取在线技能...</p>
-          </div>
-        `;
-
-        try {
-          plazaSkills = await api('/api/plaza');
-          plazaLoaded = true;
-        } catch (e) {
-          content.innerHTML = `
-            <div class="page-title">🏪 技能广场</div>
-            <div class="empty-state">
-              <div class="icon">😵</div>
-              <p>获取在线技能失败</p>
-              <p style="font-size:13px; margin-top:8px; color:var(--text2)">可能是网络问题或 GitHub API 限流</p>
-              <button class="btn" onclick="plazaLoaded=false; renderPlaza()" style="margin-top:12px">🔄 重试</button>
-            </div>
-          `;
-          return;
-        }
-      }
-
-      renderPlazaContent();
-    }
-
-    function renderPlazaContent() {
-      const content = document.getElementById('content');
-      const categories = [...new Set(plazaSkills.map(s => s.category))].sort();
-      const repos = [...new Set(plazaSkills.map(s => s.repoLabel))];
-
-      let filtered = plazaSkills;
-      if (plazaFilter !== 'all') {
-        if (plazaFilter === 'installed') {
-          filtered = plazaSkills.filter(s => s.installed);
-        } else if (plazaFilter === 'not-installed') {
-          filtered = plazaSkills.filter(s => !s.installed);
-        } else {
-          filtered = plazaSkills.filter(s => s.category === plazaFilter || s.repoLabel === plazaFilter);
-        }
-      }
-
-      const installedCount = plazaSkills.filter(s => s.installed).length;
-
       content.innerHTML = `
-        <div class="plaza-header">
-          <div class="page-title">🏪 技能广场 <span style="font-size:14px; color:var(--text2); font-family:var(--font-body)">${plazaSkills.length} 个在线技能 · ${installedCount} 已安装</span></div>
-          <div style="display:flex; gap:8px">
-            <button class="btn" onclick="plazaLoaded=false; renderPlaza()">🔄 刷新</button>
-          </div>
-        </div>
-
-        <div class="search-box" style="margin-bottom:16px">
-          <input type="text" id="plazaSearch" placeholder="🔍 搜索在线技能..." oninput="onPlazaSearch(this.value)">
-        </div>
-
-        <div class="plaza-filters" id="plazaFilters">
-          <div class="filter-btn ${plazaFilter === 'all' ? 'active' : ''}" onclick="setPlazaFilter('all')">全部 (${plazaSkills.length})</div>
-          <div class="filter-btn ${plazaFilter === 'not-installed' ? 'active' : ''}" onclick="setPlazaFilter('not-installed')">未安装 (${plazaSkills.length - installedCount})</div>
-          <div class="filter-btn ${plazaFilter === 'installed' ? 'active' : ''}" onclick="setPlazaFilter('installed')">已安装 (${installedCount})</div>
-          ${categories.map(c => `<div class="filter-btn ${plazaFilter === c ? 'active' : ''}" onclick="setPlazaFilter('${c}')">${categoryIcons[c] || '📦'} ${c}</div>`).join('')}
-        </div>
-
-        <div class="plaza-grid" id="plazaGrid">
-          ${filtered.map(renderPlazaCard).join('')}
+        <div class="page-title">🔌 MCP Server 管理</div>
+        <div style="margin-top:20px" id="mcpStatusArea">
+          <div class="empty-state"><div class="icon" style="animation:spin 1s linear infinite">⏳</div><p>正在检查 MCP 服务器状态...</p></div>
         </div>
       `;
-    }
-
-    function renderPlazaCard(skill) {
-      return `
-        <div class="plaza-card" data-name="${escapeAttr(skill.name)}" data-url="${escapeAttr(skill.rawUrl)}">
-          <div class="plaza-name">${escapeHtml(skill.name)}</div>
-          <div class="plaza-desc">${escapeHtml(skill.description)}</div>
-          <div class="plaza-meta">
-            <span class="repo-badge">${escapeHtml(skill.repoLabel)}</span>
-            <span class="tag category">${escapeHtml(skill.category)}</span>
-            ${skill.tags.slice(0, 3).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
-          </div>
-          <div class="plaza-actions">
-            ${skill.installed
-              ? '<button class="btn-install installed" disabled>✓ 已安装</button>'
-              : `<button class="btn-install" onclick="installSkill(this.closest('.plaza-card').dataset.name, this.closest('.plaza-card').dataset.url, this)">⬇️ 安装</button>`
-            }
-            <button class="btn-preview" onclick="previewSkill(this.closest('.plaza-card').dataset.name, this.closest('.plaza-card').dataset.url)">👁️ 预览</button>
-            <a href="${escapeAttr(skill.htmlUrl)}" target="_blank" class="btn-preview" style="text-decoration:none">🔗 GitHub</a>
-          </div>
-        </div>
-      `;
-    }
-
-    function setPlazaFilter(filter) {
-      plazaFilter = filter;
-      renderPlazaContent();
-    }
-
-    function onPlazaSearch(query) {
-      if (!query.trim()) {
-        renderPlazaContent();
-        return;
-      }
-      const q = query.toLowerCase();
-      const filtered = plazaSkills.filter(s =>
-        s.name.toLowerCase().includes(q) ||
-        s.description.toLowerCase().includes(q) ||
-        s.tags.some(t => t.toLowerCase().includes(q))
-      );
-      document.getElementById('plazaGrid').innerHTML = filtered.length > 0
-        ? filtered.map(renderPlazaCard).join('')
-        : '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🤔</div><p>没有找到匹配的在线技能</p></div>';
-    }
-
-    async function installSkill(name, rawUrl, btn) {
-      btn.textContent = '⏳ 安装中...';
-      btn.disabled = true;
 
       try {
-        const result = await api(`/api/plaza/install?name=${encodeURIComponent(name)}&url=${encodeURIComponent(rawUrl)}`);
-        if (result.success) {
-          btn.textContent = '✓ 已安装';
-          btn.className = 'btn-install installed';
-
-          const skill = plazaSkills.find(s => s.name === name);
-          if (skill) skill.installed = true;
-
-          allSkills = await api('/api/skills');
-          const trees = await api('/api/all-trees');
-          skillSubCounts = {};
-          skillSubSources = {};
-          for (const t of trees) {
-            skillSubCounts[t.name] = t.subSkillCount || 0;
-            skillSubSources[t.name] = t.subSkillSource || 'auto';
-          }
-
-          showToast({ tool: 'install', resultSummary: `已安装 ${name}`, timestamp: new Date().toISOString() });
-        } else {
-          btn.textContent = '❌ 失败';
-          setTimeout(() => { btn.textContent = '⬇️ 安装'; btn.disabled = false; }, 2000);
-        }
-      } catch {
-        btn.textContent = '❌ 网络错误';
-        setTimeout(() => { btn.textContent = '⬇️ 安装'; btn.disabled = false; }, 2000);
+        const status = await api('/api/mcp/status');
+        const mcpConfig = await api('/api/mcp/config');
+        renderMcpContent(status, mcpConfig);
+      } catch (e) {
+        document.getElementById('mcpStatusArea').innerHTML = `
+          <div class="empty-state"><div class="icon">😵</div><p>获取 MCP 状态失败</p></div>
+        `;
       }
     }
 
-    async function previewSkill(name, rawUrl) {
-      const panel = document.getElementById('detailPanel');
-      const title = document.getElementById('detailTitle');
-      const body = document.getElementById('detailBody');
+    function renderMcpContent(status, mcpConfig) {
+      const area = document.getElementById('mcpStatusArea');
 
-      title.textContent = `预览: ${name}`;
-      body.innerHTML = '<div class="empty-state"><div class="icon" style="animation:wobble 1s infinite">⏳</div><p>从 GitHub 获取内容...</p></div>';
-      panel.classList.add('open');
+      area.innerHTML = `
+        <div style="display:grid; gap:16px">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px">
+            <span style="font-size:14px; color:var(--text2)">${status.servers.length} 个 MCP 服务器 · 配置文件: <code style="padding:2px 8px; border-radius:6px; background:var(--bg2)">${escapeHtml(status.path)}</code></span>
+            <button class="btn-preview" onclick="renderMcpPanel()" style="font-size:12px">🔄 刷新状态</button>
+          </div>
 
-      try {
-        const data = await api(`/api/plaza/preview?url=${encodeURIComponent(rawUrl)}`);
-        if (data.content) {
-          body.innerHTML = `
-            <div style="margin-bottom:16px">
-              <span class="repo-badge">在线预览</span>
-              <span class="tag tokens">~${Math.ceil(data.content.length / 3.5)} tokens</span>
+          ${status.servers.map(s => {
+            const statusColor = s.running ? '#43a047' : '#e53935';
+            const statusBg = s.running ? '#e8f5e9' : '#ffebee';
+            const statusText = s.running ? '运行中' : '已停止';
+            const statusIcon = s.running ? '🟢' : '🔴';
+            return `
+              <div class="community-config" style="border-color:${statusColor}; border-width:2px; transition:all 0.2s" id="mcp-card-${escapeAttr(s.name)}">
+                <div style="display:flex; align-items:center; justify-content:space-between">
+                  <div style="display:flex; align-items:center; gap:12px">
+                    <span style="font-size:20px">${statusIcon}</span>
+                    <div>
+                      <div style="font-family:var(--font-display); font-size:18px; color:var(--text)">${escapeHtml(s.name)}</div>
+                      <div style="font-size:12px; color:var(--text2); margin-top:2px; font-family:monospace">${escapeHtml(s.command.split('/').pop() || s.command)}</div>
+                    </div>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:8px">
+                    <span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; padding:5px 14px; border-radius:8px; background:${statusBg}; color:${statusColor}">${statusText}</span>
+                    ${s.running ? `<button class="btn-preview" style="font-size:12px; padding:5px 12px; color:#e53935; border-color:rgba(229,57,53,0.3)" onmouseover="this.style.background='#ffebee'" onmouseout="this.style.background=''" onclick="restartMcpServer('${escapeAttr(s.name)}')">🔄 重启</button>` : ''}
+                  </div>
+                </div>
+
+                <div style="margin-top:14px">
+                  <details>
+                    <summary style="cursor:pointer; font-size:13px; color:var(--text2); user-select:none">📋 详细信息</summary>
+                    <div style="margin-top:10px; padding:12px; background:var(--bg2); border-radius:10px; font-size:12px; line-height:2">
+                      <div><strong>命令:</strong> <code>${escapeHtml(s.command)}</code></div>
+                      <div><strong>参数:</strong> <code>${escapeHtml(s.args.join(' '))}</code></div>
+                      <div><strong>进程数:</strong> ${s.pids.length}</div>
+                      ${s.pids.length > 0 ? `<div><strong>PID:</strong> ${s.pids.join(', ')}</div>` : ''}
+                    </div>
+                  </details>
+                </div>
+              </div>
+            `;
+          }).join('')}
+
+          <details style="margin-top:16px">
+            <summary style="cursor:pointer; font-size:14px; color:var(--text2); user-select:none; font-weight:600">📄 mcp.json 原始配置</summary>
+            <div style="margin-top:10px">
+              <pre style="background:var(--bg2); padding:16px; border-radius:12px; font-size:13px; line-height:1.6; overflow-x:auto; border:1.5px solid var(--border2)">${mcpConfig.content ? escapeHtml(mcpConfig.content) : '无法读取'}</pre>
             </div>
-            <pre>${escapeHtml(data.content)}</pre>
-          `;
+          </details>
+
+          <div class="community-config" style="border-color:var(--purple,#7e57c2); margin-top:8px">
+            <h3 style="color:var(--purple,#7e57c2); margin-bottom:12px">💡 MCP 连接排查</h3>
+            <div style="font-size:14px; color:var(--text); line-height:2.2">
+              <div style="padding:6px 0; border-bottom:1px solid var(--border2)">
+                <strong>连接失败？</strong> 点击对应服务器的「🔄 重启」按钮终止进程，Cursor 会自动重连。
+              </div>
+              <div style="padding:6px 0; border-bottom:1px solid var(--border2)">
+                <strong>多次重启无效？</strong> 尝试重启 Cursor 编辑器（<code>Ctrl+Shift+P</code> → Reload Window）。
+              </div>
+              <div style="padding:6px 0; border-bottom:1px solid var(--border2)">
+                <strong>进程堆积？</strong> 如果看到多个进程数（如 PID: 20+），说明有僵尸进程。点击重启会一次性清理。
+              </div>
+              <div style="padding:6px 0">
+                <strong>配置修改？</strong> 直接编辑 <code>${escapeHtml(status.path)}</code> 然后重启 Cursor。
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function restartMcpServer(name) {
+      const card = document.getElementById('mcp-card-' + name);
+      if (card) card.style.opacity = '0.5';
+
+      try {
+        const result = await api('/api/mcp/restart?name=' + encodeURIComponent(name));
+        if (result.success) {
+          showToast({ tool: 'mcp', resultSummary: result.message, timestamp: new Date().toISOString() });
+          setTimeout(() => renderMcpPanel(), 2000);
         } else {
-          body.innerHTML = '<div class="empty-state"><div class="icon">😵</div><p>获取内容失败</p></div>';
+          alert('重启失败: ' + (result.error || '未知错误'));
+          if (card) card.style.opacity = '1';
         }
       } catch {
-        body.innerHTML = '<div class="empty-state"><div class="icon">😵</div><p>网络错误</p></div>';
+        alert('网络错误');
+        if (card) card.style.opacity = '1';
       }
     }
 
