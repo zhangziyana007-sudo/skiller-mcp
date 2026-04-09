@@ -1,5 +1,5 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import { readFileSync, existsSync, watch, statSync, rmSync, renameSync } from "fs";
+import { readFileSync, existsSync, watch, statSync, rmSync, renameSync, readdirSync } from "fs";
 import { join, extname, resolve, dirname, basename } from "path";
 import { execSync } from "child_process";
 import { getOrBuildIndex, buildIndex } from "./indexer.js";
@@ -213,6 +213,26 @@ function handleApi(path: string, params: URLSearchParams): unknown {
       index = buildIndex();
       return { message: "Index rebuilt", total: index.totalSkills };
 
+    case "/api/recent-projects": {
+      const projects: string[] = [];
+      const cursorProjectsDir = join(process.env.HOME || "~", ".cursor", "projects");
+      if (existsSync(cursorProjectsDir)) {
+        try {
+          for (const d of readdirSync(cursorProjectsDir)) {
+            const decoded = d.replace(/-/g, "/");
+            if (existsSync(decoded) && statSync(decoded).isDirectory()) {
+              projects.push(decoded);
+            }
+          }
+        } catch {}
+      }
+      const homeDir = process.env.HOME || "~";
+      for (const p of [join(homeDir, "SOFR"), join(homeDir, "projects"), join(homeDir, "workspace"), join(homeDir, "code")]) {
+        if (existsSync(p) && !projects.includes(p)) projects.push(p);
+      }
+      return projects.slice(0, 20);
+    }
+
     case "/api/skill/delete": {
       const delName = params.get("name") || "";
       if (!delName) return { success: false, message: "Missing skill name" };
@@ -425,21 +445,34 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       const rawUrl = params.get("url") || "";
       if (!name || !rawUrl) return { error: "Missing name or url" };
 
+      const scope = params.get("scope") || "global";
+      const projectPath = params.get("projectPath") || "";
       const safeName = name.replace(/[^a-zA-Z0-9_-]/g, "-");
       const content = await downloadCommunitySkill(rawUrl);
       if (!content) return { error: "Failed to fetch skill" };
 
-      const { mkdirSync: mks, writeFileSync: wfs } = await import("fs");
+      const { mkdirSync: mks, writeFileSync: wfs, existsSync: exs } = await import("fs");
       const { join: pjoin, resolve: pres } = await import("path");
-      const base = pjoin(process.env.HOME || "~", ".cursor", "skills");
-      const dir = pjoin(base, safeName);
-      if (!pres(dir).startsWith(pres(base))) return { error: "Invalid path" };
 
-      mks(dir, { recursive: true });
-      wfs(pjoin(dir, "SKILL.md"), content, "utf-8");
+      let targetPath: string;
+      if (scope === "project" && projectPath) {
+        const projDir = pres(projectPath);
+        if (!exs(projDir)) return { error: "项目路径不存在: " + projectPath };
+        const rulesDir = pjoin(projDir, ".cursor", "rules");
+        mks(rulesDir, { recursive: true });
+        targetPath = pjoin(rulesDir, safeName + ".mdc");
+        wfs(targetPath, content, "utf-8");
+      } else {
+        const base = pjoin(process.env.HOME || "~", ".cursor", "skills");
+        const dir = pjoin(base, safeName);
+        if (!pres(dir).startsWith(pres(base))) return { error: "Invalid path" };
+        mks(dir, { recursive: true });
+        targetPath = pjoin(dir, "SKILL.md");
+        wfs(targetPath, content, "utf-8");
+      }
       index = buildIndex();
 
-      return { success: true, name: safeName, totalSkills: index.totalSkills };
+      return { success: true, name: safeName, path: targetPath, scope, totalSkills: index.totalSkills };
     }
 
     case "/api/community/install-url": {
@@ -467,22 +500,36 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
         }
       }
 
+      const scope2 = params.get("scope") || "global";
+      const projectPath2 = params.get("projectPath") || "";
+
       try {
         const resp = await fetch(rawUrl, { signal: AbortSignal.timeout(10000) });
         if (!resp.ok) return { error: `下载失败 (${resp.status})` };
         const content = await resp.text();
         if (!content.trim()) return { error: "内容为空" };
 
-        const skillsBase = join(process.env.HOME || "~", ".cursor", "skills");
-        const skillDir = join(skillsBase, safeName);
-        if (!resolve(skillDir).startsWith(resolve(skillsBase))) return { error: "Invalid path" };
+        const { mkdirSync: mk, writeFileSync: wf, existsSync: ex } = await import("fs");
 
-        const { mkdirSync: mk, writeFileSync: wf } = await import("fs");
-        mk(skillDir, { recursive: true });
-        wf(join(skillDir, "SKILL.md"), content, "utf-8");
+        let targetPath: string;
+        if (scope2 === "project" && projectPath2) {
+          const projDir = resolve(projectPath2);
+          if (!ex(projDir)) return { error: "项目路径不存在: " + projectPath2 };
+          const rulesDir = join(projDir, ".cursor", "rules");
+          mk(rulesDir, { recursive: true });
+          targetPath = join(rulesDir, safeName + ".mdc");
+          wf(targetPath, content, "utf-8");
+        } else {
+          const skillsBase = join(process.env.HOME || "~", ".cursor", "skills");
+          const skillDir = join(skillsBase, safeName);
+          if (!resolve(skillDir).startsWith(resolve(skillsBase))) return { error: "Invalid path" };
+          mk(skillDir, { recursive: true });
+          targetPath = join(skillDir, "SKILL.md");
+          wf(targetPath, content, "utf-8");
+        }
         index = buildIndex();
 
-        return { success: true, name: safeName, path: skillDir, totalSkills: index.totalSkills };
+        return { success: true, name: safeName, path: targetPath, scope: scope2, totalSkills: index.totalSkills };
       } catch (e: unknown) {
         return { error: `请求失败: ${e instanceof Error ? e.message : String(e)}` };
       }

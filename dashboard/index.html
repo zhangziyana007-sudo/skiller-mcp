@@ -3019,7 +3019,7 @@
           <div class="plaza-actions" style="margin-top:12px">
             ${skill.installed
               ? '<button class="btn-install installed" disabled>✓ 已安装</button>'
-              : `<button class="btn-install" onclick="event.stopPropagation(); installCommunitySkill(this.closest('.community-card').dataset.name, this.closest('.community-card').dataset.url, this)">⬇️ 安装</button>`
+              : `<button class="btn-install" onclick="event.stopPropagation(); showInstallDialog(this.closest('.community-card').dataset.name, this.closest('.community-card').dataset.url, this)">⬇️ 安装</button>`
             }
             <button class="btn-preview" onclick="event.stopPropagation(); previewSkill(this.closest('.community-card').dataset.name, this.closest('.community-card').dataset.url)">📄 查看全文</button>
             <a href="${escapeAttr(skill.htmlUrl)}" target="_blank" class="btn-preview" style="text-decoration:none" onclick="event.stopPropagation()">🔗 GitHub</a>
@@ -3083,6 +3083,63 @@
       } catch (e) {
         body.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>加载失败: ' + escapeHtml(String(e)) + '</p></div>';
       }
+    }
+
+    // ========== 安装作用域选择 ==========
+    let installScope = localStorage.getItem('skiller_install_scope') || 'global';
+    let installProjectPath = localStorage.getItem('skiller_install_project') || '';
+    let recentProjects = [];
+
+    async function loadRecentProjects() {
+      try { recentProjects = await api('/api/recent-projects'); } catch { recentProjects = []; }
+    }
+
+    function getInstallScopeParams() {
+      var params = '&scope=' + encodeURIComponent(installScope);
+      if (installScope === 'project' && installProjectPath) {
+        params += '&projectPath=' + encodeURIComponent(installProjectPath);
+      }
+      return params;
+    }
+
+    function renderScopeSelector(containerId) {
+      var el = document.getElementById(containerId);
+      if (!el) return;
+      var html = '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">'
+        + '<span style="font-size:12px; color:var(--text2)">安装到:</span>'
+        + '<button class="myrepo-filter-btn' + (installScope === 'global' ? ' active' : '') + '" onclick="setInstallScope(\'global\', \'' + containerId + '\')" style="font-size:11px">🌐 全局</button>'
+        + '<button class="myrepo-filter-btn' + (installScope === 'project' ? ' active' : '') + '" onclick="setInstallScope(\'project\', \'' + containerId + '\')" style="font-size:11px">📁 项目</button>';
+      if (installScope === 'project') {
+        html += '<div style="display:flex; gap:4px; align-items:center; flex:1; min-width:200px">'
+          + '<input type="text" id="scopeProjectPath" value="' + escapeAttr(installProjectPath) + '" placeholder="项目路径 (如 /home/user/my-project)" '
+          + 'style="flex:1; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border2); background:var(--bg2); font-size:11px; font-family:monospace; outline:none" '
+          + 'onchange="installProjectPath=this.value; localStorage.setItem(\'skiller_install_project\', this.value)">';
+        if (recentProjects.length > 0) {
+          html += '<select style="padding:5px; border-radius:8px; border:1.5px solid var(--border2); background:var(--bg2); font-size:10px; max-width:120px" '
+            + 'onchange="if(this.value){installProjectPath=this.value; localStorage.setItem(\'skiller_install_project\', this.value); var inp=document.getElementById(\'scopeProjectPath\'); if(inp) inp.value=this.value;}">'
+            + '<option value="">最近项目...</option>';
+          for (var i = 0; i < recentProjects.length; i++) {
+            var p = recentProjects[i];
+            var short = p.split('/').slice(-2).join('/');
+            html += '<option value="' + escapeAttr(p) + '">' + escapeHtml(short) + '</option>';
+          }
+          html += '</select>';
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+      if (installScope === 'global') {
+        html += '<div style="font-size:10px; color:var(--text2); margin-top:4px">安装到 ~/.cursor/skills/，所有项目共享</div>';
+      } else {
+        html += '<div style="font-size:10px; color:var(--text2); margin-top:4px">安装到项目的 .cursor/rules/ 目录，仅当前项目生效</div>';
+      }
+      el.innerHTML = html;
+    }
+
+    function setInstallScope(scope, containerId) {
+      installScope = scope;
+      localStorage.setItem('skiller_install_scope', scope);
+      renderScopeSelector(containerId);
     }
 
     const UPLOAD_DESC_TEMPLATE = `## 使用场景
@@ -3418,6 +3475,8 @@
               onblur="this.style.borderColor='var(--border2)'">
           </div>
 
+          <div style="margin-top:14px; padding:12px; background:var(--bg2); border-radius:12px; border:1.5px solid var(--border2)" id="linkScopeSelect"></div>
+
           <div id="linkInstallResult" style="margin-top:16px"></div>
         </div>
 
@@ -3446,6 +3505,7 @@
       `;
 
       loadRecentInstalls();
+      loadRecentProjects().then(function() { renderScopeSelector('linkScopeSelect'); });
     }
 
     let recentInstallList = JSON.parse(localStorage.getItem('skiller_recent_installs') || '[]');
@@ -3484,9 +3544,17 @@
       btn.textContent = '⏳ 安装中...';
       btn.disabled = true;
 
+      if (installScope === 'project' && !installProjectPath) {
+        result.innerHTML = '<span style="color:var(--red)">❌ 请在下方选择项目路径</span>';
+        btn.textContent = '⬇️ 安装';
+        btn.disabled = false;
+        return;
+      }
+
       try {
         let apiUrl = `/api/community/install-url?url=${encodeURIComponent(url)}`;
         if (customName) apiUrl += `&name=${encodeURIComponent(customName)}`;
+        apiUrl += getInstallScopeParams();
 
         const data = await api(apiUrl);
         if (data.success) {
@@ -3495,7 +3563,7 @@
               <div style="font-size:16px; font-weight:600; color:#2e7d32">✅ 安装成功！</div>
               <div style="font-size:13px; color:#388e3c; margin-top:6px">
                 技能 <strong>${escapeHtml(data.name)}</strong> 已保存到 <code>${escapeHtml(data.path)}</code><br>
-                当前共 ${data.totalSkills} 个本地技能
+                安装范围: ${data.scope === 'project' ? '📁 项目级' : '🌐 全局'} · 当前共 ${data.totalSkills} 个本地技能
               </div>
             </div>
           `;
@@ -3656,24 +3724,52 @@
       renderCommunitySetup();
     }
 
-    async function installCommunitySkill(name, rawUrl, btn) {
+    function showInstallDialog(name, rawUrl, btn) {
+      loadRecentProjects();
+      var card = btn.closest('.community-card');
+      var existingDialog = card.querySelector('.install-scope-dialog');
+      if (existingDialog) { existingDialog.remove(); return; }
+
+      var dialog = document.createElement('div');
+      dialog.className = 'install-scope-dialog';
+      dialog.style.cssText = 'margin-top:10px; padding:12px; background:var(--surface); border:2px solid var(--blue); border-radius:12px;';
+      dialog.innerHTML = '<div id="scopeSelect_' + escapeAttr(name).replace(/[^a-zA-Z0-9]/g, '_') + '"></div>'
+        + '<div style="margin-top:10px; display:flex; gap:8px">'
+        + '<button class="btn-install" onclick="doInstallCommunitySkill(\'' + escapeAttr(name).replace(/'/g, "\\'") + '\', \'' + escapeAttr(rawUrl).replace(/'/g, "\\'") + '\', this)">确认安装</button>'
+        + '<button class="btn-preview" onclick="this.closest(\'.install-scope-dialog\').remove()">取消</button>'
+        + '</div>';
+      card.appendChild(dialog);
+      renderScopeSelector('scopeSelect_' + name.replace(/[^a-zA-Z0-9]/g, '_'));
+    }
+
+    async function doInstallCommunitySkill(name, rawUrl, btn) {
       btn.textContent = '⏳ 安装中...';
       btn.disabled = true;
 
+      if (installScope === 'project' && !installProjectPath) {
+        btn.textContent = '❌ 请填写项目路径';
+        btn.disabled = false;
+        return;
+      }
+
       try {
-        const result = await api(`/api/community/install?name=${encodeURIComponent(name)}&url=${encodeURIComponent(rawUrl)}`);
+        var scopeParams = getInstallScopeParams();
+        var result = await api('/api/community/install?name=' + encodeURIComponent(name) + '&url=' + encodeURIComponent(rawUrl) + scopeParams);
         if (result.success) {
-          btn.textContent = '✓ 已安装';
-          btn.className = 'btn-install installed';
-          showToast({ tool: 'install', resultSummary: `已安装 ${name}`, timestamp: new Date().toISOString() });
+          var scopeText = result.scope === 'project' ? '项目' : '全局';
+          showToast({ tool: 'install', resultSummary: '已安装 ' + name + ' (' + scopeText + ')', timestamp: new Date().toISOString() });
+          var dialog = btn.closest('.install-scope-dialog');
+          if (dialog) {
+            dialog.innerHTML = '<div style="color:var(--green); font-weight:600; padding:8px">✅ 已安装到' + scopeText + (result.path ? ' → ' + escapeHtml(result.path) : '') + '</div>';
+          }
           allSkills = await api('/api/skills');
         } else {
-          btn.textContent = '❌ 失败';
-          setTimeout(() => { btn.textContent = '⬇️ 安装'; btn.disabled = false; }, 2000);
+          btn.textContent = '❌ ' + (result.error || '失败');
+          btn.disabled = false;
         }
-      } catch {
+      } catch (e) {
         btn.textContent = '❌ 网络错误';
-        setTimeout(() => { btn.textContent = '⬇️ 安装'; btn.disabled = false; }, 2000);
+        btn.disabled = false;
       }
     }
 
