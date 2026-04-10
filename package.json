@@ -1,7 +1,7 @@
 {
   "name": "skiller-mcp",
-  "version": "2.4.0",
-  "description": "AI Skill Manager MCP Server for Cursor — search, categorize, share and manage agent skills",
+  "version": "2.5.0",
+  "description": "AI Skill Manager MCP Server for Claude Code — search, categorize, share and manage agent skills",
   "type": "module",
   "scripts": {
     "start": "tsx src/index.ts",
@@ -9,7 +9,7 @@
     "dashboard": "tsx src/dashboard.ts"
   },
   "keywords": [
-    "cursor", "mcp", "skills", "ai-agent", "skill-manager",
+    "claude-code", "mcp", "skills", "ai-agent", "skill-manager",
     "model-context-protocol", "community", "dashboard"
   ],
   "author": "zizaya",

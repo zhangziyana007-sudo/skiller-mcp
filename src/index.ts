@@ -256,7 +256,7 @@ async function searchOnlineSkills(
           name: repo.name,
           repo: `https://github.com/${repo.name}`,
           description: `${repo.description} (${repo.stars} stars)`,
-          installCmd: `npx antigravity-awesome-skills --cursor`,
+          installCmd: `npx antigravity-awesome-skills`,
         });
       }
     }
@@ -454,7 +454,7 @@ const COMMUNITY_SUBSCRIBE_GUIDE = `
 安装技能
 
 看到想要的技能？点击 ⬇️安装 按钮，自动下载到本地。
-安装后在 Cursor 中对话就能使用了！
+安装后在 Claude Code 中对话就能使用了！
 
 ═══════════════════════════════════════
 

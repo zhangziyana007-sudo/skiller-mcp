@@ -1,7 +1,8 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
-import { join, dirname } from "path";
+import { dirname } from "path";
+import { paths } from "./config.js";
 
-const LOG_PATH = join(process.env.HOME || "~", ".cursor", "skiller", "data", "usage_log.json");
+const LOG_PATH = paths.logPath;
 const MAX_LOG_ENTRIES = 200;
 
 export interface UsageLogEntry {

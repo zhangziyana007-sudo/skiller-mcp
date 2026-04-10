@@ -198,23 +198,23 @@
         {
           icon: '🎉',
           title: '欢迎使用 Skiller',
-          desc: 'AI 技能管理器 — 帮你管理和部署 Cursor AI 的技能与规则',
+          desc: 'AI 技能管理器 — 帮你管理和部署 Claude Code 的技能与规则',
           detail: '接下来简单了解一下主要功能区域'
         },
         {
           icon: '📁',
           title: '本地 Skill 管理',
           desc: '以项目为中心管理你的 AI 技能',
-          detail: '<b>项目网格</b>：查看所有管理的项目<br><b>扫描项目</b>：从 Cursor 历史中导入项目<br><b>项目详情</b>：查看已安装的技能、添加新技能<br><b>分组</b>：按分类整理项目'
+          detail: '<b>项目网格</b>：查看所有管理的项目<br><b>扫描项目</b>：自动发现本地项目<br><b>项目详情</b>：查看已安装的技能、添加新技能<br><b>分组</b>：按分类整理项目'
         },
         {
           icon: '🧠',
           title: 'Skill 和 Rule 的区别',
           desc: '安装技能时可选择三种模式',
           detail: '<div style="display:grid; gap:8px; margin-top:8px">'
-            + '<div style="padding:8px 12px; border-radius:8px; background:rgba(99,102,241,0.06); border-left:3px solid #6366f1"><b>🧠 全局 Skill</b><br><span style="font-size:11px; color:var(--text2)">存放在 ~/.cursor/skills/<br>AI 按需加载，节省 token，所有项目共享</span></div>'
-            + '<div style="padding:8px 12px; border-radius:8px; background:rgba(245,158,11,0.06); border-left:3px solid #f59e0b"><b>⚡ 智能 Rule</b><br><span style="font-size:11px; color:var(--text2)">存放在 项目/.cursor/rules/<br>alwaysApply: false，AI 按上下文判断是否使用</span></div>'
-            + '<div style="padding:8px 12px; border-radius:8px; background:rgba(239,68,68,0.06); border-left:3px solid #ef4444"><b>📜 常驻 Rule</b><br><span style="font-size:11px; color:var(--text2)">存放在 项目/.cursor/rules/<br>alwaysApply: true，始终注入 AI 上下文</span></div>'
+            + '<div style="padding:8px 12px; border-radius:8px; background:rgba(99,102,241,0.06); border-left:3px solid #6366f1"><b>🧠 全局 Skill</b><br><span style="font-size:11px; color:var(--text2)">存放在 ~/.claude/skills/<br>AI 按需加载，节省 token，所有项目共享</span></div>'
+            + '<div style="padding:8px 12px; border-radius:8px; background:rgba(245,158,11,0.06); border-left:3px solid #f59e0b"><b>⚡ 项目按需 Rule</b><br><span style="font-size:11px; color:var(--text2)">存放在 项目/.claude/rules/<br>Agent 根据描述按需加载</span></div>'
+            + '<div style="padding:8px 12px; border-radius:8px; background:rgba(239,68,68,0.06); border-left:3px solid #ef4444"><b>📜 常驻 Rule</b><br><span style="font-size:11px; color:var(--text2)">写入项目 CLAUDE.md<br>始终注入 AI 上下文</span></div>'
             + '</div>'
         },
         {
@@ -534,7 +534,7 @@
           emptyHtml = '<div class="empty-state" style="padding:60px 20px; text-align:center">'
             + '<div style="font-size:48px; margin-bottom:16px">📂</div>'
             + '<p style="font-size:16px; font-weight:600; color:var(--text)">还没有管理的项目</p>'
-            + '<p style="font-size:13px; color:var(--text2); margin-top:8px">点击上方 "扫描项目" 从 Cursor 历史中导入，或 "手动添加" 输入路径</p>'
+            + '<p style="font-size:13px; color:var(--text2); margin-top:8px">点击上方 "扫描项目" 自动发现本地项目，或 "手动添加" 输入路径</p>'
             + '</div>';
         }
 
@@ -774,6 +774,8 @@
     function getInstallModeBadge(mode) {
       var map = {
         'global-skill': { label: '全局 Skill', cls: 'badge-global-skill', icon: '🌐' },
+        'project-root-rule': { label: 'CLAUDE.md', cls: 'badge-cursorrules', icon: '📋' },
+        'project-rule': { label: '.claude/rules/', cls: 'badge-rule-agent', icon: '🧠' },
         'cursorrules': { label: '.cursorrules', cls: 'badge-cursorrules', icon: '📋' },
         'rule-always': { label: 'Always Rule', cls: 'badge-rule-always', icon: '📌' },
         'rule-auto': { label: 'Auto Rule', cls: 'badge-rule-auto', icon: '🎯' },
@@ -921,7 +923,8 @@
       });
       if (existing) {
         var modeLabel = {
-          'global-skill': '全局 Skill', 'cursorrules': '.cursorrules',
+          'global-skill': '全局 Skill', 'project-root-rule': 'CLAUDE.md',
+          'project-rule': '.claude/rules/', 'cursorrules': '.cursorrules',
           'rule-always': 'Always Rule', 'rule-auto': 'Auto Rule',
           'rule-agent': 'Agent Rule', 'rule-manual': 'Manual Rule',
           'rule-smart': 'Agent Rule', 'project-skill': 'Agent Rule'
@@ -942,53 +945,30 @@
         + '<div class="drawer-body" style="padding:24px">'
         +   '<div class="mode-compare-hint">'
         +     '<div class="compare-row"><span class="compare-label">模式</span><span class="compare-label">存储位置</span><span class="compare-label">触发方式</span><span class="compare-label">Token</span></div>'
-        +     '<div class="compare-row"><span>全局 Skill</span><span>~/.cursor/skills/</span><span>Agent 按需</span><span style="color:#22c55e">省</span></div>'
-        +     '<div class="compare-row"><span>.cursorrules</span><span>项目根目录</span><span>始终生效</span><span style="color:#ef4444">多</span></div>'
-        +     '<div class="compare-row"><span>Always</span><span>.cursor/rules/</span><span>始终注入</span><span style="color:#ef4444">多</span></div>'
-        +     '<div class="compare-row"><span>Auto</span><span>.cursor/rules/</span><span>文件匹配</span><span style="color:#f59e0b">中</span></div>'
-        +     '<div class="compare-row"><span>Agent</span><span>.cursor/rules/</span><span>Agent 按需</span><span style="color:#22c55e">省</span></div>'
-        +     '<div class="compare-row"><span>Manual</span><span>.cursor/rules/</span><span>@引用</span><span style="color:#22c55e">省</span></div>'
+        +     '<div class="compare-row"><span>全局 Skill</span><span>~/.claude/skills/</span><span>Agent 按需</span><span style="color:#22c55e">省</span></div>'
+        +     '<div class="compare-row"><span>常驻 Rule</span><span>项目 CLAUDE.md</span><span>始终生效</span><span style="color:#ef4444">多</span></div>'
+        +     '<div class="compare-row"><span>按需 Rule</span><span>.claude/rules/</span><span>Agent 按需</span><span style="color:#22c55e">省</span></div>'
         +   '</div>'
-        +   '<div class="mode-option" onclick="doAddSkill(\'' + eName + '\', \'global-skill\')">'
+        +   '<div class="mode-option" onclick="doAddSkill(\'' + eName + '\', \'global-skill\', document.getElementById(\'dmiCheck\')?.checked ? \'&disableModelInvocation=1\' : \'\')">'
         +     '<div class="mode-option-icon">🌐</div>'
         +     '<div class="mode-option-info">'
         +       '<div class="mode-option-title">全局 Skill <span style="font-size:10px; color:white; background:#22c55e; padding:1px 6px; border-radius:10px">推荐</span></div>'
-        +       '<div class="mode-option-desc">~/.cursor/skills/，Agent 按需加载，跨项目共享</div>'
+        +       '<div class="mode-option-desc">~/.claude/skills/，Agent 按需加载，跨项目共享</div>'
+        +       '<label style="display:flex; align-items:center; gap:6px; margin-top:6px; font-size:11px; color:var(--text2); cursor:pointer" onclick="event.stopPropagation()"><input type="checkbox" id="dmiCheck" style="accent-color:#6366f1"> 仅手动调用（/skill-name），禁止 AI 自动调用</label>'
         +     '</div>'
         +   '</div>'
-        +   '<div class="mode-option" onclick="doAddSkillWithOptions(\'' + eName + '\', \'cursorrules\')">'
+        +   '<div class="mode-option" onclick="doAddSkillWithOptions(\'' + eName + '\', \'project-root-rule\')">'
         +     '<div class="mode-option-icon">📋</div>'
         +     '<div class="mode-option-info">'
-        +       '<div class="mode-option-title">.cursorrules 项目规则</div>'
-        +       '<div class="mode-option-desc">项目根目录，始终生效，优先级最高</div>'
+        +       '<div class="mode-option-title">常驻 Rule (CLAUDE.md)</div>'
+        +       '<div class="mode-option-desc">追加到项目 CLAUDE.md，始终生效</div>'
         +     '</div>'
         +   '</div>'
-        +   '<div class="mode-option" onclick="doAddSkill(\'' + eName + '\', \'rule-always\')">'
-        +     '<div class="mode-option-icon">📌</div>'
+        +   '<div class="mode-option" onclick="doAddSkillWithPaths(\'' + eName + '\', \'project-rule\')">'
+        +     '<div class="mode-option-icon">🧠</div>'
         +     '<div class="mode-option-info">'
-        +       '<div class="mode-option-title">Always Rule</div>'
-        +       '<div class="mode-option-desc">.cursor/rules/，始终注入 AI 上下文</div>'
-        +     '</div>'
-        +   '</div>'
-        +   '<div class="mode-option" onclick="doAddSkillWithOptions(\'' + eName + '\', \'rule-auto\')">'
-        +     '<div class="mode-option-icon">🎯</div>'
-        +     '<div class="mode-option-info">'
-        +       '<div class="mode-option-title">Auto Rule</div>'
-        +       '<div class="mode-option-desc">.cursor/rules/，匹配文件模式时自动激活</div>'
-        +     '</div>'
-        +   '</div>'
-        +   '<div class="mode-option" onclick="doAddSkill(\'' + eName + '\', \'rule-agent\')">'
-        +     '<div class="mode-option-icon">🤖</div>'
-        +     '<div class="mode-option-info">'
-        +       '<div class="mode-option-title">Agent Rule</div>'
-        +       '<div class="mode-option-desc">.cursor/rules/，Agent 根据描述按需加载</div>'
-        +     '</div>'
-        +   '</div>'
-        +   '<div class="mode-option" onclick="doAddSkill(\'' + eName + '\', \'rule-manual\')">'
-        +     '<div class="mode-option-icon">✋</div>'
-        +     '<div class="mode-option-info">'
-        +       '<div class="mode-option-title">Manual Rule</div>'
-        +       '<div class="mode-option-desc">.cursor/rules/，用户 @引用时才加载</div>'
+        +       '<div class="mode-option-title">按需 Rule (.claude/rules/)</div>'
+        +       '<div class="mode-option-desc">.claude/rules/，Agent 根据描述按需加载。可设 paths 限定作用范围</div>'
         +     '</div>'
         +   '</div>'
         + '</div>';
@@ -1009,7 +989,7 @@
             }).join('')
           + '</div></div>';
       }
-      if (mode === 'cursorrules') {
+      if (mode === 'cursorrules' || mode === 'project-root-rule') {
         fields = '<div style="margin-bottom:16px">'
           + '<label style="font-size:12px; color:var(--text2); display:block; margin-bottom:6px">写入方式</label>'
           + '<div style="display:flex; gap:12px">'
@@ -1017,9 +997,27 @@
           + '<label style="font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer"><input type="radio" name="addSkillWriteMode" value="replace"> 替换整个文件</label>'
           + '</div></div>';
       }
-      body.innerHTML = '<p style="font-size:14px; font-weight:600; margin-bottom:16px">' + (mode === 'rule-auto' ? 'Auto Rule 配置' : '.cursorrules 配置') + '</p>'
+      body.innerHTML = '<p style="font-size:14px; font-weight:600; margin-bottom:16px">' + (mode === 'rule-auto' ? 'Auto Rule 配置' : 'CLAUDE.md 写入配置') + '</p>'
         + fields
         + '<button class="primary-btn" onclick="var extra=\'\'; var gEl=document.getElementById(\'addSkillGlobs\'); if(gEl&&gEl.value.trim()) extra+=\'&globs=\'+encodeURIComponent(gEl.value.trim()); var wmR=document.querySelector(\'input[name=addSkillWriteMode]:checked\'); if(wmR) extra+=\'&writeMode=\'+wmR.value; doAddSkill(\'' + eName + '\', \'' + mode + '\', extra)">确认添加</button>';
+    }
+
+    function doAddSkillWithPaths(skillName, mode) {
+      var body = document.querySelector('.detail-drawer .drawer-body');
+      if (!body) return;
+      var eName = escapeAttr(skillName).replace(/'/g, "\\'");
+      body.innerHTML = '<p style="font-size:14px; font-weight:600; margin-bottom:16px">按需 Rule 配置</p>'
+        + '<div style="margin-bottom:16px">'
+        + '<label style="font-size:12px; color:var(--text2); display:block; margin-bottom:6px">paths（可选，限定生效范围）</label>'
+        + '<input type="text" id="addSkillPaths" placeholder="例如: src/api/**/*.ts, tests/**" style="width:100%; padding:8px 12px; border-radius:10px; border:1.5px solid rgba(0,0,0,0.08); font-size:12px; font-family:monospace; outline:none; box-sizing:border-box">'
+        + '<div style="display:flex; gap:5px; margin-top:6px; flex-wrap:wrap">'
+        + ['src/**/*.ts','src/**/*.py','tests/**','*.config.*','src/api/**'].map(function(g) {
+            return '<span style="font-size:11px; padding:3px 10px; border-radius:12px; background:var(--bg2,#f5f5f5); border:1px solid var(--border2,#e0e0e0); cursor:pointer; color:var(--text2)" onclick="var i=document.getElementById(\'addSkillPaths\'); i.value=i.value?(i.value+\','+g+'\'):\''+g+'\'">' + g + '</span>';
+          }).join('')
+        + '</div>'
+        + '<p style="font-size:11px; color:var(--text2); margin-top:8px">留空则始终生效，填写后仅当处理匹配路径的文件时加载</p>'
+        + '</div>'
+        + '<button class="primary-btn" onclick="var extra=\'\'; var pEl=document.getElementById(\'addSkillPaths\'); if(pEl&&pEl.value.trim()) extra+=\'&globs=\'+encodeURIComponent(pEl.value.trim()); doAddSkill(\'' + eName + '\', \'' + mode + '\', extra)">确认添加</button>';
     }
 
     async function doAddSkill(skillName, mode, extraParams) {
@@ -1060,7 +1058,7 @@
       overlay.classList.add('open');
       drawer.classList.add('open', 'drawer-flex');
       drawer.innerHTML = '<div class="drawer-header"><h2>🔍 扫描项目</h2><button class="drawer-close" onclick="closeDrawer()">✕</button></div>'
-        + '<div class="drawer-body"><div style="text-align:center; padding:40px"><div class="spinner"></div><p style="margin-top:12px; color:var(--text2)">正在扫描 Cursor 历史项目...</p></div></div>';
+        + '<div class="drawer-body"><div style="text-align:center; padding:40px"><div class="spinner"></div><p style="margin-top:12px; color:var(--text2)">正在扫描本地项目...</p></div></div>';
       try {
         var result = await api('/api/managed-projects/scan');
         var allScanned = result.scanned || [];
@@ -1122,7 +1120,7 @@
       modal.className = 'add-project-modal-overlay';
       var candHtml = '';
       if (candidates.length > 0) {
-        candHtml = '<div class="add-project-recent-title">📂 从 Cursor 历史项目中选择</div>'
+        candHtml = '<div class="add-project-recent-title">📂 从发现的项目中选择</div>'
           + '<div class="add-project-recent-list">'
           + candidates.map(function(p) {
               var short = p.split('/').slice(-2).join('/');
@@ -2898,11 +2896,11 @@
         +     '<div class="mode-option-icon">🌐</div>'
         +     '<div class="mode-option-info">'
         +       '<div class="mode-option-title">安装为全局 Skill</div>'
-        +       '<div class="mode-option-desc">直接安装到 ~/.cursor/skills/，Agent 按需加载，所有项目共享</div>'
+        +       '<div class="mode-option-desc">直接安装到 ~/.claude/skills/，Agent 按需加载，所有项目共享</div>'
         +     '</div>'
         +   '</div>'
         +   '<div style="margin-top:16px; padding:12px; background:var(--bg2); border-radius:10px; font-size:12px; color:var(--text2); line-height:1.6">'
-        +     '<b>💡 提示</b>：下载到本地仓库后，在「本地 Skill 管理」中可以给项目配置 6 种安装模式（Always / Auto / Agent / Manual / .cursorrules / 全局 Skill）'
+        +     '<b>💡 提示</b>：下载到本地仓库后，在「本地 Skill 管理」中可以给项目配置 3 种安装模式（全局 Skill / CLAUDE.md 常驻 / .claude/rules/ 按需）'
         +   '</div>'
         + '</div>';
     }
@@ -2924,7 +2922,7 @@
             }).join('')
           + '</div></div>';
       }
-      if (mode === 'cursorrules') {
+      if (mode === 'cursorrules' || mode === 'project-root-rule') {
         extraFields = '<div style="margin-bottom:16px">'
           + '<label style="font-size:12px; color:var(--text2); display:block; margin-bottom:6px">写入方式</label>'
           + '<div style="display:flex; gap:12px">'
@@ -3808,7 +3806,7 @@
 
     var LINK_INSTALL_MODES = [
       { id: 'local-repo', icon: '📥', label: '下载到本地仓库', hint: '保存到本地，稍后给项目配置' },
-      { id: 'global-skill', icon: '🌐', label: '安装为全局 Skill', hint: '~/.cursor/skills/，跨项目共享' }
+      { id: 'global-skill', icon: '🌐', label: '安装为全局 Skill', hint: '~/.claude/skills/，跨项目共享' }
     ];
 
     function renderScopeSelector(containerId) {
@@ -4210,7 +4208,7 @@
             </div>
             <div style="display:flex; align-items:flex-start; gap:12px; padding:8px 0">
               <span style="background:var(--blue,#1e88e5); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px; font-weight:600">3</span>
-              <span>点击安装，技能下载到 <code style="padding:2px 6px; border-radius:4px; background:var(--bg2)">~/.cursor/skills/</code> 即刻可用</span>
+              <span>点击安装，技能下载到 <code style="padding:2px 6px; border-radius:4px; background:var(--bg2)">~/.claude/skills/</code> 即刻可用</span>
             </div>
           </div>
         </div>
@@ -4436,11 +4434,11 @@
               </details>
               <details style="margin-bottom:6px; padding:8px 10px; border-radius:8px; background:var(--bg2)">
                 <summary style="cursor:pointer; font-weight:600">安装的技能存在哪里？</summary>
-                <p style="margin-top:6px; color:var(--text2)">全局技能在 <code>~/.cursor/skills/技能名/SKILL.md</code>，项目技能在 <code>项目/.cursor/rules/技能名.mdc</code>。</p>
+                <p style="margin-top:6px; color:var(--text2)">全局技能在 <code>~/.claude/skills/技能名/SKILL.md</code>，项目技能在 <code>项目/.claude/rules/技能名.md</code>。</p>
               </details>
               <details style="margin-bottom:6px; padding:8px 10px; border-radius:8px; background:var(--bg2)">
                 <summary style="cursor:pointer; font-weight:600">Token 安全吗？</summary>
-                <p style="margin-top:6px; color:var(--text2)">Token 只保存在本地 <code>~/.cursor/skiller/data/</code>，不会上传到任何地方。</p>
+                <p style="margin-top:6px; color:var(--text2)">Token 只保存在本地 <code>~/.claude/skiller/data/</code>，不会上传到任何地方。</p>
               </details>
               <details style="margin-bottom:6px; padding:8px 10px; border-radius:8px; background:var(--bg2)">
                 <summary style="cursor:pointer; font-weight:600">从链接导入的技能如何标注作者？</summary>
@@ -4448,7 +4446,7 @@
               </details>
               <details style="margin-bottom:6px; padding:8px 10px; border-radius:8px; background:var(--bg2)">
                 <summary style="cursor:pointer; font-weight:600">全局技能和项目技能有什么区别？</summary>
-                <p style="margin-top:6px; color:var(--text2)">全局技能对所有项目生效，项目技能只在特定项目的 <code>.cursor/rules/</code> 中有效。</p>
+                <p style="margin-top:6px; color:var(--text2)">全局技能对所有项目生效（~/.claude/skills/），项目技能只在特定项目的 <code>.claude/rules/</code> 中有效。</p>
               </details>
             </div>
           </div>

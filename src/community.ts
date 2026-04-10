@@ -1,8 +1,9 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from "fs";
 import { join } from "path";
 import matter from "gray-matter";
+import { paths } from "./config.js";
 
-const CONFIG_DIR = join(process.env.HOME || "~", ".cursor", "skiller", "data");
+const CONFIG_DIR = paths.dataDir;
 const CONFIG_FILE = join(CONFIG_DIR, "community_config.json");
 const COMMUNITY_CACHE_FILE = join(CONFIG_DIR, "community_cache.json");
 const COMMUNITY_CACHE_TTL = 14400 * 1000; // 4 hours

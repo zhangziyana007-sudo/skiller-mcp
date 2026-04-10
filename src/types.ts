@@ -7,7 +7,7 @@ export interface SkillEntry {
   source: "custom" | "superpowers" | "skills-cursor" | "project-rules" | "local-repo";
   tokenEstimate: number;
   projectName?: string;
-  installMode?: "global-skill" | "cursorrules" | "rule-always" | "rule-auto" | "rule-agent" | "rule-manual";
+  installMode?: "global-skill" | "cursorrules" | "rule-always" | "rule-auto" | "rule-agent" | "rule-manual" | "project-root-rule" | "project-rule";
 }
 
 export interface UserCategory {

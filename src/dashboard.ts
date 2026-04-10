@@ -26,11 +26,12 @@ import {
   addManagedProject, removeManagedProject, getManagedProjects,
   registerInstall, getInstallRegistry, getInstallRecord, simpleHash,
 } from "./categories.js";
+import { paths, PLATFORM } from "./config.js";
 
 const PORT = parseInt(process.env.SKILLER_PORT || "3737");
 const STATIC_DIR = join(import.meta.dirname, "..", "dashboard");
 const CORS_ORIGIN = `http://localhost:${PORT}`;
-const LOG_PATH = join(process.env.HOME || "~", ".cursor", "skiller", "data", "usage_log.json");
+const LOG_PATH = paths.logPath;
 
 const sseClients = new Set<ServerResponse>();
 let lastLogMtime = 0;
@@ -71,7 +72,7 @@ function checkLogChanges() {
 }
 
 try {
-  const logDir = join(process.env.HOME || "~", ".cursor", "skiller", "data");
+  const logDir = paths.dataDir;
   if (existsSync(logDir)) {
     watch(logDir, { persistent: false }, (eventType, filename) => {
       if (filename === "usage_log.json") {
@@ -322,38 +323,72 @@ function handleApi(path: string, params: URLSearchParams): unknown {
 
     case "/api/managed-projects/scan": {
       const scannedProjects: string[] = [];
-      try {
-        const vscdbPath = join(process.env.HOME || "~", ".config", "Cursor", "User", "globalStorage", "state.vscdb");
-        if (existsSync(vscdbPath)) {
-          const raw = execSync(
-            `sqlite3 "${vscdbPath}" "SELECT value FROM ItemTable WHERE key = 'history.recentlyOpenedPathsList'"`,
-            { encoding: "utf-8", timeout: 5000 }
-          ).trim();
-          if (raw) {
-            const data = JSON.parse(raw);
-            for (const e of (data.entries || [])) {
-              const uri = e.folderUri || "";
-              const p = decodeURIComponent(uri.replace("file://", ""));
+
+      if (PLATFORM === "claude-code") {
+        const claudeProjectsDir = join(paths.ideRoot, "projects");
+        if (existsSync(claudeProjectsDir)) {
+          try {
+            for (const d of readdirSync(claudeProjectsDir, { withFileTypes: true })) {
+              if (!d.isDirectory()) continue;
+              const projectPath = "/" + d.name.replace(/-/g, "/");
+              if (existsSync(projectPath) && statSync(projectPath).isDirectory() && !scannedProjects.includes(projectPath)) {
+                scannedProjects.push(projectPath);
+              }
+            }
+          } catch {}
+        }
+        const homeDir = process.env.HOME || "~";
+        for (const candidate of [join(homeDir, "projects"), join(homeDir, "workspace"), join(homeDir, "code"), join(homeDir, "src")]) {
+          if (existsSync(candidate) && statSync(candidate).isDirectory()) {
+            try {
+              for (const d of readdirSync(candidate, { withFileTypes: true })) {
+                if (!d.isDirectory()) continue;
+                const fullPath = join(candidate, d.name);
+                const hasClaudeMd = existsSync(join(fullPath, "CLAUDE.md"));
+                const hasMcpJson = existsSync(join(fullPath, ".mcp.json"));
+                const hasGit = existsSync(join(fullPath, ".git"));
+                if ((hasClaudeMd || hasMcpJson || hasGit) && !scannedProjects.includes(fullPath)) {
+                  scannedProjects.push(fullPath);
+                }
+              }
+            } catch {}
+          }
+        }
+      } else {
+        try {
+          const vscdbPath = join(paths.ideConfigDir, "User", "globalStorage", "state.vscdb");
+          if (existsSync(vscdbPath)) {
+            const raw = execSync(
+              `sqlite3 "${vscdbPath}" "SELECT value FROM ItemTable WHERE key = 'history.recentlyOpenedPathsList'"`,
+              { encoding: "utf-8", timeout: 5000 }
+            ).trim();
+            if (raw) {
+              const data = JSON.parse(raw);
+              for (const e of (data.entries || [])) {
+                const uri = e.folderUri || "";
+                const p = decodeURIComponent(uri.replace("file://", ""));
+                if (p && existsSync(p) && statSync(p).isDirectory() && !scannedProjects.includes(p)) {
+                  scannedProjects.push(p);
+                }
+              }
+            }
+          }
+        } catch {}
+        try {
+          const cursorStorage = join(paths.ideConfigDir, "User", "globalStorage", "storage.json");
+          if (existsSync(cursorStorage)) {
+            const raw = JSON.parse(readFileSync(cursorStorage, "utf-8"));
+            const entries = raw.openedPathsList?.entries || [];
+            for (const e of entries) {
+              const p = (e.folderUri || "").replace("file://", "");
               if (p && existsSync(p) && statSync(p).isDirectory() && !scannedProjects.includes(p)) {
                 scannedProjects.push(p);
               }
             }
           }
-        }
-      } catch {}
-      try {
-        const cursorStorage = join(process.env.HOME || "~", ".config", "Cursor", "User", "globalStorage", "storage.json");
-        if (existsSync(cursorStorage)) {
-          const raw = JSON.parse(readFileSync(cursorStorage, "utf-8"));
-          const entries = raw.openedPathsList?.entries || [];
-          for (const e of entries) {
-            const p = (e.folderUri || "").replace("file://", "");
-            if (p && existsSync(p) && statSync(p).isDirectory() && !scannedProjects.includes(p)) {
-              scannedProjects.push(p);
-            }
-          }
-        }
-      } catch {}
+        } catch {}
+      }
+
       const managed = getManagedProjects();
       return {
         scanned: scannedProjects,
@@ -438,19 +473,36 @@ function handleApi(path: string, params: URLSearchParams): unknown {
 
     case "/api/recent-projects": {
       const projects: string[] = [];
-      const cursorProjectsDir = join(process.env.HOME || "~", ".cursor", "projects");
-      if (existsSync(cursorProjectsDir)) {
-        try {
-          for (const d of readdirSync(cursorProjectsDir)) {
-          const decoded = "/" + d.replace(/-/g, "/");
-          if (existsSync(decoded) && statSync(decoded).isDirectory()) {
-              projects.push(decoded);
-            }
-          }
-        } catch {}
-      }
       const homeDir = process.env.HOME || "~";
-      for (const p of [join(homeDir, "SOFR"), join(homeDir, "projects"), join(homeDir, "workspace"), join(homeDir, "code")]) {
+
+      if (PLATFORM === "claude-code") {
+        const claudeProjectsDir = join(paths.ideRoot, "projects");
+        if (existsSync(claudeProjectsDir)) {
+          try {
+            for (const d of readdirSync(claudeProjectsDir, { withFileTypes: true })) {
+              if (!d.isDirectory()) continue;
+              const projectPath = "/" + d.name.replace(/-/g, "/");
+              if (existsSync(projectPath) && statSync(projectPath).isDirectory() && !projects.includes(projectPath)) {
+                projects.push(projectPath);
+              }
+            }
+          } catch {}
+        }
+      } else {
+        const cursorProjectsDir = paths.projectsDir;
+        if (existsSync(cursorProjectsDir)) {
+          try {
+            for (const d of readdirSync(cursorProjectsDir)) {
+              const decoded = "/" + d.replace(/-/g, "/");
+              if (existsSync(decoded) && statSync(decoded).isDirectory()) {
+                projects.push(decoded);
+              }
+            }
+          } catch {}
+        }
+      }
+
+      for (const p of [join(homeDir, "projects"), join(homeDir, "workspace"), join(homeDir, "code"), join(homeDir, "src")]) {
         if (existsSync(p) && !projects.includes(p)) projects.push(p);
       }
       return projects.slice(0, 20);
@@ -533,12 +585,14 @@ function handleApi(path: string, params: URLSearchParams): unknown {
         let cpResult: { targetPath: string; modeLabel: string } | { error: string };
 
         if (cpMode === "global-skill") {
-          cpResult = installToGlobalSkill(safeName, content);
-        } else if (cpMode === "cursorrules") {
+          const disableModelInvocation = params.get("disableModelInvocation") === "1";
+          cpResult = installToGlobalSkill(safeName, content, { disableModelInvocation });
+        } else if (cpMode === "cursorrules" || cpMode === "project-root-rule") {
           const projDir = resolve(cpProject);
           if (!existsSync(projDir)) return { success: false, message: "项目路径不存在: " + cpProject };
-          const tp = writeToCursorrules(cpProject, safeName, content, cpWriteMode);
-          cpResult = { targetPath: tp, modeLabel: MODE_LABELS["cursorrules"] };
+          const tp = writeToProjectRootRule(cpProject, safeName, content, cpWriteMode);
+          const mLabel = MODE_LABELS["project-root-rule"] || MODE_LABELS["cursorrules"] || cpMode;
+          cpResult = { targetPath: tp, modeLabel: mLabel };
         } else {
           cpResult = installToProjectRule(safeName, content, cpProject, cpMode as RuleMode, {
             globs: cpGlobs,
@@ -566,7 +620,7 @@ function handleApi(path: string, params: URLSearchParams): unknown {
       try {
         const content = readFileSync(prSkill.path, "utf-8");
         const safeName = prName.replace(/[^a-zA-Z0-9_-]/g, "-");
-        const globalDir = join(process.env.HOME || "~", ".cursor", "skills", safeName);
+        const globalDir = join(paths.skillsDir, safeName);
         mkdirSync(globalDir, { recursive: true });
         const targetPath = join(globalDir, "SKILL.md");
         writeFileSync(targetPath, content, "utf-8");
@@ -596,7 +650,7 @@ function handleApi(path: string, params: URLSearchParams): unknown {
     }
 
     case "/api/mcp/status": {
-      const mcpPath = join(process.env.HOME || "~", ".cursor", "mcp.json");
+      const mcpPath = paths.mcpConfigPath;
       let config: Record<string, unknown> = {};
       try { config = JSON.parse(readFileSync(mcpPath, "utf-8")); } catch {}
       const servers = (config as { mcpServers?: Record<string, { command?: string; args?: string[] }> }).mcpServers || {};
@@ -619,19 +673,39 @@ function handleApi(path: string, params: URLSearchParams): unknown {
 
         result.push({ name, command: cmd, args, running: pids.length > 0, pids });
       }
-      return { path: mcpPath, servers: result };
+      return { platform: PLATFORM, path: mcpPath, servers: result };
     }
 
     case "/api/mcp/restart": {
       const srvName = params.get("name") || "";
       if (!srvName) return { error: "Missing server name" };
 
-      const mcpPath2 = join(process.env.HOME || "~", ".cursor", "mcp.json");
+      if (PLATFORM === "claude-code") {
+        try {
+          execSync(`claude mcp remove "${srvName}" 2>/dev/null; sleep 0.5`, { timeout: 5000 });
+        } catch {}
+        const mcpPath2 = paths.mcpConfigPath;
+        let mcpCfg: Record<string, unknown> = {};
+        try { mcpCfg = JSON.parse(readFileSync(mcpPath2, "utf-8")); } catch {}
+        const mcpServers = (mcpCfg as { mcpServers?: Record<string, { command?: string; args?: string[] }> }).mcpServers || {};
+        const srv = mcpServers[srvName];
+        if (srv) {
+          const cmd = srv.command || "npx";
+          const args = (srv.args || []).join(" ");
+          try {
+            execSync(`claude mcp add "${srvName}" ${cmd} ${args}`, { timeout: 5000 });
+          } catch {}
+          return { success: true, message: `已通过 claude mcp 重新添加 ${srvName}。下次 Claude Code 会话将使用最新配置。` };
+        }
+        return { success: true, message: `已移除 ${srvName}。请通过 claude mcp add 重新配置，或在下次会话中使用 /mcp 检查状态。` };
+      }
+
+      const mcpPath2 = paths.mcpConfigPath;
       let mcpCfg: Record<string, unknown> = {};
       try { mcpCfg = JSON.parse(readFileSync(mcpPath2, "utf-8")); } catch {}
       const mcpServers = (mcpCfg as { mcpServers?: Record<string, { command?: string; args?: string[] }> }).mcpServers || {};
       const srv = mcpServers[srvName];
-      if (!srv) return { error: `Server "${srvName}" not found in mcp.json` };
+      if (!srv) return { error: `Server "${srvName}" not found in config` };
 
       const searchStr = (srv.args || []).length > 0 ? (srv.args || [])[srv.args!.length - 1] : (srv.command || "");
 
@@ -639,16 +713,16 @@ function handleApi(path: string, params: URLSearchParams): unknown {
         execSync(`ps aux | grep '${searchStr}' | grep -v grep | awk '{print $2}' | xargs -r kill -9 2>/dev/null`, { timeout: 3000 });
       } catch {}
 
-      return { success: true, message: `已终止 ${srvName} 的所有进程。Cursor 将自动重新启动它。` };
+      return { success: true, message: `已终止 ${srvName} 的所有进程。${paths.brandName} 将自动重新启动它。` };
     }
 
     case "/api/mcp/config": {
-      const mcpPath3 = join(process.env.HOME || "~", ".cursor", "mcp.json");
+      const mcpPath3 = paths.mcpConfigPath;
       try {
         const content = readFileSync(mcpPath3, "utf-8");
-        return { path: mcpPath3, content };
+        return { platform: PLATFORM, path: mcpPath3, content };
       } catch {
-        return { error: "无法读取 mcp.json" };
+        return { error: `无法读取 ${mcpPath3}` };
       }
     }
 
@@ -750,9 +824,14 @@ function maskConfig<T extends { githubToken?: string; sources: Array<{ token?: s
   };
 }
 
-type RuleMode = "rule-always" | "rule-auto" | "rule-agent" | "rule-manual";
+type RuleMode = "rule-always" | "rule-auto" | "rule-agent" | "rule-manual" | "project-root-rule" | "project-rule";
 
-const MODE_LABELS: Record<string, string> = {
+const MODE_LABELS: Record<string, string> = PLATFORM === "claude-code" ? {
+  "global-skill": "全局 Skill (~/.claude/skills/)",
+  "project-root-rule": `项目常驻规则 (${paths.projectRootRuleFile})`,
+  "project-rule": `项目按需规则 (${paths.projectRulesDir}/)`,
+  "local-repo": "本地仓库",
+} : {
   "global-skill": "全局 Skill",
   "cursorrules": "项目级规则 (.cursorrules)",
   "rule-always": "Always Rule（始终生效）",
@@ -764,6 +843,15 @@ const MODE_LABELS: Record<string, string> = {
 function normalizeMode(raw: string): string {
   if (raw === "global" || raw === "global-skill") return "global-skill";
   if (raw === "local-repo") return "local-repo";
+
+  if (PLATFORM === "claude-code") {
+    if (raw === "project-root-rule" || raw === "cursorrules" || raw === "rule-always") return "project-root-rule";
+    if (raw === "project-rule" || raw === "rule-agent" || raw === "rule-auto" || raw === "rule-manual") return "project-rule";
+    if (raw === "project-skill" || raw === "project" || raw === "rule-smart") return "project-rule";
+    if (raw in MODE_LABELS) return raw;
+    return "global-skill";
+  }
+
   if (raw === "rule-smart") return "rule-agent";
   if (raw === "project-skill" || raw === "project") return "rule-agent";
   if (raw in MODE_LABELS) return raw;
@@ -798,9 +886,9 @@ function buildMdcContent(rawContent: string, mode: RuleMode, options?: { globs?:
   return `---\ndescription: ${description}\nglobs: ${globs}\nalwaysApply: ${alwaysApply}\n---\n${body.trim()}\n`;
 }
 
-function writeToCursorrules(projectPath: string, skillName: string, rawContent: string, writeMode: "append" | "replace"): string {
+function writeToProjectRootRule(projectPath: string, skillName: string, rawContent: string, writeMode: "append" | "replace"): string {
   const projDir = resolve(projectPath);
-  const targetPath = join(projDir, ".cursorrules");
+  const targetPath = join(projDir, paths.projectRootRuleFile);
   const { content: body } = matter(rawContent);
   const cleanBody = body.trim();
 
@@ -814,24 +902,57 @@ function writeToCursorrules(projectPath: string, skillName: string, rawContent: 
   return targetPath;
 }
 
-function installToGlobalSkill(safeName: string, content: string): { targetPath: string; modeLabel: string } | { error: string } {
-  const base = join(process.env.HOME || "~", ".cursor", "skills");
+function installToGlobalSkill(safeName: string, content: string, options?: { disableModelInvocation?: boolean }): { targetPath: string; modeLabel: string } | { error: string } {
+  const base = paths.skillsDir;
   const dir = join(base, safeName);
   if (!resolve(dir).startsWith(resolve(base))) return { error: "Invalid path" };
   mkdirSync(dir, { recursive: true });
   const targetPath = join(dir, "SKILL.md");
-  writeFileSync(targetPath, content, "utf-8");
+
+  if (PLATFORM === "claude-code" && options?.disableModelInvocation) {
+    const { data: fm, content: body } = matter(content);
+    const newFm = { ...fm, "disable-model-invocation": true };
+    const fmStr = Object.entries(newFm).map(([k, v]) => `${k}: ${typeof v === "string" ? `"${v}"` : v}`).join("\n");
+    writeFileSync(targetPath, `---\n${fmStr}\n---\n\n${body.trim()}\n`, "utf-8");
+  } else {
+    writeFileSync(targetPath, content, "utf-8");
+  }
   return { targetPath, modeLabel: MODE_LABELS["global-skill"] };
 }
 
 function installToProjectRule(safeName: string, content: string, projectPath: string, mode: RuleMode, options?: { globs?: string; description?: string }): { targetPath: string; modeLabel: string } | { error: string } {
   const projDir = resolve(projectPath);
   if (!existsSync(projDir)) return { error: "项目路径不存在: " + projectPath };
-  const rulesDir = join(projDir, ".cursor", "rules");
+
+  if (PLATFORM === "claude-code") {
+    if (mode === "project-root-rule") {
+      const targetPath = join(projDir, paths.projectRootRuleFile);
+      const { content: body } = matter(content);
+      const existing = existsSync(targetPath) ? readFileSync(targetPath, "utf-8") : "";
+      const separator = `\n\n# ===== ${safeName} =====\n\n`;
+      writeFileSync(targetPath, existing.trimEnd() + separator + body.trim() + "\n", "utf-8");
+      return { targetPath, modeLabel: MODE_LABELS["project-root-rule"] };
+    }
+    const rulesDir = join(projDir, paths.projectRulesDir);
+    mkdirSync(rulesDir, { recursive: true });
+    const targetPath = join(rulesDir, safeName + ".md");
+    const { data: fm, content: body } = matter(content);
+    const claudePaths = options?.globs ? options.globs.split(",").map((g: string) => g.trim()).filter(Boolean) : [];
+    let ruleContent = "";
+    if (claudePaths.length > 0) {
+      ruleContent = `---\npaths:\n${claudePaths.map((p: string) => `  - "${p}"`).join("\n")}\n---\n\n${body.trim()}\n`;
+    } else {
+      ruleContent = body.trim() + "\n";
+    }
+    writeFileSync(targetPath, ruleContent, "utf-8");
+    return { targetPath, modeLabel: MODE_LABELS["project-rule"] || MODE_LABELS[mode] || mode };
+  }
+
+  const rulesDir = join(projDir, paths.projectRulesDir);
   mkdirSync(rulesDir, { recursive: true });
   const targetPath = join(rulesDir, safeName + ".mdc");
   writeFileSync(targetPath, buildMdcContent(content, mode, options), "utf-8");
-  return { targetPath, modeLabel: MODE_LABELS[mode] };
+  return { targetPath, modeLabel: MODE_LABELS[mode] || mode };
 }
 
 function installToLocalRepo(safeName: string, content: string): { targetPath: string; modeLabel: string } | { error: string } {
@@ -968,12 +1089,13 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
         instResult = installToLocalRepo(safeName, content);
       } else if (installMode === "global-skill") {
         instResult = installToGlobalSkill(safeName, content);
-      } else if (installMode === "cursorrules") {
-        if (!projectPath) return { error: "cursorrules 模式需要指定项目路径" };
+      } else if (installMode === "cursorrules" || installMode === "project-root-rule") {
+        if (!projectPath) return { error: "项目规则模式需要指定项目路径" };
         const projDir = resolve(projectPath);
         if (!existsSync(projDir)) return { error: "项目路径不存在: " + projectPath };
-        const tp = writeToCursorrules(projectPath, safeName, content, writeMode);
-        instResult = { targetPath: tp, modeLabel: MODE_LABELS["cursorrules"] };
+        const tp = writeToProjectRootRule(projectPath, safeName, content, writeMode);
+        const mLabel = MODE_LABELS["project-root-rule"] || MODE_LABELS["cursorrules"] || installMode;
+        instResult = { targetPath: tp, modeLabel: mLabel };
       } else {
         if (!projectPath) return { error: "项目规则模式需要指定项目路径" };
         instResult = installToProjectRule(safeName, content, projectPath, installMode as RuleMode, { globs, description: customDesc });
@@ -1038,12 +1160,13 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
           instResult2 = installToLocalRepo(safeName, content);
         } else if (installMode2 === "global-skill") {
           instResult2 = installToGlobalSkill(safeName, content);
-        } else if (installMode2 === "cursorrules") {
-          if (!projectPath2) return { error: "cursorrules 模式需要指定项目路径" };
+        } else if (installMode2 === "cursorrules" || installMode2 === "project-root-rule") {
+          if (!projectPath2) return { error: "项目规则模式需要指定项目路径" };
           const projDir = resolve(projectPath2);
           if (!existsSync(projDir)) return { error: "项目路径不存在: " + projectPath2 };
-          const tp = writeToCursorrules(projectPath2, safeName, content, writeMode2);
-          instResult2 = { targetPath: tp, modeLabel: MODE_LABELS["cursorrules"] };
+          const tp = writeToProjectRootRule(projectPath2, safeName, content, writeMode2);
+          const mLabel = MODE_LABELS["project-root-rule"] || MODE_LABELS["cursorrules"] || installMode2;
+          instResult2 = { targetPath: tp, modeLabel: mLabel };
         } else {
           if (!projectPath2) return { error: "项目规则模式需要指定项目路径" };
           instResult2 = installToProjectRule(safeName, content, projectPath2, installMode2 as RuleMode, { globs: globs2, description: customDesc2 });
@@ -1131,7 +1254,7 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
     }
 
     case "/api/community/cache-status": {
-      const cacheFile = join(process.env.HOME || "~", ".cursor", "skiller", "data", "community_cache.json");
+      const cacheFile = join(paths.dataDir, "community_cache.json");
       if (!existsSync(cacheFile)) return { cached: false };
       try {
         const raw = JSON.parse(readFileSync(cacheFile, "utf-8"));
@@ -1695,10 +1818,13 @@ const server = createServer((req, res) => {
           return;
         }
         const safeName = name.replace(/[^a-zA-Z0-9_\u4e00-\u9fff-]/g, "-");
-        const rulesDir = join(projDir, ".cursor", "rules");
+        const rulesDir = join(projDir, paths.projectRulesDir);
         mkdirSync(rulesDir, { recursive: true });
-        const targetPath = join(rulesDir, safeName + ".mdc");
-        const finalContent = content || `---\ndescription: ${name}\nglobs: \nalwaysApply: false\n---\n\n# ${name}\n\n在此编写技能内容...\n`;
+        const fileExt = PLATFORM === "claude-code" ? ".md" : ".mdc";
+        const targetPath = join(rulesDir, safeName + fileExt);
+        const finalContent = PLATFORM === "claude-code"
+          ? (content || `# ${name}\n\n在此编写技能内容...\n`)
+          : (content || `---\ndescription: ${name}\nglobs: \nalwaysApply: false\n---\n\n# ${name}\n\n在此编写技能内容...\n`);
         writeFileSync(targetPath, finalContent, "utf-8");
         index = buildIndex();
         res.end(JSON.stringify({ success: true, name: safeName, path: targetPath, totalSkills: index.totalSkills }));

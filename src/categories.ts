@@ -1,8 +1,9 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { join } from "path";
 import { UserCategory, CategoryNode, SkillIndex } from "./types.js";
+import { paths } from "./config.js";
 
-const DATA_DIR = join(process.env.HOME || "~", ".cursor", "skiller", "data");
+const DATA_DIR = paths.dataDir;
 const CATEGORIES_FILE = join(DATA_DIR, "user_categories.json");
 const OVERRIDES_FILE = join(DATA_DIR, "overrides.json");
 const SKILL_PROJECTS_FILE = join(DATA_DIR, "skill_projects.json");

@@ -1,5 +1,34 @@
 # Changelog
 
+## v2.5.0 — Claude Code 适配 + 平台感知架构 (2026-04-10)
+
+### 架构升级：平台感知配置系统
+- **新增 `src/config.ts`** — 所有硬编码路径提取为平台感知配置模块
+- **环境变量切换** — `SKILLER_PLATFORM=claude-code`（默认）或 `cursor`，一行切换平台
+- **路径系统重构** — `~/.cursor/` → `~/.claude/`，技能目录、数据目录、MCP 配置路径全部适配
+
+### Claude Code 适配
+- **MCP 配置** — 从 `~/.cursor/mcp.json` 改为 `~/.claude.json`，支持 `claude mcp add` CLI
+- **项目扫描** — 移除 Cursor `state.vscdb` 依赖，改用 `~/.claude.json` projects 字段 + 文件系统扫描
+- **规则系统** — `.cursorrules` / `.cursor/rules/*.mdc` 改为 `CLAUDE.md` / `.claude/rules/*.md`
+- **安装模式简化** — 6 种模式精简为 3 种：全局 Skill / 常驻 Rule (CLAUDE.md) / 按需 Rule (.claude/rules/)
+
+### UI 更新
+- **安装弹窗重写** — 模式比较表和选项全部适配 Claude Code 的 3 种模式
+- **文案更新** — 所有 "Cursor" 引用替换为 "Claude Code"，路径显示同步更新
+- **新手引导** — 技能模式说明改为 全局 Skill / 按需 Rule / 常驻 Rule
+
+### 文档更新
+- **README.md** — 安装指南改为 `claude mcp add` 方式，新增平台兼容性说明
+- **docs/INSTALL.md** — 完整重写为 Claude Code 安装流程
+- **docs/INTRO.md** — 产品介绍适配 Claude Code
+
+### 技术统计
+- 新增 1 文件 (`src/config.ts`)
+- 修改 11 文件
+
+---
+
 ## v2.4.0 — 本地仓库统一架构 + 性能优化 + UI 重构 (2026-04-10)
 
 ### 架构升级：本地仓库统一视图
