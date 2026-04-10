@@ -5713,7 +5713,7 @@
           var hintDiv = document.createElement('div');
           hintDiv.id = 'ghcStaleHint';
           hintDiv.style.cssText = 'position:absolute; top:4px; right:4px; font-size:10px; color:var(--text2); background:var(--bg2); padding:2px 8px; border-radius:12px; z-index:5';
-          hintDiv.innerHTML = '后台刷新中...';
+          hintDiv.innerHTML = '⏳ 正在获取最新数据...';
           var listParent = listEl ? listEl.parentNode : null;
           if (listParent) { listParent.style.position = 'relative'; listParent.appendChild(hintDiv); }
         }
@@ -5861,8 +5861,9 @@
 
       var rawContent = '';
       try {
-        var resp = await fetch(skill.rawUrl, { signal: AbortSignal.timeout(10000) });
-        if (resp.ok) rawContent = await resp.text();
+        var sourceParam = ghcSelectedSourceId ? '&sourceId=' + encodeURIComponent(ghcSelectedSourceId) : '';
+        var proxyRes = await api('/api/community/fetch-content?url=' + encodeURIComponent(skill.rawUrl) + sourceParam);
+        if (proxyRes.content) rawContent = proxyRes.content;
       } catch(e) {}
 
       var currentSource = (communityConfig.sources || []).find(function(s) { return s.id === ghcSelectedSourceId; });
@@ -6083,9 +6084,7 @@
       var description = descEl ? descEl.value.trim() : '';
       if (!description) { alert('请输入描述内容'); return; }
       try {
-        var result = await api('/api/community/upload-description?sourceId=' + encodeURIComponent(ghcSelectedSourceId)
-          + '&name=' + encodeURIComponent(skillName)
-          + '&description=' + encodeURIComponent(description));
+        var result = await apiPost('/api/community/upload-description', { sourceId: ghcSelectedSourceId, name: skillName, description: description });
         if (result.success) {
           showToast({ tool: 'edit', resultSummary: '已保存「' + skillName + '」的描述', timestamp: new Date().toISOString() });
           var skill = ghcSkills.find(function(s) { return s.name === skillName; });
@@ -6294,9 +6293,7 @@
 
     async function saveGhcCategoriesData() {
       var data = JSON.stringify({ categories: ghcRepoCategories, skillCategories: ghcSkillCategories }, null, 2);
-      var result = await api('/api/community/save-repo-categories?sourceId=' + encodeURIComponent(ghcSelectedSourceId)
-        + '&data=' + encodeURIComponent(data)
-        + (ghcCategoriesSha ? '&sha=' + encodeURIComponent(ghcCategoriesSha) : ''));
+      var result = await apiPost('/api/community/save-repo-categories', { sourceId: ghcSelectedSourceId, data: data, sha: ghcCategoriesSha || undefined });
       if (result.success) {
         ghcCategoriesSha = result.sha;
       } else {
@@ -6620,7 +6617,14 @@
 
       const t0 = performance.now();
       try {
-        communitySkills = await api('/api/community/skills?light=1');
+        var rawResult = await api('/api/community/skills?light=1');
+        if (rawResult && rawResult._errors) {
+          var errMsgs = rawResult._errors.map(function(e) { return e.repo + ': ' + e.error; }).join('\n');
+          showToast({ tool: 'community', resultSummary: '⚠️ 部分源加载失败: ' + rawResult._errors.length + ' 个', timestamp: new Date().toISOString() });
+          communitySkills = rawResult.skills || rawResult;
+        } else {
+          communitySkills = Array.isArray(rawResult) ? rawResult : (rawResult.skills || []);
+        }
         const loadMs = Math.round(performance.now() - t0);
         const isFast = loadMs < 500;
 
@@ -6635,7 +6639,14 @@
         }
 
         const sources = [...new Set(communitySkills.map(s => s.sourceLabel).filter(Boolean))];
-        const cacheHint = isFast ? `<span style="font-size:11px; color:var(--accent); margin-left:4px" title="从缓存加载">⚡ 缓存 ${loadMs}ms</span>` : '';
+        var cacheHint = isFast ? `<span style="font-size:11px; color:var(--accent); margin-left:4px" title="从缓存加载">⚡ 缓存 ${loadMs}ms</span>` : '';
+        try {
+          var cacheStatus = await api('/api/community/cache-status');
+          if (cacheStatus.cached && cacheStatus.entries) {
+            var lightEntry = cacheStatus.entries['all-light'] || cacheStatus.entries['all'];
+            if (lightEntry) cacheHint += `<span style="font-size:10px; color:var(--text2); margin-left:6px" title="缓存更新时间">🕐 ${lightEntry.age}更新</span>`;
+          }
+        } catch {}
         const enrichHint = hasDesc ? '描述已就绪' : '加载描述中...';
 
         listEl.innerHTML = `
@@ -6754,7 +6765,8 @@
     }
 
     function renderCommunityCard(skill) {
-      const isOwn = skill.sourceId === 'primary';
+      const writableIds = new Set(['primary', ...(communityConfig.sources || []).filter(s => s.writable).map(s => s.id)]);
+      const isOwn = writableIds.has(skill.sourceId);
       const desc = skill.description || '';
       const truncDesc = desc.length > 100 ? desc.slice(0, 100) + '...' : desc;
       return `
@@ -6778,23 +6790,23 @@
             <button class="btn-preview" onclick="event.stopPropagation(); previewSkill(this.closest('.community-card').dataset.name, this.closest('.community-card').dataset.url)">📄 查看全文</button>
             <a href="${escapeAttr(skill.htmlUrl)}" target="_blank" class="btn-preview" style="text-decoration:none" onclick="event.stopPropagation()">🔗 GitHub</a>
             ${isOwn ? `<button class="btn-preview" style="color:var(--red,#e53935); border-color:var(--red,#e53935)"
-              onclick="event.stopPropagation(); deleteFromCommunityBrowse('${escapeAttr(skill.name)}', this)">🗑️ 下架</button>` : ''}
+              onclick="event.stopPropagation(); deleteFromCommunityBrowse('${escapeAttr(skill.name)}', '${escapeAttr(skill.sourceId || 'primary')}', this)">🗑️ 下架</button>` : ''}
           </div>
         </div>
       `;
     }
 
-    async function deleteFromCommunityBrowse(skillName, btn) {
-      if (!confirm('确定要从社区下架 "' + skillName + '" 吗？\\n\\n这会从你的 GitHub 仓库中删除该技能。')) return;
+    async function deleteFromCommunityBrowse(skillName, sourceId, btn) {
+      if (!confirm('确定要从社区下架 "' + skillName + '" 吗？\\n\\n这会从你的仓库中删除该技能。')) return;
       const origText = btn.textContent;
       btn.textContent = '⏳ 下架中...';
       btn.disabled = true;
       try {
-        const result = await api('/api/community/delete?name=' + encodeURIComponent(skillName));
+        const result = await api('/api/community/delete?name=' + encodeURIComponent(skillName) + '&sourceId=' + encodeURIComponent(sourceId || 'primary'));
         if (result.success) {
           showToast({ tool: 'delete', resultSummary: result.message, timestamp: new Date().toISOString() });
           invalidateAllViews();
-          communitySkills = communitySkills.filter(s => !(s.name === skillName && s.sourceId === 'primary'));
+          communitySkills = communitySkills.filter(s => !(s.name === skillName && s.sourceId === sourceId));
           ownSkillsList = ownSkillsList.filter(n => n !== skillName);
           renderCommunityList();
         } else {
@@ -6817,11 +6829,21 @@
       body.innerHTML = '<div class="empty-state"><div class="icon" style="animation:wobble 1s infinite">⏳</div><p>正在从 GitHub 加载 SKILL.md 全文...</p></div>';
       panel.classList.add('open');
       try {
-        const resp = await fetch(rawUrl);
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const text = await resp.text();
-        const parts = rawUrl.split('/');
-        const ghLink = 'https://github.com/' + parts[3] + '/' + parts[4] + '/tree/' + parts[5] + '/' + parts.slice(6, -1).join('/');
+        const proxyResult = await api('/api/community/fetch-content?url=' + encodeURIComponent(rawUrl));
+        if (proxyResult.error && !proxyResult.content) throw new Error(proxyResult.error);
+        const text = proxyResult.content || '';
+        let ghLink = rawUrl;
+        try {
+          const u = new URL(rawUrl);
+          if (u.hostname === 'raw.githubusercontent.com') {
+            const segs = u.pathname.split('/').filter(Boolean);
+            if (segs.length >= 3) {
+              const [owner, repo, branch, ...rest] = segs;
+              const dir = rest.length > 1 ? rest.slice(0, -1).join('/') : rest.join('/');
+              ghLink = `https://github.com/${owner}/${repo}/tree/${branch}/${dir}`;
+            }
+          }
+        } catch (_) {}
         const tokenEst = Math.round(text.length / 4);
         body.innerHTML = '<div style="margin-bottom:12px; display:flex; gap:8px; flex-wrap:wrap">'
           + '<span class="tag source">社区技能</span>'
@@ -7117,32 +7139,40 @@
           showToast({ tool: 'source', resultSummary: '已移除订阅源', timestamp: new Date().toISOString() });
           communityTab = 'sources'; renderCommunity();
         }
-      } catch {}
+      } catch (e) {
+        showToast({ tool: 'source', resultSummary: '移除失败: ' + (e.message || e), timestamp: new Date().toISOString() });
+      }
     }
 
     async function editSourceToken(sourceId, repo, label) {
       const source = (communityConfig.sources || []).find(s => s.id === sourceId);
-      const currentToken = source?.token || '';
-      const hasToken = !!currentToken;
+      const maskedToken = source?.token || '';
+      const hasToken = maskedToken && maskedToken.includes('••');
 
       const newToken = prompt(
         `${hasToken ? '当前已配置专用 Token。' : '当前无专用 Token（使用全局 Token）。'}\n\n` +
         `为 "${label}" (${repo}) 设置专用授权 Token：\n\n` +
-        `• 私有仓库需要源主提供只读 Fine-grained PAT\n` +
-        `• 公开仓库留空即可\n` +
+        `• 输入新 Token 替换现有配置\n` +
+        `• 留空并确认 = 保持不变\n` +
         `• 输入 "clear" 清除已有 Token`,
-        hasToken ? '••••••••' : ''
+        ''
       );
 
       if (newToken === null) return;
-      const token = newToken === 'clear' ? '' : newToken === '••••••••' ? currentToken : newToken;
+      var body = { repo, label, branch: source?.branch || 'main', skillsPath: source?.skillsPath || 'skills' };
+      if (newToken === 'clear') {
+        body.token = '';
+      } else if (newToken.trim()) {
+        body.token = newToken.trim();
+      }
 
       try {
-        const result = await apiPost('/api/community/add-source', { repo, label, branch: source?.branch || 'main', skillsPath: source?.skillsPath || 'skills', token });
+        const result = await apiPost('/api/community/add-source', body);
         if (result.sources) {
           communityConfig.sources = result.sources;
           communityLoaded = false;
-          showToast({ tool: 'token', resultSummary: token ? `已为 ${label} 设置专用 Token` : `已清除 ${label} 的 Token`, timestamp: new Date().toISOString() });
+          var msg = newToken === 'clear' ? `已清除 ${label} 的 Token` : (newToken.trim() ? `已为 ${label} 设置专用 Token` : `${label} Token 保持不变`);
+          showToast({ tool: 'token', resultSummary: msg, timestamp: new Date().toISOString() });
           renderCommunity();
         }
       } catch { alert('操作失败'); }
@@ -7592,9 +7622,14 @@
     }
 
     async function refreshCommunity() {
-      await api('/api/community/refresh');
-      communityLoaded = false;
-      renderCommunity();
+      try {
+        await api('/api/community/refresh');
+        communityLoaded = false;
+        showToast({ tool: 'refresh', resultSummary: '社区缓存已刷新', timestamp: new Date().toISOString() });
+        renderCommunity();
+      } catch (e) {
+        showToast({ tool: 'refresh', resultSummary: '刷新失败: ' + (e.message || e), timestamp: new Date().toISOString() });
+      }
     }
 
     function renderCommunitySetup() {
@@ -7786,7 +7821,7 @@
 
     function escapeHtml(text) {
       if (!text) return '';
-      return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
 
     function escapeAttr(text) {

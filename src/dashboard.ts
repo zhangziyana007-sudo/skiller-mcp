@@ -7,7 +7,6 @@ import matter from "gray-matter";
 import { searchSkills, getSkillStats } from "./searcher.js";
 import { loadLog } from "./logger.js";
 import { parseSkillTree } from "./skill-parser.js";
-// plaza.ts removed — community-only mode
 import {
   loadConfig, saveConfig, addSource, removeSource,
   listCommunitySkills, listSourceSkills, uploadSkill, uploadDescriptionFile, deleteSkill, listOwnSkills,
@@ -705,6 +704,24 @@ function maskToken(token?: string): string | undefined {
   return "••••" + token.slice(-4);
 }
 
+async function rollbackCreated(repo: string, branch: string, headers: Record<string, string>, paths: string[]) {
+  for (const p of paths) {
+    try {
+      const r = await fetch(`https://api.github.com/repos/${repo}/contents/${p}?ref=${branch}`, {
+        headers, signal: AbortSignal.timeout(8000),
+      });
+      if (!r.ok) continue;
+      const d = (await r.json()) as { sha: string };
+      await fetch(`https://api.github.com/repos/${repo}/contents/${p}`, {
+        method: "DELETE",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ message: `rollback rename: delete ${p}`, sha: d.sha, branch }),
+        signal: AbortSignal.timeout(10000),
+      });
+    } catch { /* best-effort rollback */ }
+  }
+}
+
 function maskConfig<T extends { githubToken?: string; sources: Array<{ token?: string }> }>(cfg: T) {
   return {
     ...cfg,
@@ -756,20 +773,24 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       const pageSizeStr = params.get("pageSize");
       const page = pageStr ? parseInt(pageStr) : undefined;
       const pageSize = pageSizeStr ? parseInt(pageSizeStr) : 30;
-      const skills = await listCommunitySkills(config, { light, page, pageSize });
+      const rawResult = await listCommunitySkills(config, { light, page, pageSize });
+      const skills = Array.isArray(rawResult) ? rawResult : rawResult.skills;
+      const errors = Array.isArray(rawResult) ? undefined : rawResult._errors;
       const localNames = localSkillNames();
-      return skills.map(s => ({
+      const mapped = skills.map(s => ({
         ...s,
         installed: localNames.some(n => n.toLowerCase() === s.name.toLowerCase()),
       }));
+      return errors ? { skills: mapped, _errors: errors } : mapped;
     }
 
     case "/api/community/skills/enrich": {
       const config = loadConfig();
-      const skills = await listCommunitySkills(config, { light: true });
+      const rawEnrich = await listCommunitySkills(config, { light: true });
+      const skillsForEnrich = Array.isArray(rawEnrich) ? rawEnrich : rawEnrich.skills;
       const start = parseInt(params.get("start") || "0");
       const count = parseInt(params.get("count") || "20");
-      const enriched = await enrichSkillMetadata(skills, start, count);
+      const enriched = await enrichSkillMetadata(skillsForEnrich, start, count);
       const localNames = localSkillNames();
       return enriched.map(s => ({
         ...s,
@@ -793,7 +814,10 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       const result = await uploadSkill(config, skillName, content);
 
       if (result.success && extraDesc.trim()) {
-        await uploadDescriptionFile(config, skillName, extraDesc.trim());
+        const descResult = await uploadDescriptionFile(config, skillName, extraDesc.trim());
+        if (!descResult.success) {
+          return { ...result, descWarning: "技能已上传，但描述文件保存失败: " + (descResult.error || "未知错误") };
+        }
       }
       return result;
     }
@@ -985,11 +1009,36 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       return getInstallRegistry();
     }
 
+    case "/api/community/fetch-content": {
+      const fetchUrl = params.get("url") || "";
+      if (!fetchUrl) return { error: "Missing url" };
+      if (!isAllowedUrl(fetchUrl)) return { error: "URL not allowed" };
+      const cfg = loadConfig();
+      let fetchToken = cfg.githubToken || "";
+      const fetchSourceId = params.get("sourceId");
+      if (fetchSourceId) {
+        const src = cfg.sources.find((s) => s.id === fetchSourceId);
+        if (src?.token) fetchToken = src.token;
+      }
+      try {
+        const headers: Record<string, string> = {};
+        if (fetchToken && (fetchUrl.includes("github") || fetchUrl.includes("githubusercontent"))) {
+          headers["Authorization"] = `token ${fetchToken}`;
+        }
+        const resp = await fetch(fetchUrl, { headers, signal: AbortSignal.timeout(10000) });
+        if (!resp.ok) return { error: `HTTP ${resp.status}`, content: "" };
+        const text = await resp.text();
+        return { content: text };
+      } catch (e) {
+        return { error: String(e).slice(0, 200), content: "" };
+      }
+    }
+
     case "/api/community/refresh": {
       clearAllCache();
       const config = loadConfig();
-      const skills = await listCommunitySkills(config, { light: true });
-      return skills || [];
+      const rawRefresh = await listCommunitySkills(config, { light: true });
+      return Array.isArray(rawRefresh) ? rawRefresh : rawRefresh.skills;
     }
 
     case "/api/community/cache-status": {
@@ -1166,11 +1215,15 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
         const oldFiles = treeData.tree.filter(t => t.type === "blob" && t.path.startsWith(oldPrefix));
         if (oldFiles.length === 0) return { success: false, message: `找不到 ${rnOldName} 的文件` };
 
+        const createdPaths: string[] = [];
         for (const file of oldFiles) {
           const fileResp = await fetch(`https://api.github.com/repos/${rnSource.repo}/contents/${file.path}?ref=${rnSource.branch}`, {
             headers: rnHeaders, signal: AbortSignal.timeout(8000),
           });
-          if (!fileResp.ok) return { success: false, message: `读取文件 ${file.path} 失败` };
+          if (!fileResp.ok) {
+            await rollbackCreated(rnSource.repo, rnSource.branch, rnHeaders, createdPaths);
+            return { success: false, message: `读取文件 ${file.path} 失败` };
+          }
           const fileData = await fileResp.json() as { content: string; sha: string };
 
           const relativePath = file.path.slice(oldPrefix.length);
@@ -1187,32 +1240,39 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
             signal: AbortSignal.timeout(15000),
           });
           if (!createResp.ok) {
+            await rollbackCreated(rnSource.repo, rnSource.branch, rnHeaders, createdPaths);
             const errText = await createResp.text();
-            return { success: false, message: `创建新文件失败: ${errText.slice(0, 200)}` };
+            return { success: false, message: `创建新文件失败（已回滚）: ${errText.slice(0, 200)}` };
           }
+          createdPaths.push(newPath);
         }
 
+        let deleteFailures = 0;
         for (const file of oldFiles) {
-          const delResp = await fetch(`https://api.github.com/repos/${rnSource.repo}/contents/${file.path}?ref=${rnSource.branch}`, {
-            headers: rnHeaders, signal: AbortSignal.timeout(8000),
-          });
-          if (delResp.ok) {
-            const delData = await delResp.json() as { sha: string };
-            await fetch(`https://api.github.com/repos/${rnSource.repo}/contents/${file.path}`, {
-              method: "DELETE",
-              headers: { ...rnHeaders, "Content-Type": "application/json" },
-              body: JSON.stringify({
-                message: `rename: delete old ${rnOldName}/${file.path.slice(oldPrefix.length)}`,
-                sha: delData.sha,
-                branch: rnSource.branch,
-              }),
-              signal: AbortSignal.timeout(15000),
+          try {
+            const delResp = await fetch(`https://api.github.com/repos/${rnSource.repo}/contents/${file.path}?ref=${rnSource.branch}`, {
+              headers: rnHeaders, signal: AbortSignal.timeout(8000),
             });
-          }
+            if (delResp.ok) {
+              const delData = await delResp.json() as { sha: string };
+              const dr = await fetch(`https://api.github.com/repos/${rnSource.repo}/contents/${file.path}`, {
+                method: "DELETE",
+                headers: { ...rnHeaders, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  message: `rename: delete old ${rnOldName}/${file.path.slice(oldPrefix.length)}`,
+                  sha: delData.sha,
+                  branch: rnSource.branch,
+                }),
+                signal: AbortSignal.timeout(15000),
+              });
+              if (!dr.ok) deleteFailures++;
+            }
+          } catch { deleteFailures++; }
         }
 
         clearAllCache();
-        return { success: true, message: `已将 ${rnOldName} 重命名为 ${rnNewName}` };
+        const warn = deleteFailures > 0 ? `（${deleteFailures} 个旧文件未能删除，需手动清理）` : "";
+        return { success: true, message: `已将 ${rnOldName} 重命名为 ${rnNewName}${warn}` };
       } catch (e) {
         return { success: false, message: `操作失败: ${e instanceof Error ? e.message : String(e)}` };
       }
@@ -1601,8 +1661,9 @@ server.listen(PORT, () => {
     const config = loadConfig();
     if (config.repo || config.sources.length > 0) {
       console.log("  [Cache] Pre-warming community skills cache...");
-      listCommunitySkills(config, { light: true }).then(skills => {
-        console.log(`  [Cache] Warmed: ${skills.length} skills ready`);
+      listCommunitySkills(config, { light: true }).then(result => {
+        const arr = Array.isArray(result) ? result : result.skills;
+        console.log(`  [Cache] Warmed: ${arr.length} skills ready`);
       }).catch(() => {});
     }
   }, 2000);

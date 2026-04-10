@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from "fs";
 import { join } from "path";
+import matter from "gray-matter";
 
 const CONFIG_DIR = join(process.env.HOME || "~", ".cursor", "skiller", "data");
 const CONFIG_FILE = join(CONFIG_DIR, "community_config.json");
@@ -96,16 +97,23 @@ export function saveConfig(config: Partial<CommunityConfig>): CommunityConfig {
   const current = loadConfig();
   const merged = { ...current, ...config };
   if (config.sources) merged.sources = config.sources;
+  if (config.githubToken && config.githubToken.includes("••")) {
+    merged.githubToken = current.githubToken;
+  }
   writeFileSync(CONFIG_FILE, JSON.stringify(merged, null, 2), "utf-8");
   return merged;
 }
 
 export function addSource(source: Omit<CommunitySource, "id">): CommunityConfig {
   const config = loadConfig();
-  const id = source.repo.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
-  if (config.sources.find((s) => s.id === id)) {
-    const idx = config.sources.findIndex((s) => s.id === id);
-    config.sources[idx] = { ...source, id };
+  const baseId = source.repo.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
+  const branchSuffix = source.branch && source.branch !== "main" ? "-" + source.branch.replace(/[^a-zA-Z0-9]/g, "") : "";
+  const id = baseId + branchSuffix;
+  const existing = config.sources.find((s) => s.id === id);
+  if (existing) {
+    const idx = config.sources.indexOf(existing);
+    const mergedToken = source.token !== undefined ? source.token : existing.token;
+    config.sources[idx] = { ...source, id, token: mergedToken };
   } else {
     config.sources.push({ ...source, id });
   }
@@ -150,10 +158,16 @@ async function parallelLimit<T>(
 export function extractMetadata(content: string): { description: string; author: string } {
   let description = "";
   let author = "";
-  const descMatch = content.match(/description:\s*["']?(.+?)["']?\s*$/m);
-  if (descMatch) description = descMatch[1].trim();
-  const authorMatch = content.match(/author:\s*["']?(.+?)["']?\s*$/m);
-  if (authorMatch) author = authorMatch[1].trim();
+  try {
+    const { data } = matter(content);
+    if (data.description) description = String(data.description).trim();
+    if (data.author) author = String(data.author).trim();
+  } catch {
+    const descMatch = content.match(/description:\s*["']?(.+?)["']?\s*$/m);
+    if (descMatch) description = descMatch[1].trim();
+    const authorMatch = content.match(/author:\s*["']?(.+?)["']?\s*$/m);
+    if (authorMatch) author = authorMatch[1].trim();
+  }
   if (!description) {
     const firstLine = content.split("\n").find((l) => l.trim() && !l.startsWith("#") && !l.startsWith("---"));
     if (firstLine) description = firstLine.trim().slice(0, 120);
@@ -238,17 +252,26 @@ async function listSkillDirs(
         truncated?: boolean;
       };
 
-      const isRoot = skillsPath === "." || skillsPath === "" || skillsPath === "/";
-      const prefix = isRoot ? "" : skillsPath.replace(/\/$/, "") + "/";
-      const skillMdPaths = data.tree.filter(
-        (t) => t.type === "blob" && (isRoot || t.path.startsWith(prefix)) && t.path.endsWith("/SKILL.md")
-      );
+      if (!data.truncated) {
+        const isRoot = skillsPath === "." || skillsPath === "" || skillsPath === "/";
+        const prefix = isRoot ? "" : skillsPath.replace(/\/$/, "") + "/";
+        const skillMdPaths = data.tree.filter(
+          (t) => t.type === "blob" && (isRoot || t.path.startsWith(prefix)) && t.path.endsWith("/SKILL.md")
+        );
 
-      return skillMdPaths.map((t) => {
-        const relative = isRoot ? t.path : t.path.slice(prefix.length);
-        const dirName = relative.split("/")[0];
-        return { name: dirName, sha: t.sha };
-      });
+        const seen = new Set<string>();
+        return skillMdPaths
+          .map((t) => {
+            const relative = isRoot ? t.path : t.path.slice(prefix.length);
+            const dirName = relative.split("/")[0];
+            return { name: dirName, sha: t.sha };
+          })
+          .filter((d) => {
+            if (seen.has(d.name)) return false;
+            seen.add(d.name);
+            return true;
+          });
+      }
     }
   } catch {}
 
@@ -377,7 +400,7 @@ function collectSources(config: CommunityConfig): SourceEntry[] {
 export async function listCommunitySkills(
   config: CommunityConfig,
   options?: { light?: boolean; page?: number; pageSize?: number; forceRefresh?: boolean }
-): Promise<CommunitySkill[]> {
+): Promise<CommunitySkill[] | { skills: CommunitySkill[]; _errors: Array<{ repo: string; error: string }> }> {
   if (!config.repo && config.sources.length === 0) return [];
 
   const light = options?.light ?? false;
@@ -416,10 +439,18 @@ export async function listCommunitySkills(
   const allSkills = sourceResults
     .filter((r): r is PromiseFulfilledResult<CommunitySkill[]> => r.status === "fulfilled")
     .flatMap((r) => r.value);
+  const failedSources = sourceResults
+    .map((r, i) => ({ result: r, source: sources[i] }))
+    .filter((x) => x.result.status === "rejected")
+    .map((x) => ({ repo: x.source.repo, error: String((x.result as PromiseRejectedResult).reason).slice(0, 100) }));
   const cacheKey = light ? "all-light" : "all";
   saveCommunityCache(cacheKey, { updatedAt: new Date().toISOString(), skills: allSkills });
 
-  return paginate(allSkills, page, pageSize);
+  const paginated = paginate(allSkills, page, pageSize);
+  if (failedSources.length > 0) {
+    return { skills: paginated, _errors: failedSources };
+  }
+  return paginated;
 }
 
 export async function listSourceSkills(
@@ -469,6 +500,12 @@ export async function uploadSkill(
 ): Promise<{ success: boolean; message: string; htmlUrl?: string }> {
   if (!config.repo || !config.githubToken) {
     return { success: false, message: "请先配置社区仓库和 GitHub Token" };
+  }
+  if (content.length > 500000) {
+    return { success: false, message: "SKILL.md 内容过大（最大 500KB）" };
+  }
+  if (!/^[a-zA-Z0-9_\-. ]+$/.test(skillName)) {
+    return { success: false, message: "技能名称只能包含字母、数字、下划线、短横线、点和空格" };
   }
 
   const path = `${config.skillsPath}/${skillName}/SKILL.md`;
@@ -528,8 +565,9 @@ export async function uploadDescriptionFile(
   config: CommunityConfig,
   skillName: string,
   description: string
-): Promise<void> {
-  if (!config.repo || !config.githubToken) return;
+): Promise<{ success: boolean; error?: string }> {
+  if (!config.repo || !config.githubToken) return { success: false, error: "缺少仓库或 Token 配置" };
+  if (description.length > 10000) return { success: false, error: "描述过长（最大 10000 字符）" };
 
   const path = `${config.skillsPath}/${skillName}/DESCRIPTION.md`;
   const url = `https://api.github.com/repos/${config.repo}/contents/${path}`;
@@ -554,13 +592,17 @@ export async function uploadDescriptionFile(
   if (existingSha) body.sha = existingSha;
 
   try {
-    await fetch(url, {
+    const resp = await fetch(url, {
       method: "PUT",
       headers: { ...githubHeaders(config.githubToken), "Content-Type": "application/json" },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(15000),
     });
-  } catch {}
+    if (!resp.ok) return { success: false, error: `HTTP ${resp.status}` };
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: String(e).slice(0, 100) };
+  }
 }
 
 export async function deleteSkill(
@@ -571,6 +613,7 @@ export async function deleteSkill(
   let repo = config.repo;
   let branch = config.branch;
   let skillsPath = config.skillsPath;
+  let token = config.githubToken;
 
   if (sourceId && sourceId !== "primary") {
     const source = config.sources.find((s) => s.id === sourceId);
@@ -580,9 +623,10 @@ export async function deleteSkill(
     repo = source.repo;
     branch = source.branch;
     skillsPath = source.skillsPath;
+    token = source.token || config.githubToken;
   }
 
-  if (!repo || !config.githubToken) {
+  if (!repo || !token) {
     return { success: false, message: "请先配置社区仓库和 GitHub Token" };
   }
 
@@ -591,7 +635,7 @@ export async function deleteSkill(
 
   try {
     const checkResp = await fetch(`${url}?ref=${branch}`, {
-      headers: githubHeaders(config.githubToken),
+      headers: githubHeaders(token),
       signal: AbortSignal.timeout(10000),
     });
     if (!checkResp.ok) {
@@ -602,7 +646,7 @@ export async function deleteSkill(
     const resp = await fetch(url, {
       method: "DELETE",
       headers: {
-        ...githubHeaders(config.githubToken),
+        ...githubHeaders(token),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -677,6 +721,22 @@ _通过 Skiller Dashboard 自动提交_
         message: `技能 "${submission.skillName}" 已提交到 ${targetRepo}，等待审核`,
         issueUrl: data.html_url,
       };
+    }
+
+    if (resp.status === 422) {
+      const retryResp = await fetch(`https://api.github.com/repos/${targetRepo}/issues`, {
+        method: "POST",
+        headers: { ...githubHeaders(config.githubToken), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `[Skill Submit] ${submission.skillName} by ${submission.author || config.authorName || "anonymous"}`,
+          body: issueBody,
+        }),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (retryResp.ok || retryResp.status === 201) {
+        const data = (await retryResp.json()) as { html_url: string; number: number };
+        return { success: true, message: `技能 "${submission.skillName}" 已提交到 ${targetRepo}，等待审核`, issueUrl: data.html_url };
+      }
     }
 
     const err = await resp.text();
