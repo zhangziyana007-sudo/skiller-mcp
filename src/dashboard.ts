@@ -1182,6 +1182,31 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
           instResult2 = installToLocalRepo(safeName, content);
         } else if (installMode2 === "global-skill") {
           instResult2 = installToGlobalSkill(safeName, content);
+          if (!("error" in instResult2)) {
+            const skillDir = dirname(instResult2.targetPath);
+            const dirPath = ghPath.endsWith(".md") || ghPath.endsWith(".MD")
+              ? ghPath.replace(/\/[^/]+$/, "")
+              : ghPath;
+            try {
+              const treeResp = await fetch(
+                `https://api.github.com/repos/${ghRepo}/contents/${dirPath}?ref=${ghBranch}`,
+                { signal: AbortSignal.timeout(10000), headers: { "Accept": "application/vnd.github.v3+json" } }
+              );
+              if (treeResp.ok) {
+                const entries = await treeResp.json() as Array<{ name: string; download_url: string | null; type: string }>;
+                for (const entry of entries) {
+                  if (entry.name === "SKILL.md" || entry.name === "skill.md" || entry.type !== "file" || !entry.download_url) continue;
+                  try {
+                    const fileResp = await fetch(entry.download_url, { signal: AbortSignal.timeout(10000) });
+                    if (fileResp.ok) {
+                      const buf = Buffer.from(await fileResp.arrayBuffer());
+                      writeFileSync(join(skillDir, entry.name), buf);
+                    }
+                  } catch {}
+                }
+              }
+            } catch {}
+          }
         } else if (installMode2 === "cursorrules" || installMode2 === "project-root-rule") {
           if (!projectPath2) return { error: "项目规则模式需要指定项目路径" };
           const projDir = resolve(projectPath2);
