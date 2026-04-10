@@ -1,5 +1,33 @@
 # Changelog
 
+## v2.3.1 — 社区模块安全加固 + Bug 全量修复 (2026-04-10)
+
+### 安全修复（高优先级）
+- **#6** deleteSkill 改用源级 Token，不再泄露全局 Token 到非目标仓库
+- **#12-14** 新增 `/api/community/fetch-content` 代理端点，私有源内容请求服务端携带 Token，前端不再暴露凭据
+- **#15** Token 掩码值 (`••••xxxx`) 写回防护，编辑配置时不会把掩码覆盖真实 Token
+- **#16** 敏感参数（Token、大段文本）从 URL query 迁移至 POST body，防止日志泄露
+- **#28** `escapeHtml` 补充 `"` 和 `'` 引号转义，堵住潜在 XSS 向量
+
+### 数据健壮性
+- **#7** listSkillDirs 检测 GitHub Git Data API 的 `truncated` 响应，超限时自动回退 Contents API
+- **#8** 多源技能列表通过 `seen` Set 去重，避免跨源重复显示
+- **#9** 多源加载失败时返回 `_errors` 数组，前端可精准提示用户哪个源出了问题
+- **#10** submitSkillViaIssue: 仓库无 `skill-submission` label 导致 422 时，自动去掉 label 重试
+- **#24** rename-skill 增加 `rollbackCreated()` 回滚机制，创建新文件中途失败时自动清理已创建的文件
+
+### 输入校验
+- **#22** previewSkill URL 解析改用 `URL` 对象，替代脆弱的 `split('/')` 硬编码拼接
+- **#26** uploadSkill 内容限制 500KB + 技能名正则校验（字母/数字/下划线/短横线）；description 限制 10KB
+- **#25** 可写源浏览页显示下架按钮 — 检测 `writable` 标记而非仅匹配 `primary` sourceId
+
+### 代码清理
+- **#29** 删除未被引用的 `plaza.ts` 死代码模块（277 行）
+
+### 技术统计
+- 修改 3 文件，删除 1 文件
+- +247 行 / -368 行（净减 121 行）
+
 ## v2.3.0 — 项目驱动工作区 + UX 全面优化 (2026-04-09)
 
 ### 架构重构：项目驱动视图
