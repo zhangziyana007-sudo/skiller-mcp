@@ -14,6 +14,27 @@
 
 ---
 
+## 界面预览
+
+<table>
+<tr>
+<td align="center"><strong>项目管理首页</strong><br><img src="./screenshots/01-dashboard-home.png" width="400"></td>
+<td align="center"><strong>项目技能配置</strong><br><img src="./screenshots/02-project-detail.png" width="400"></td>
+</tr>
+<tr>
+<td align="center"><strong>社区技能浏览</strong><br><img src="./screenshots/04-community.png" width="400"></td>
+<td align="center"><strong>MCP Server 管理</strong><br><img src="./screenshots/05-mcp-management.png" width="400"></td>
+</tr>
+<tr>
+<td align="center"><strong>使用日志 & 统计</strong><br><img src="./screenshots/06-usage-log.png" width="400"></td>
+<td align="center"><strong>暗黑主题</strong><br><img src="./screenshots/07-dark-theme.png" width="400"></td>
+</tr>
+</table>
+
+> 支持 6 种主题切换：简洁 / 蜡笔小新 / 暗黑 / 海洋 / 森林 / 日落
+
+---
+
 ## 核心理念
 
 Skiller 将所有 AI 技能统一管理到一个**本地仓库**中，无论是自建技能、社区下载还是全局安装的 Skill，都能在同一个面板中浏览、搜索、安装到任意项目。
