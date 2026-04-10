@@ -4,10 +4,10 @@ export interface SkillEntry {
   categories: string[];
   tags: string[];
   path: string;
-  source: "custom" | "superpowers" | "skills-cursor" | "project-rules";
+  source: "custom" | "superpowers" | "skills-cursor" | "project-rules" | "local-repo";
   tokenEstimate: number;
   projectName?: string;
-  installMode?: "global-skill" | "rule-smart" | "rule-always" | "project-skill";
+  installMode?: "global-skill" | "cursorrules" | "rule-always" | "rule-auto" | "rule-agent" | "rule-manual";
 }
 
 export interface UserCategory {

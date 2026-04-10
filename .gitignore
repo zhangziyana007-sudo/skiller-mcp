@@ -3,6 +3,8 @@ dist/
 *.js
 *.js.map
 *.d.ts
+!dashboard/*.js
+!dashboard/*.css
 
 data/
 !data/.gitkeep

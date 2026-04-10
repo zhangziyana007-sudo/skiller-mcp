@@ -2,7 +2,7 @@ import { createServer, IncomingMessage, ServerResponse } from "http";
 import { readFileSync, existsSync, watch, statSync, rmSync, renameSync, readdirSync, unlinkSync, mkdirSync, writeFileSync } from "fs";
 import { join, extname, resolve, dirname, basename } from "path";
 import { execSync } from "child_process";
-import { getOrBuildIndex, buildIndex } from "./indexer.js";
+import { getOrBuildIndex, buildIndex, LOCAL_REPO_DIR, scanSingleProject } from "./indexer.js";
 import matter from "gray-matter";
 import { searchSkills, getSkillStats } from "./searcher.js";
 import { loadLog } from "./logger.js";
@@ -115,6 +115,27 @@ function handleApi(path: string, params: URLSearchParams): unknown {
       const allOverrides = loadOverrides();
       return index.skills.map(s => {
         const ov = allOverrides[s.name];
+        return ov ? { ...s, displayName: ov.displayName, customDescription: ov.description } : s;
+      });
+    }
+
+    case "/api/local-repo": {
+      const allOv = loadOverrides();
+      return index.skills
+        .filter(s => s.source === "local-repo")
+        .map(s => {
+          const ov = allOv[s.name];
+          return ov ? { ...s, displayName: ov.displayName, customDescription: ov.description } : s;
+        });
+    }
+
+    case "/api/project-skills": {
+      const projPath = params.get("projectPath") || "";
+      if (!projPath) return [];
+      const projSkills = scanSingleProject(projPath);
+      const allOvP = loadOverrides();
+      return projSkills.map(s => {
+        const ov = allOvP[s.name];
         return ov ? { ...s, displayName: ov.displayName, customDescription: ov.description } : s;
       });
     }
@@ -497,7 +518,10 @@ function handleApi(path: string, params: URLSearchParams): unknown {
     case "/api/skill/copy-to-project": {
       const cpName = params.get("name") || "";
       const cpProject = params.get("projectPath") || "";
-      const cpMode = params.get("mode") || "global-skill";
+      const cpMode = normalizeMode(params.get("mode") || "global-skill");
+      const cpGlobs = params.get("globs") || "";
+      const cpDesc = params.get("description") || "";
+      const cpWriteMode = (params.get("writeMode") || "append") as "append" | "replace";
       if (!cpName || !cpProject) return { success: false, message: "Missing name or projectPath" };
       const cpSkill = index.skills.find(
         (s) => s.name === cpName || s.name.toLowerCase() === cpName.toLowerCase()
@@ -506,30 +530,26 @@ function handleApi(path: string, params: URLSearchParams): unknown {
       try {
         const content = readFileSync(cpSkill.path, "utf-8");
         const safeName = cpName.replace(/[^a-zA-Z0-9_-]/g, "-");
-        let targetPath: string;
-        let modeLabel: string;
+        let cpResult: { targetPath: string; modeLabel: string } | { error: string };
 
         if (cpMode === "global-skill") {
-          const globalSkillDir = join(process.env.HOME || "~", ".cursor", "skills", safeName);
-          mkdirSync(globalSkillDir, { recursive: true });
-          targetPath = join(globalSkillDir, "SKILL.md");
-          writeFileSync(targetPath, content, "utf-8");
-          modeLabel = "全局技能";
-        } else {
+          cpResult = installToGlobalSkill(safeName, content);
+        } else if (cpMode === "cursorrules") {
           const projDir = resolve(cpProject);
           if (!existsSync(projDir)) return { success: false, message: "项目路径不存在: " + cpProject };
-          const rulesDir = join(projDir, ".cursor", "rules");
-          mkdirSync(rulesDir, { recursive: true });
-          targetPath = join(rulesDir, safeName + ".mdc");
-          const alwaysApply = cpMode === "rule-always";
-          const { data: fm, content: body } = matter(content);
-          const description = (fm.description as string) || cpSkill.description || safeName;
-          const frontmatter = `---\ndescription: ${description}\nglobs: \nalwaysApply: ${alwaysApply}\n---\n`;
-          writeFileSync(targetPath, frontmatter + body.trim() + "\n", "utf-8");
-          modeLabel = alwaysApply ? "项目规则（常驻）" : "项目规则（智能）";
+          const tp = writeToCursorrules(cpProject, safeName, content, cpWriteMode);
+          cpResult = { targetPath: tp, modeLabel: MODE_LABELS["cursorrules"] };
+        } else {
+          cpResult = installToProjectRule(safeName, content, cpProject, cpMode as RuleMode, {
+            globs: cpGlobs,
+            description: cpDesc || cpSkill.description,
+          });
         }
+
+        if ("error" in cpResult) return { success: false, message: cpResult.error };
+
         index = buildIndex();
-        return { success: true, message: `已以 ${modeLabel} 模式添加`, path: targetPath, mode: cpMode, totalSkills: index.totalSkills };
+        return { success: true, message: `已以 ${cpResult.modeLabel} 模式添加`, path: cpResult.targetPath, mode: cpMode, totalSkills: index.totalSkills };
       } catch (e) {
         return { success: false, message: `复制失败: ${String(e).slice(0, 200)}` };
       }
@@ -730,6 +750,98 @@ function maskConfig<T extends { githubToken?: string; sources: Array<{ token?: s
   };
 }
 
+type RuleMode = "rule-always" | "rule-auto" | "rule-agent" | "rule-manual";
+
+const MODE_LABELS: Record<string, string> = {
+  "global-skill": "全局 Skill",
+  "cursorrules": "项目级规则 (.cursorrules)",
+  "rule-always": "Always Rule（始终生效）",
+  "rule-auto": "Auto Rule（文件匹配）",
+  "rule-agent": "Agent Rule（按需加载）",
+  "rule-manual": "Manual Rule（手动引用）",
+};
+
+function normalizeMode(raw: string): string {
+  if (raw === "global" || raw === "global-skill") return "global-skill";
+  if (raw === "local-repo") return "local-repo";
+  if (raw === "rule-smart") return "rule-agent";
+  if (raw === "project-skill" || raw === "project") return "rule-agent";
+  if (raw in MODE_LABELS) return raw;
+  return "global-skill";
+}
+
+function buildMdcContent(rawContent: string, mode: RuleMode, options?: { globs?: string; description?: string }): string {
+  const { data: fm, content: body } = matter(rawContent);
+  let description = options?.description || (fm.description as string) || "";
+  let globs = options?.globs || "";
+  let alwaysApply = false;
+
+  switch (mode) {
+    case "rule-always":
+      alwaysApply = true;
+      break;
+    case "rule-auto":
+      alwaysApply = false;
+      break;
+    case "rule-agent":
+      alwaysApply = false;
+      globs = "";
+      if (!description) description = (fm.name as string) || "";
+      break;
+    case "rule-manual":
+      alwaysApply = false;
+      globs = "";
+      description = "";
+      break;
+  }
+
+  return `---\ndescription: ${description}\nglobs: ${globs}\nalwaysApply: ${alwaysApply}\n---\n${body.trim()}\n`;
+}
+
+function writeToCursorrules(projectPath: string, skillName: string, rawContent: string, writeMode: "append" | "replace"): string {
+  const projDir = resolve(projectPath);
+  const targetPath = join(projDir, ".cursorrules");
+  const { content: body } = matter(rawContent);
+  const cleanBody = body.trim();
+
+  if (writeMode === "replace") {
+    writeFileSync(targetPath, cleanBody + "\n", "utf-8");
+  } else {
+    const existing = existsSync(targetPath) ? readFileSync(targetPath, "utf-8") : "";
+    const separator = `\n\n# ===== ${skillName} =====\n\n`;
+    writeFileSync(targetPath, existing.trimEnd() + separator + cleanBody + "\n", "utf-8");
+  }
+  return targetPath;
+}
+
+function installToGlobalSkill(safeName: string, content: string): { targetPath: string; modeLabel: string } | { error: string } {
+  const base = join(process.env.HOME || "~", ".cursor", "skills");
+  const dir = join(base, safeName);
+  if (!resolve(dir).startsWith(resolve(base))) return { error: "Invalid path" };
+  mkdirSync(dir, { recursive: true });
+  const targetPath = join(dir, "SKILL.md");
+  writeFileSync(targetPath, content, "utf-8");
+  return { targetPath, modeLabel: MODE_LABELS["global-skill"] };
+}
+
+function installToProjectRule(safeName: string, content: string, projectPath: string, mode: RuleMode, options?: { globs?: string; description?: string }): { targetPath: string; modeLabel: string } | { error: string } {
+  const projDir = resolve(projectPath);
+  if (!existsSync(projDir)) return { error: "项目路径不存在: " + projectPath };
+  const rulesDir = join(projDir, ".cursor", "rules");
+  mkdirSync(rulesDir, { recursive: true });
+  const targetPath = join(rulesDir, safeName + ".mdc");
+  writeFileSync(targetPath, buildMdcContent(content, mode, options), "utf-8");
+  return { targetPath, modeLabel: MODE_LABELS[mode] };
+}
+
+function installToLocalRepo(safeName: string, content: string): { targetPath: string; modeLabel: string } | { error: string } {
+  const dir = join(LOCAL_REPO_DIR, safeName);
+  mkdirSync(dir, { recursive: true });
+  const targetPath = join(dir, "SKILL.md");
+  writeFileSync(targetPath, content, "utf-8");
+  return { targetPath, modeLabel: "本地仓库" };
+}
+
 const ALLOWED_HOSTS = [
   "raw.githubusercontent.com",
   "github.com",
@@ -841,62 +953,46 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
       if (!name || !rawUrl) return { error: "Missing name or url" };
       if (!isAllowedUrl(rawUrl)) return { error: "URL 不在允许的域名列表中（仅支持 GitHub / Gitee）" };
 
-      const installMode = params.get("mode") || params.get("scope") || "global-skill";
+      const installMode = normalizeMode(params.get("mode") || params.get("scope") || "global-skill");
       const projectPath = params.get("projectPath") || "";
+      const globs = params.get("globs") || "";
+      const customDesc = params.get("description") || "";
+      const writeMode = (params.get("writeMode") || "append") as "append" | "replace";
       const safeName = name.replace(/[^a-zA-Z0-9_-]/g, "-");
       const content = await downloadCommunitySkill(rawUrl);
       if (!content) return { error: "Failed to fetch skill" };
 
-      let targetPath: string;
-      let modeLabel: string;
-      if (installMode === "global-skill" || installMode === "global") {
-        const base = join(process.env.HOME || "~", ".cursor", "skills");
-        const dir = join(base, safeName);
-        if (!resolve(dir).startsWith(resolve(base))) return { error: "Invalid path" };
-        mkdirSync(dir, { recursive: true });
-        targetPath = join(dir, "SKILL.md");
-        writeFileSync(targetPath, content, "utf-8");
-        modeLabel = "全局技能";
-      } else if ((installMode === "rule-smart" || installMode === "rule-always") && projectPath) {
+      let instResult: { targetPath: string; modeLabel: string } | { error: string };
+
+      if (installMode === "local-repo") {
+        instResult = installToLocalRepo(safeName, content);
+      } else if (installMode === "global-skill") {
+        instResult = installToGlobalSkill(safeName, content);
+      } else if (installMode === "cursorrules") {
+        if (!projectPath) return { error: "cursorrules 模式需要指定项目路径" };
         const projDir = resolve(projectPath);
         if (!existsSync(projDir)) return { error: "项目路径不存在: " + projectPath };
-        const rulesDir = join(projDir, ".cursor", "rules");
-        mkdirSync(rulesDir, { recursive: true });
-        targetPath = join(rulesDir, safeName + ".mdc");
-        const alwaysApply = installMode === "rule-always";
-        const { data: fm, content: body } = matter(content);
-        const description = (fm.description as string) || safeName;
-        const frontmatterStr = `---\ndescription: ${description}\nglobs: \nalwaysApply: ${alwaysApply}\n---\n`;
-        writeFileSync(targetPath, frontmatterStr + body.trim() + "\n", "utf-8");
-        modeLabel = alwaysApply ? "项目规则（常驻）" : "项目规则（智能）";
-      } else if (installMode === "project" && projectPath) {
-        const projDir = resolve(projectPath);
-        if (!existsSync(projDir)) return { error: "项目路径不存在: " + projectPath };
-        const rulesDir = join(projDir, ".cursor", "rules");
-        mkdirSync(rulesDir, { recursive: true });
-        targetPath = join(rulesDir, safeName + ".mdc");
-        writeFileSync(targetPath, content, "utf-8");
-        modeLabel = "项目规则";
+        const tp = writeToCursorrules(projectPath, safeName, content, writeMode);
+        instResult = { targetPath: tp, modeLabel: MODE_LABELS["cursorrules"] };
       } else {
-        const base = join(process.env.HOME || "~", ".cursor", "skills");
-        const dir = join(base, safeName);
-        mkdirSync(dir, { recursive: true });
-        targetPath = join(dir, "SKILL.md");
-        writeFileSync(targetPath, content, "utf-8");
-        modeLabel = "全局技能";
+        if (!projectPath) return { error: "项目规则模式需要指定项目路径" };
+        instResult = installToProjectRule(safeName, content, projectPath, installMode as RuleMode, { globs, description: customDesc });
       }
+
+      if ("error" in instResult) return instResult;
+
       registerInstall({
         skillName: name,
         sourceUrl: rawUrl,
         installedAt: new Date().toISOString(),
         installMode,
-        targetPath,
+        targetPath: instResult.targetPath,
         contentHash: simpleHash(content),
         ...(projectPath ? { projectPath } : {}),
       });
       index = buildIndex();
 
-      return { success: true, name: safeName, path: targetPath, mode: installMode, modeLabel, totalSkills: index.totalSkills };
+      return { success: true, name: safeName, path: instResult.targetPath, mode: installMode, modeLabel: instResult.modeLabel, totalSkills: index.totalSkills };
     }
 
     case "/api/community/install-url": {
@@ -924,8 +1020,11 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
         }
       }
 
-      const installMode2 = params.get("mode") || params.get("scope") || "global-skill";
+      const installMode2 = normalizeMode(params.get("mode") || params.get("scope") || "global-skill");
       const projectPath2 = params.get("projectPath") || "";
+      const globs2 = params.get("globs") || "";
+      const customDesc2 = params.get("description") || "";
+      const writeMode2 = (params.get("writeMode") || "append") as "append" | "replace";
 
       try {
         const resp = await fetch(rawUrl, { signal: AbortSignal.timeout(10000) });
@@ -933,47 +1032,37 @@ async function handleAsyncApi(path: string, params: URLSearchParams): Promise<un
         const content = await resp.text();
         if (!content.trim()) return { error: "内容为空" };
 
-        let targetPath: string;
-        let modeLabel2: string;
-        if (installMode2 === "global-skill" || installMode2 === "global") {
-          const skillsBase = join(process.env.HOME || "~", ".cursor", "skills");
-          const skillDir = join(skillsBase, safeName);
-          if (!resolve(skillDir).startsWith(resolve(skillsBase))) return { error: "Invalid path" };
-          mkdirSync(skillDir, { recursive: true });
-          targetPath = join(skillDir, "SKILL.md");
-          writeFileSync(targetPath, content, "utf-8");
-          modeLabel2 = "全局技能";
-        } else if ((installMode2 === "rule-smart" || installMode2 === "rule-always") && projectPath2) {
+        let instResult2: { targetPath: string; modeLabel: string } | { error: string };
+
+        if (installMode2 === "local-repo") {
+          instResult2 = installToLocalRepo(safeName, content);
+        } else if (installMode2 === "global-skill") {
+          instResult2 = installToGlobalSkill(safeName, content);
+        } else if (installMode2 === "cursorrules") {
+          if (!projectPath2) return { error: "cursorrules 模式需要指定项目路径" };
           const projDir = resolve(projectPath2);
           if (!existsSync(projDir)) return { error: "项目路径不存在: " + projectPath2 };
-          const rulesDir = join(projDir, ".cursor", "rules");
-          mkdirSync(rulesDir, { recursive: true });
-          targetPath = join(rulesDir, safeName + ".mdc");
-          const alwaysApply = installMode2 === "rule-always";
-          const { data: fm2, content: body2 } = matter(content);
-          const desc2 = (fm2.description as string) || safeName;
-          writeFileSync(targetPath, `---\ndescription: ${desc2}\nglobs: \nalwaysApply: ${alwaysApply}\n---\n` + body2.trim() + "\n", "utf-8");
-          modeLabel2 = alwaysApply ? "项目规则（常驻）" : "项目规则（智能）";
+          const tp = writeToCursorrules(projectPath2, safeName, content, writeMode2);
+          instResult2 = { targetPath: tp, modeLabel: MODE_LABELS["cursorrules"] };
         } else {
-          const skillsBase = join(process.env.HOME || "~", ".cursor", "skills");
-          const skillDir = join(skillsBase, safeName);
-          mkdirSync(skillDir, { recursive: true });
-          targetPath = join(skillDir, "SKILL.md");
-          writeFileSync(targetPath, content, "utf-8");
-          modeLabel2 = "全局技能";
+          if (!projectPath2) return { error: "项目规则模式需要指定项目路径" };
+          instResult2 = installToProjectRule(safeName, content, projectPath2, installMode2 as RuleMode, { globs: globs2, description: customDesc2 });
         }
+
+        if ("error" in instResult2) return instResult2;
+
         registerInstall({
           skillName: skillName,
           sourceUrl: rawUrl,
           installedAt: new Date().toISOString(),
           installMode: installMode2,
-          targetPath,
+          targetPath: instResult2.targetPath,
           contentHash: simpleHash(content),
           ...(projectPath2 ? { projectPath: projectPath2 } : {}),
         });
         index = buildIndex();
 
-        return { success: true, name: safeName, path: targetPath, mode: installMode2, modeLabel: modeLabel2, totalSkills: index.totalSkills };
+        return { success: true, name: safeName, path: instResult2.targetPath, mode: installMode2, modeLabel: instResult2.modeLabel, totalSkills: index.totalSkills };
       } catch (e: unknown) {
         return { error: `请求失败: ${e instanceof Error ? e.message : String(e)}` };
       }
