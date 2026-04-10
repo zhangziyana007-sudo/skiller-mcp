@@ -8,6 +8,8 @@ export interface SkillEntry {
   tokenEstimate: number;
   projectName?: string;
   installMode?: "global-skill" | "cursorrules" | "rule-always" | "rule-auto" | "rule-agent" | "rule-manual" | "project-root-rule" | "project-rule";
+  /** Companion files in the skill directory (relative names) */
+  companionFiles?: string[];
 }
 
 export interface UserCategory {

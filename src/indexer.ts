@@ -78,6 +78,13 @@ function scanDirectory(
         }
       }
 
+      const companions: string[] = [];
+      try {
+        for (const f of readdirSync(skillDir, { withFileTypes: true })) {
+          if (f.name !== "SKILL.md") companions.push(f.name);
+        }
+      } catch {}
+
       skills.push({
         name,
         description,
@@ -87,6 +94,7 @@ function scanDirectory(
         source,
         tokenEstimate: estimateTokens(content),
         installMode: "global-skill",
+        ...(companions.length > 0 ? { companionFiles: companions } : {}),
       });
     } catch (err) {
       console.error(`Failed to parse ${skillMdPath}: ${err}`);

@@ -1,5 +1,5 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import { readFileSync, existsSync, watch, statSync, rmSync, renameSync, readdirSync, unlinkSync, mkdirSync, writeFileSync } from "fs";
+import { readFileSync, existsSync, watch, statSync, rmSync, renameSync, readdirSync, unlinkSync, mkdirSync, writeFileSync, cpSync } from "fs";
 import { join, extname, resolve, dirname, basename } from "path";
 import { execSync } from "child_process";
 import { getOrBuildIndex, buildIndex, LOCAL_REPO_DIR, scanSingleProject } from "./indexer.js";
@@ -586,7 +586,8 @@ function handleApi(path: string, params: URLSearchParams): unknown {
 
         if (cpMode === "global-skill") {
           const disableModelInvocation = params.get("disableModelInvocation") === "1";
-          cpResult = installToGlobalSkill(safeName, content, { disableModelInvocation });
+          const sourceDir = dirname(cpSkill.path);
+          cpResult = installToGlobalSkill(safeName, content, { disableModelInvocation, sourceDir });
         } else if (cpMode === "cursorrules" || cpMode === "project-root-rule") {
           const projDir = resolve(cpProject);
           if (!existsSync(projDir)) return { success: false, message: "项目路径不存在: " + cpProject };
@@ -620,12 +621,20 @@ function handleApi(path: string, params: URLSearchParams): unknown {
       try {
         const content = readFileSync(prSkill.path, "utf-8");
         const safeName = prName.replace(/[^a-zA-Z0-9_-]/g, "-");
-        const globalDir = join(paths.skillsDir, safeName);
-        mkdirSync(globalDir, { recursive: true });
-        const targetPath = join(globalDir, "SKILL.md");
-        writeFileSync(targetPath, content, "utf-8");
+        const sourceDir = dirname(prSkill.path);
+        const prResult = installToGlobalSkill(safeName, content, { sourceDir });
+        if ("error" in prResult) return { success: false, message: prResult.error };
+        const targetPath = prResult.targetPath;
         if (prDelete) {
-          try { unlinkSync(prSkill.path); } catch {}
+          try {
+            const parentDir = dirname(prSkill.path);
+            const siblings = readdirSync(parentDir);
+            if (siblings.length <= 1) {
+              rmSync(parentDir, { recursive: true, force: true });
+            } else {
+              unlinkSync(prSkill.path);
+            }
+          } catch {}
         }
         index = buildIndex();
         return { success: true, message: `已提升为全局技能`, path: targetPath, totalSkills: index.totalSkills };
@@ -902,11 +911,24 @@ function writeToProjectRootRule(projectPath: string, skillName: string, rawConte
   return targetPath;
 }
 
-function installToGlobalSkill(safeName: string, content: string, options?: { disableModelInvocation?: boolean }): { targetPath: string; modeLabel: string } | { error: string } {
+function installToGlobalSkill(safeName: string, content: string, options?: { disableModelInvocation?: boolean; sourceDir?: string }): { targetPath: string; modeLabel: string } | { error: string } {
   const base = paths.skillsDir;
   const dir = join(base, safeName);
   if (!resolve(dir).startsWith(resolve(base))) return { error: "Invalid path" };
   mkdirSync(dir, { recursive: true });
+
+  if (options?.sourceDir && existsSync(options.sourceDir)) {
+    try {
+      const entries = readdirSync(options.sourceDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.name === "SKILL.md") continue;
+        const src = join(options.sourceDir, entry.name);
+        const dest = join(dir, entry.name);
+        cpSync(src, dest, { recursive: true });
+      }
+    } catch {}
+  }
+
   const targetPath = join(dir, "SKILL.md");
 
   if (PLATFORM === "claude-code" && options?.disableModelInvocation) {
